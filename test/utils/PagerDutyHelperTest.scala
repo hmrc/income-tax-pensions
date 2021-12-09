@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxpensions.controllers
+package utils
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status
-import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.http.HttpResponse
 
-class MicroserviceHelloWorldControllerSpec extends AnyWordSpec with Matchers {
+class PagerDutyHelperTest extends TestUtils {
 
-  private val fakeRequest = FakeRequest("GET", "/")
-  private val controller = new MicroserviceHelloWorldController(Helpers.stubControllerComponents())
+  "PagerDutyHelper" should {
 
-  "GET /" should {
-    "return 200" in {
-      val result = controller.hello()(fakeRequest)
-      status(result) shouldBe Status.OK
+    val status = 200
+
+    "return string containing correlationId when response contains correlationId" in {
+      val result = PagerDutyHelper.getCorrelationId(HttpResponse(status, "", Map("CorrelationId" -> Seq("some_correlation_id"))))
+      result mustBe " CorrelationId: some_correlation_id"
     }
+
+    "return empty string when response does not contain correlationId" in {
+      val result = PagerDutyHelper.getCorrelationId(HttpResponse(status, ""))
+      result mustBe ""
+    }
+
   }
 }

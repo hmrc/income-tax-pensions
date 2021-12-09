@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxpensions.controllers
+package utils
 
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
-
-@Singleton()
-class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
-    extends BackendController(cc) {
-
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
+/**
+ * Represents a tax year for DES
+ *
+ * Calculating the tax year string (where 2018 represents 2017-18)
+ */
+object DESTaxYearHelper {
+  def desTaxYearConverter(taxYear:Int): String = {
+    val lastYear = taxYear -1
+    val endOfTaxYear = taxYear.toString.takeRight(2)
+    s"$lastYear-$endOfTaxYear"
   }
 }
