@@ -16,19 +16,31 @@
 
 package config
 
-import javax.inject.{Inject, Singleton}
+import com.google.inject.ImplementedBy
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+import javax.inject.Inject
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+  class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
+    val authBaseUrl: String = servicesConfig.baseUrl("auth")
+    val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
+    val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 
-  val desBaseUrl: String = servicesConfig.baseUrl("des")
+    val desBaseUrl: String = servicesConfig.baseUrl("des")
 
-  val environment: String = config.get[String]("microservice.services.des.environment")
-  val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
-}
+    val environment: String = config.get[String]("microservice.services.des.environment")
+    val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
+  }
+
+  @ImplementedBy(classOf[BackendAppConfig])
+  trait AppConfig  {
+    val authBaseUrl: String
+    val auditingEnabled: Boolean
+    val graphiteHost: String
+
+    val desBaseUrl: String
+
+    val environment: String
+    val authorisationToken: String
+  }
