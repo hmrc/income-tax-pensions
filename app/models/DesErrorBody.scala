@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ case class DesErrorBodyModel(code: String, reason: String) extends DesErrorBody
 object DesErrorBodyModel {
   implicit val formats: OFormat[DesErrorBodyModel] = Json.format[DesErrorBodyModel]
   val parsingError: DesErrorBodyModel = DesErrorBodyModel("PARSING_ERROR", "Error parsing response from DES")
-  val invalidTaxYear: DesErrorBodyModel = DesErrorBodyModel("INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")
+  val invalidTaxYear: DesErrorBodyModel = DesErrorBodyModel(
+    "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")
   val invalidTaxableEntityId: DesErrorBodyModel = DesErrorBodyModel(
     "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")
   val invalidCorrelationId: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_CORRELATION_ID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
+    "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
   val serviceUnavailable: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
   val serverError: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
 }

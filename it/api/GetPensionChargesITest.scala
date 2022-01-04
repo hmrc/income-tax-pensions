@@ -25,42 +25,96 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
+class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
   trait Setup {
-    implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(5.0, Seconds))
+    val timeSpan: Long = 5
+    implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(timeSpan, Seconds))
     val nino: String = "AA123123A"
-    val taxYear = 2021
-    val agentClientCookie: Map[String, String] = Map("MTDITID" -> "555555555")
+    val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
-    val desUrl = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
+    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val serviceUrl: String = s"/income-tax-pensions/pension-charges/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
 
-  val GetPensionReliefDesResponseBody: String =
+  val GetPensionChargesDesResponseBody: String =
     """
-      |{
-      |    "submittedOn": "2020-01-04T05:01:01Z",
-      |    "deletedOn": "2020-01-04T05:01:01Z",
-      |    "pensionReliefs": {
-      |        "regularPensionContributions": 100.11,
-      |        "oneOffPensionContributionsPaid": 200.22,
-      |        "retirementAnnuityPayments": 300.33,
-      |        "paymentToEmployersSchemeNoTaxRelief": 400.44,
-      |        "overseasPensionSchemeContributions": 500.55
-      |    }
-      |}
-      |""".stripMargin
+      {
+      | "submittedOn": "2020-07-27T17:00:19Z",
+      |	"pensionSavingsTaxCharges": {
+      |		"pensionSchemeTaxReference": [
+      |			"00123456RA"
+      |		],
+      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
+      |			"amount": 123.45,
+      |			"taxPaid": 12.45
+      |		},
+      |		"benefitInExcessOfLifetimeAllowance": {
+      |			"amount": 123.45,
+      |			"taxPaid": 12.34
+      |		},
+      |		"isAnnualAllowanceReduced": true,
+      |		"taperedAnnualAllowance": true,
+      |		"moneyPurchasedAllowance": false
+      |	},
+      |	"pensionSchemeOverseasTransfers": {
+      |		"overseasSchemeProvider": [{
+      |			"providerName": "Overseas Pensions Plc",
+      |			"providerAddress": "111 Some Street, Some Town, Some Place",
+      |			"providerCountryCode": "ESP",
+      |			"qualifyingRecognisedOverseasPensionScheme": [
+      |				"Q123456"
+      |			]
+      |		}],
+      |		"transferCharge": 123.45,
+      |		"transferChargeTaxPaid": 0
+      |	},
+      |	"pensionSchemeUnauthorisedPayments": {
+      |		"pensionSchemeTaxReference": [
+      |			"00123456RA"
+      |		],
+      |		"surcharge": {
+      |			"amount": 123.45,
+      |			"foreignTaxPaid": 123.45
+      |		},
+      |		"noSurcharge": {
+      |			"amount": 123.45,
+      |			"foreignTaxPaid": 123.45
+      |		}
+      |	},
+      |	"pensionContributions": {
+      |		"pensionSchemeTaxReference": [
+      |			"00123456RA"
+      |		],
+      |		"inExcessOfTheAnnualAllowance": 123.45,
+      |		"annualAllowanceTaxPaid": 123.45
+      |	},
+      |	"overseasPensionContributions": {
+      |		"overseasSchemeProvider": [{
+      |			"providerName": "Overseas Pensions Plc",
+      |			"providerAddress": "112 Some Street, Some Town, Some Place",
+      |			"providerCountryCode": "ESP",
+      |			"pensionSchemeTaxReference": [
+      |				"00123456RA"
+      |			]
+      |		}],
+      |		"shortServiceRefund": 123.45,
+      |		"shortServiceRefundTaxPaid": 0
+      |	}
+      |}""".stripMargin
 
-
-  "get pension reliefs" when {
+  "get pension charges" when {
 
     "the user is an individual" must {
-      "return a 200 and the pension reliefs" in new Setup {
+      "return 200 and the pension charges for a user" in new Setup {
 
-        stubGetWithResponseBody(desUrl, OK, GetPensionReliefDesResponseBody)
+        stubGetWithResponseBody(
+          url = desUrl,
+          status = OK,
+          response = GetPensionChargesDesResponseBody
+        )
 
         authorised()
 
@@ -69,19 +123,25 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
           .get) {
           result =>
             result.status mustBe OK
-            Json.parse(result.body) mustBe Json.parse(GetPensionReliefDesResponseBody)
+            Json.parse(result.body) mustBe Json.parse(GetPensionChargesDesResponseBody)
         }
       }
 
-      "return 400 if there is an invalid tax year" in new Setup {
+      "return 400 if a there is an invalid tax year" in new Setup {
+
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
+        stubGetWithResponseBody(
+          url = desUrl,
+          status = BAD_REQUEST,
+          response = errorResponseBody
+        )
 
-        stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
         authorised()
+
         whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
-        .get) {
+          .withHttpHeaders(mtditidHeader)
+          .get) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -89,12 +149,18 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 400 if a there is an invalid taxable entity id (nino)" in new Setup {
+      "return 400 if a there is an taxable entity id (nino)" in new Setup {
+
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
+        stubGetWithResponseBody(
+          url = desUrl,
+          status = BAD_REQUEST,
+          response = errorResponseBody
+        )
 
-        stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
         authorised()
+
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
           .get) {
@@ -105,10 +171,32 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 404 if a user has no recorded pension reliefs" in new Setup {
+      "return 400 if a there is an invalid header correlation id" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "NOT_FOUND", "The remote endpoint has indicated that no data can be found.")).toString()
+          "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")).toString()
+        stubGetWithResponseBody(
+          url = desUrl,
+          status = BAD_REQUEST,
+          response = errorResponseBody
+        )
+
+        authorised()
+
+        whenReady(buildClient(serviceUrl)
+          .withHttpHeaders(mtditidHeader)
+          .get) {
+          result =>
+            result.status mustBe BAD_REQUEST
+            Json.parse(result.body) mustBe Json.obj(
+              "code" -> "INVALID_CORRELATIONID", "reason" -> "Submission has not passed validation. Invalid Header parameter CorrelationId.")
+        }
+      }
+
+      "return 404 if a user has no recorded pension charges" in new Setup {
+
+        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
+          "NO_DATA_FOUND", "The remote endpoint has indicated that no data can be found.")).toString()
 
         stubGetWithResponseBody(
           url = desUrl,
@@ -193,6 +281,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         }
       }
     }
+
   }
 
 }

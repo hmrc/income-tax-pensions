@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package utils
+package services
 
-/**
- * Represents a tax year for DES
- *
- * Calculating the tax year string (where 2018 represents 2017-18)
- */
-object DESTaxYearHelper {
-  def desTaxYearConverter(taxYear:Int): String = {
-    val lastYear = taxYear -1
-    val endOfTaxYear = taxYear.toString.takeRight(2)
-    s"$lastYear-$endOfTaxYear"
-  }
+import connectors.GetPensionChargesConnector
+import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
+import uk.gov.hmrc.http.HeaderCarrier
+
+import javax.inject.Inject
+import scala.concurrent.Future
+
+class GetPensionChargesService @Inject()(connector: GetPensionChargesConnector) {
+
+  def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
+    connector.getPensionCharges(nino, taxYear)
+
 }

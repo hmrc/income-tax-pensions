@@ -17,23 +17,22 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
-
-import javax.inject.Inject
+import connectors.httpParsers.GetPensionChargesHttpParser.{GetPensionChargesHttpReads, GetPensionChargesResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.DESTaxYearHelper.desTaxYearConverter
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetPensionReliefsConnector @Inject()(val http: HttpClient,
-                                           val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class GetPensionChargesConnector @Inject()(val http: HttpClient,
+                                               val appConfig: AppConfig)(implicit ec:ExecutionContext) extends DesConnector {
 
-  def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
+  def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
     val incomeSourcesUri: String =
-      appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
+      appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
-    def desCall(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
-      http.GET[GetPensionReliefsResponse](incomeSourcesUri)
+    def desCall(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
+      http.GET[GetPensionChargesResponse](incomeSourcesUri)
     }
 
     desCall(desHeaderCarrier(incomeSourcesUri))
