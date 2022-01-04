@@ -16,23 +16,24 @@
 
 package connectors.httpParsers
 
-import models.{DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel}
+import models.{DesErrorBodyModel, DesErrorModel, GetPensionChargesRequestModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object GetPensionReliefsHttpParser extends DESParser {
-  type GetPensionReliefsResponse = Either[DesErrorModel, GetPensionReliefsModel]
+object GetPensionChargesHttpParser extends DESParser {
 
-  override val parserName: String = "GetPensionReliefsHttpParser"
+  type GetPensionChargesResponse = Either[DesErrorModel, GetPensionChargesRequestModel]
 
-  implicit object GetPensionReliefsHttpReads extends HttpReads[GetPensionReliefsResponse] {
-    override def read(method: String, url: String, response: HttpResponse): GetPensionReliefsResponse = {
+  override val parserName: String = "GetPensionChargesHttpParser"
+  implicit object GetPensionChargesHttpReads extends HttpReads[GetPensionChargesResponse] {
+
+    override def read(method: String, url: String, response: HttpResponse): GetPensionChargesResponse = {
       response.status match {
-        case OK => response.json.validate[GetPensionReliefsModel].fold[GetPensionReliefsResponse](
+        case OK => response.json.validate[GetPensionChargesRequestModel].fold[GetPensionChargesResponse](
           jsonErrors => {
-            pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[GetPensionReliefsHttParser][read] Invalid Json from DES.")
+            pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES,s"[GetPensionChargesHttpParser][read] Invalid Json from DES.")
             Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
           },
           parsedModel => Right(parsedModel)
@@ -52,4 +53,5 @@ object GetPensionReliefsHttpParser extends DESParser {
       }
     }
   }
+
 }

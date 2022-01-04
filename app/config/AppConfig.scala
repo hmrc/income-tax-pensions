@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,25 +22,26 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 
-  class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
-    val authBaseUrl: String = servicesConfig.baseUrl("auth")
-    val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-    val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 
-    val desBaseUrl: String = servicesConfig.baseUrl("des")
+class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
+  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
+  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 
-    val environment: String = config.get[String]("microservice.services.des.environment")
-    val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
-  }
+  val desBaseUrl: String = servicesConfig.baseUrl("des")
 
-  @ImplementedBy(classOf[BackendAppConfig])
-  trait AppConfig  {
-    val authBaseUrl: String
-    val auditingEnabled: Boolean
-    val graphiteHost: String
+  val environment: String = config.get[String]("microservice.services.des.environment")
+  val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
+}
 
-    val desBaseUrl: String
+@ImplementedBy(classOf[BackendAppConfig])
+trait AppConfig  {
+  val authBaseUrl: String
+  val auditingEnabled: Boolean
+  val graphiteHost: String
 
-    val environment: String
-    val authorisationToken: String
-  }
+  val desBaseUrl: String
+
+  val environment: String
+  val authorisationToken: String
+}
