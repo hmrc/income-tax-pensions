@@ -18,23 +18,39 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.GetPensionChargesHttpParser.{GetPensionChargesHttpReads, GetPensionChargesResponse}
+import connectors.httpParsers.DeletePensionChargesHttpParser.{DeletePensionChargesHttpReads, DeletePensionChargesResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.DESTaxYearHelper.desTaxYearConverter
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetPensionChargesConnector @Inject()(val http: HttpClient,
-                                               val appConfig: AppConfig)(implicit ec:ExecutionContext) extends DesConnector {
+class PensionChargesConnector @Inject()(val http: HttpClient,
+                                        val appConfig: AppConfig)(implicit ec:ExecutionContext) extends DesConnector {
+
+  def pensionChargesIncomeSourceUri(nino: String, taxYear: Int): String =
+    appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
-    val incomeSourcesUri: String =
-      appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
+
+    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear)
 
     def desCall(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
-      http.GET[GetPensionChargesResponse](incomeSourcesUri)
+      http.GET[GetPensionChargesResponse](incomeSourceUri)
     }
 
-    desCall(desHeaderCarrier(incomeSourcesUri))
+    desCall(desHeaderCarrier(incomeSourceUri))
+  }
+
+  def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] = {
+
+    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear)
+
+    def desCall(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] = {
+      http.DELETE[DeletePensionChargesResponse](incomeSourceUri)
+    }
+
+    desCall(desHeaderCarrier(incomeSourceUri))
+
   }
 }

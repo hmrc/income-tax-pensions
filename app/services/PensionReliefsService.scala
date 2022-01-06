@@ -16,14 +16,14 @@
 
 package services
 
-import connectors.GetPensionReliefsConnector
+import connectors.PensionReliefsConnector
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class GetPensionReliefsService @Inject()(connector: GetPensionReliefsConnector) {
+class PensionReliefsService @Inject()(connector: PensionReliefsConnector) {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     connector.getPensionReliefs(nino, taxYear)

@@ -20,24 +20,22 @@ import controllers.predicates.AuthorisedAction
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.GetPensionChargesService
+import services.PensionReliefsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class GetPensionChargesController @Inject()(
-                                                 service: GetPensionChargesService,
-                                                 authorisedAction: AuthorisedAction,
-                                                 cc: ControllerComponents
-                                               )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class PensionReliefsController @Inject()(
+                                             service: PensionReliefsService,
+                                             auth: AuthorisedAction,
+                                             cc: ControllerComponents
+                                           )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
-  def getPensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-
-      service.getPensionCharges(nino, taxYear).map{
-        case Right(model) => Ok(Json.toJson(model))
-        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
-      }
-
+  def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
+    service.getPensionReliefs(nino, taxYear).map{
+      case Right(model) => Ok(Json.toJson(model))
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
   }
 }

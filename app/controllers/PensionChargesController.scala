@@ -20,22 +20,33 @@ import controllers.predicates.AuthorisedAction
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.GetPensionReliefsService
+import services.PensionChargesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class GetPensionReliefsController @Inject()(
-                                             service: GetPensionReliefsService,
-                                             auth: AuthorisedAction,
+class PensionChargesController @Inject()(
+                                             service: PensionChargesService,
+                                             authorisedAction: AuthorisedAction,
                                              cc: ControllerComponents
-                                           )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+                                               )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
-  def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    service.getPensionReliefs(nino, taxYear).map{
-      case Right(model) => Ok(Json.toJson(model))
+  def getPensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+
+      service.getPensionCharges(nino, taxYear).map{
+        case Right(model) => Ok(Json.toJson(model))
+        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+      }
+
+  }
+
+  def deletePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+
+    service.deletePensionCharges(nino, taxYear).map{
+      case Right(_) => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
+
   }
 }

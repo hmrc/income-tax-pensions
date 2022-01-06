@@ -1,5 +1,7 @@
 # microservice specific routes
 
-GET     /pension-charges/nino/:nino/taxYear/:taxYear              controllers.GetPensionChargesController.getPensionCharges(nino: String, taxYear: Int)
+GET     /pension-charges/nino/:nino/taxYear/:taxYear              controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
-GET     /pension-reliefs/nino/:nino/taxYear/:taxYear        controllers.GetPensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
+DELETE  /pension-charges/nino/:nino/taxYear/:taxYear              controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
+
+GET     /pension-reliefs/nino/:nino/taxYear/:taxYear              controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
