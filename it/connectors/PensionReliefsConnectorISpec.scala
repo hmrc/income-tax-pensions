@@ -18,7 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
-import connectors.GetPensionReliefsConnectorISpec.expectedResponseBody
+import connectors.PensionReliefsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
 import models.{DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel}
 import play.api.Configuration
@@ -28,9 +28,9 @@ import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class GetPensionReliefsConnectorISpec extends WiremockSpec {
+class PensionReliefsConnectorISpec extends WiremockSpec {
 
-  lazy val connector: GetPensionReliefsConnector = app.injector.instanceOf[GetPensionReliefsConnector]
+  lazy val connector: PensionReliefsConnector = app.injector.instanceOf[PensionReliefsConnector]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
 
@@ -56,7 +56,7 @@ class GetPensionReliefsConnectorISpec extends WiremockSpec {
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new GetPensionReliefsConnector(httpClient, appConfig(internalHost))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
         val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
 
         stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
@@ -68,7 +68,7 @@ class GetPensionReliefsConnectorISpec extends WiremockSpec {
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new GetPensionReliefsConnector(httpClient, appConfig(externalHost))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
         val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
 
         stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
@@ -169,7 +169,7 @@ class GetPensionReliefsConnectorISpec extends WiremockSpec {
   }
 }
 
-object GetPensionReliefsConnectorISpec {
+object PensionReliefsConnectorISpec {
   val expectedResponseBody: String =
     """
       |{

@@ -18,7 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
-import connectors.GetPensionChargesConnectorSpec.expectedResponseBody
+import connectors.PensionChargesConnectorSpec.expectedResponseBody
 import helpers.WiremockSpec
 import models.{DesErrorBodyModel, DesErrorModel, GetPensionChargesRequestModel}
 import play.api.Configuration
@@ -28,9 +28,9 @@ import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class GetPensionChargesConnectorSpec extends WiremockSpec {
+class PensionChargesConnectorSpec extends WiremockSpec {
 
-  lazy val connector: GetPensionChargesConnector = app.injector.instanceOf[GetPensionChargesConnector]
+  lazy val connector: PensionChargesConnector = app.injector.instanceOf[PensionChargesConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -42,7 +42,7 @@ class GetPensionChargesConnectorSpec extends WiremockSpec {
   val taxYear: Int = 1999
   val desUrl: String = s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
-  ".GetPensionChargesConnector" should {
+  ".getPensionCharges" should {
 
     "include internal headers" when {
       val headersSentToDes = Seq(
@@ -55,7 +55,7 @@ class GetPensionChargesConnectorSpec extends WiremockSpec {
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new GetPensionChargesConnector(httpClient, appConfig(internalHost))
+        val connector = new PensionChargesConnector(httpClient, appConfig(internalHost))
         val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
 
         stubGetWithResponseBody(desUrl,
@@ -68,7 +68,7 @@ class GetPensionChargesConnectorSpec extends WiremockSpec {
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new GetPensionChargesConnector(httpClient, appConfig(externalHost))
+        val connector = new PensionChargesConnector(httpClient, appConfig(externalHost))
         val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
 
         stubGetWithResponseBody(desUrl,
@@ -215,9 +215,77 @@ class GetPensionChargesConnectorSpec extends WiremockSpec {
     }
   }
 
+  ".deletePensionCharges " should {
+
+    "include internal headers" when {
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val internalHost = "localhost"
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionChargesConnector(httpClient, appConfig(internalHost))
+
+        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+        result mustBe Right(())
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionChargesConnector(httpClient, appConfig(externalHost))
+
+        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+        result mustBe Right(())
+      }
+    }
+
+
+    "handle error" when {
+
+      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+
+        s"Des returns $status" in {
+          val desError = DesErrorModel(status, desErrorBodyModel)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+
+          stubDeleteWithResponseBody(desUrl, status, desError.toJson.toString())
+
+          val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+          result mustBe Left(desError)
+        }
+      }
+
+      "DES returns an unexpected error code - 502 BadGateway" in {
+        val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+
+        stubDeleteWithResponseBody(desUrl, BAD_GATEWAY, desError.toJson.toString())
+
+        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(desError)
+      }
+
+    }
+
+  }
+
 }
 
-object GetPensionChargesConnectorSpec {
+object PensionChargesConnectorSpec {
   val expectedResponseBody: String =
     """
       {

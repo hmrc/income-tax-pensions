@@ -25,7 +25,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
+class DeletePensionChargesITest extends WiremockSpec with ScalaFutures {
 
   trait Setup {
     val timeSpan: Long = 5
@@ -39,91 +39,21 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
     auditStubs()
   }
 
-  val GetPensionChargesDesResponseBody: String =
-    """
-      {
-      | "submittedOn": "2020-07-27T17:00:19Z",
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": [
-      |			"00123456RA"
-      |		],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.45
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.34
-      |		},
-      |		"isAnnualAllowanceReduced": true,
-      |		"taperedAnnualAllowance": true,
-      |		"moneyPurchasedAllowance": false
-      |	},
-      |	"pensionSchemeOverseasTransfers": {
-      |		"overseasSchemeProvider": [{
-      |			"providerName": "Overseas Pensions Plc",
-      |			"providerAddress": "111 Some Street, Some Town, Some Place",
-      |			"providerCountryCode": "ESP",
-      |			"qualifyingRecognisedOverseasPensionScheme": [
-      |				"Q123456"
-      |			]
-      |		}],
-      |		"transferCharge": 123.45,
-      |		"transferChargeTaxPaid": 0
-      |	},
-      |	"pensionSchemeUnauthorisedPayments": {
-      |		"pensionSchemeTaxReference": [
-      |			"00123456RA"
-      |		],
-      |		"surcharge": {
-      |			"amount": 123.45,
-      |			"foreignTaxPaid": 123.45
-      |		},
-      |		"noSurcharge": {
-      |			"amount": 123.45,
-      |			"foreignTaxPaid": 123.45
-      |		}
-      |	},
-      |	"pensionContributions": {
-      |		"pensionSchemeTaxReference": [
-      |			"00123456RA"
-      |		],
-      |		"inExcessOfTheAnnualAllowance": 123.45,
-      |		"annualAllowanceTaxPaid": 123.45
-      |	},
-      |	"overseasPensionContributions": {
-      |		"overseasSchemeProvider": [{
-      |			"providerName": "Overseas Pensions Plc",
-      |			"providerAddress": "112 Some Street, Some Town, Some Place",
-      |			"providerCountryCode": "ESP",
-      |			"pensionSchemeTaxReference": [
-      |				"00123456RA"
-      |			]
-      |		}],
-      |		"shortServiceRefund": 123.45,
-      |		"shortServiceRefundTaxPaid": 0
-      |	}
-      |}""".stripMargin
-
-  "get pension charges" when {
+  "delete pension charges" when {
 
     "the user is an individual" must {
-      "return 200 and the pension charges for a user" in new Setup {
+      "return a No content Success response" in new Setup {
 
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = OK,
-          response = GetPensionChargesDesResponseBody
-        )
+        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete) {
           result =>
-            result.status mustBe OK
-            Json.parse(result.body) mustBe Json.parse(GetPensionChargesDesResponseBody)
+            result.status mustBe NO_CONTENT
+
         }
       }
 
@@ -131,17 +61,14 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = BAD_REQUEST,
-          response = errorResponseBody
-        )
+
+        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -153,17 +80,14 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = BAD_REQUEST,
-          response = errorResponseBody
-        )
+
+        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -175,17 +99,14 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")).toString()
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = BAD_REQUEST,
-          response = errorResponseBody
-        )
+
+        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -193,22 +114,18 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 404 if a user has no recorded pension charges" in new Setup {
+      "return 404 if a user has no recorded pension charges to delete" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "NO_DATA_FOUND", "The remote endpoint has indicated that no data can be found.")).toString()
 
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = NOT_FOUND,
-          response = errorResponseBody
-        )
+        stubDeleteWithResponseBody(desUrl, NOT_FOUND, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe NOT_FOUND
             result.body mustBe errorResponseBody
@@ -220,17 +137,13 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = SERVICE_UNAVAILABLE,
-          response = errorResponseBody
-        )
+        stubDeleteWithResponseBody(desUrl, SERVICE_UNAVAILABLE, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe SERVICE_UNAVAILABLE
             Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
@@ -242,17 +155,13 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
-        stubGetWithResponseBody(
-          url = desUrl,
-          status = INTERNAL_SERVER_ERROR,
-          response = errorResponseBody
-        )
+        stubDeleteWithResponseBody(desUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
             Json.parse(result.body) mustBe Json.obj(
@@ -265,7 +174,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe UNAUTHORIZED
             result.body mustBe ""
@@ -274,7 +183,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
       "return 401 if the request has no MTDITID header present" in new Setup {
         whenReady(buildClient(serviceUrl)
-          .get) {
+          .delete()) {
           result =>
             result.status mustBe UNAUTHORIZED
             result.body mustBe ""

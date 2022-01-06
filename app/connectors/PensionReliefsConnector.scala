@@ -25,12 +25,14 @@ import utils.DESTaxYearHelper.desTaxYearConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetPensionReliefsConnector @Inject()(val http: HttpClient,
-                                           val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class PensionReliefsConnector @Inject()(val http: HttpClient,
+                                        val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+
+  def pensionReliefsIncomeSourceUri(nino: String, taxYear: Int): String =
+    appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
-    val incomeSourcesUri: String =
-      appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val incomeSourcesUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
 
     def desCall(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
       http.GET[GetPensionReliefsResponse](incomeSourcesUri)
