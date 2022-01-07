@@ -5,3 +5,5 @@ GET     /pension-charges/nino/:nino/taxYear/:taxYear              controllers.Pe
 DELETE  /pension-charges/nino/:nino/taxYear/:taxYear              controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
 
 GET     /pension-reliefs/nino/:nino/taxYear/:taxYear              controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
+
+DELETE  /pension-reliefs/nino/:nino/taxYear/:taxYear               controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
