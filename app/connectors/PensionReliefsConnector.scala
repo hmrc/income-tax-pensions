@@ -17,6 +17,7 @@
 package connectors
 
 import config.AppConfig
+import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
 
 import javax.inject.Inject
@@ -40,4 +41,16 @@ class PensionReliefsConnector @Inject()(val http: HttpClient,
 
     desCall(desHeaderCarrier(incomeSourcesUri))
   }
+
+  def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
+    val incomeSourceUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
+
+    def desCall(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
+      http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)
+    }
+
+    desCall(desHeaderCarrier(incomeSourceUri))
+
+  }
 }
+

@@ -167,6 +167,74 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
       result mustBe Left(expectedResult)
     }
   }
+
+  ".deletePensionReliefs " should {
+
+    "include internal headers" when {
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val internalHost = "localhost"
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
+
+        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+
+        result mustBe Right(())
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
+
+        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+
+        result mustBe Right(())
+      }
+    }
+
+
+    "handle error" when {
+
+      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+
+        s"Des returns $status" in {
+          val desError = DesErrorModel(status, desErrorBodyModel)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+
+          stubDeleteWithResponseBody(desUrl, status, desError.toJson.toString())
+
+          val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+
+          result mustBe Left(desError)
+        }
+      }
+
+      "DES returns an unexpected error code - 502 BadGateway" in {
+        val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+
+        stubDeleteWithResponseBody(desUrl, BAD_GATEWAY, desError.toJson.toString())
+
+        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+
+        result mustBe Left(desError)
+      }
+
+    }
+
+  }
 }
 
 object PensionReliefsConnectorISpec {

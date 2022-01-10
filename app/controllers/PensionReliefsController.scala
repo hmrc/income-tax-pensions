@@ -38,4 +38,11 @@ class PensionReliefsController @Inject()(
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
+
+  def deletePensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
+    service.deletePensionReliefs(nino, taxYear).map{
+      case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
+  }
 }
