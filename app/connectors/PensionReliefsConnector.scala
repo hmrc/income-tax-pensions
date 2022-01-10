@@ -17,13 +17,14 @@
 package connectors
 
 import config.AppConfig
+import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
-
-import javax.inject.Inject
+import models.CreateOrUpdatePensionReliefsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.DESTaxYearHelper.desTaxYearConverter
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PensionReliefsConnector @Inject()(val http: HttpClient,
@@ -42,15 +43,30 @@ class PensionReliefsConnector @Inject()(val http: HttpClient,
     desCall(desHeaderCarrier(incomeSourcesUri))
   }
 
+  def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)
+                                 (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+
+    val incomeSourcesUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
+
+    import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
+
+    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+      http.PUT[CreateOrUpdatePensionReliefsModel,
+        CreateOrAmendPensionReliefsResponse](incomeSourcesUri,
+        pensionReliefs)(CreateOrUpdatePensionReliefsModel.format.writes, CreateOrAmendPensionReliefsHttpReads, hc, ec)
+    }
+
+    desCall(desHeaderCarrier(incomeSourcesUri))
+  }
+
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
     val incomeSourceUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
 
     def desCall(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
-      http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)
+      http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)(DeletePensionReliefsHttpReads, hc, ec)
     }
 
     desCall(desHeaderCarrier(incomeSourceUri))
 
   }
 }
-
