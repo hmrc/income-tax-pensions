@@ -16,15 +16,17 @@
 
 package controllers
 
+import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import controllers.predicates.AuthorisedAction
+import models.CreateUpdatePensionChargesRequestModel
 import play.api.Logging
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.libs.json.{JsSuccess, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.PensionChargesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PensionChargesController @Inject()(
                                              service: PensionChargesService,
@@ -38,7 +40,6 @@ class PensionChargesController @Inject()(
         case Right(model) => Ok(Json.toJson(model))
         case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
       }
-
   }
 
   def deletePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
@@ -47,6 +48,19 @@ class PensionChargesController @Inject()(
       case Right(_) => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
+  }
 
+  def createUpdatePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+    user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
+      case Some(JsSuccess(model, _)) => responseHandler(service.createUpdatePensionCharges(nino, taxYear, model))
+      case _ => Future.successful(BadRequest)
+    }
+  }
+
+  def responseHandler(serviceResponse: Future[CreateUpdatePensionChargesResponse]): Future[Result] = {
+    serviceResponse.map {
+      case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
   }
 }
