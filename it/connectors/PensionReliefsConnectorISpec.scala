@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import connectors.PensionReliefsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
-import models.{DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel}
+import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel, PensionReliefsType}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -41,6 +41,21 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
   val nino: String = "123456789"
   val taxYear: Int = 2021
   val desUrl = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
+
+  val minimumPensionReliefs: PensionReliefsType = PensionReliefsType(
+    regularPensionContributions = Some(10.22), None, None, None, None)
+
+  val fullPensionReliefs: PensionReliefsType = PensionReliefsType(
+    regularPensionContributions = Some(10.22),
+    oneOffPensionContributionsPaid = Some(11.33),
+    retirementAnnuityPayments = Some(12.44),
+    paymentToEmployersSchemeNoTaxRelief = Some(13.55),
+    overseasPensionSchemeContributions = Some(14.66))
+
+  val fullCreateOrUpdatePensionReliefsData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(fullPensionReliefs)
+  val minEmploymentFinancialData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(minimumPensionReliefs)
+  val fullCreateOrUpdatePensionReliefsJsonBody: String = Json.toJson(fullCreateOrUpdatePensionReliefsData).toString()
+  val minEmploymentFinancialDataJsonBody: String = Json.toJson(minEmploymentFinancialData).toString()
 
 
   ".GetPensionReliefsConnector" should {
@@ -230,6 +245,123 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(desError)
+      }
+
+    }
+
+  }
+
+  ".createOrAmendPensionReliefs" should {
+
+    "include internal headers" when {
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val internalHost = "localhost"
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
+
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
+
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+        result mustBe Right(())
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
+
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
+
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+        result mustBe Right(())
+      }
+    }
+
+    "return a Right(())" when {
+      "request body is a full valid pension reliefs model" in {
+
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+        result mustBe Right(())
+      }
+
+      "request body is a minimum valid pension reliefs model" in {
+
+        stubPutWithoutResponseBody(desUrl, minEmploymentFinancialDataJsonBody, NO_CONTENT)
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, minEmploymentFinancialData)(hc))
+
+        result mustBe Right(())
+      }
+    }
+
+    "return Left(error)" when {
+
+      Seq(BAD_REQUEST, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE).foreach { httpErrorStatus =>
+
+        s"DES returns $httpErrorStatus response that has a parsable error body" in {
+          val responseBody = Json.obj(
+            "code" -> "SOME_DES_ERROR_CODE",
+            "reason" -> "SOME_DES_ERROR_REASON"
+          )
+          val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
+
+          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, responseBody.toString(), httpErrorStatus)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+          val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+          result mustBe Left(expectedResult)
+        }
+
+        s"DES returns $httpErrorStatus response that does not have a parsable error body" in {
+          val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel.parsingError)
+
+          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody,
+            "UNEXPECTED RESPONSE BODY", httpErrorStatus)
+
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+          val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+          result mustBe Left(expectedResult)
+        }
+
+      }
+
+      "DES returns an unexpected http response that is parsable" in {
+
+        val responseBody = Json.obj(
+          "code" -> "BAD_GATEWAY",
+          "reason" -> "bad gateway"
+        )
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("BAD_GATEWAY", "bad gateway"))
+
+        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, responseBody.toString(), BAD_GATEWAY)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "DES returns an unexpected http response that is not parsable" in {
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, "Bad Gateway", BAD_GATEWAY)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+
+        result mustBe Left(expectedResult)
       }
 
     }

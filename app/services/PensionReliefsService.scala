@@ -17,8 +17,10 @@
 package services
 
 import connectors.PensionReliefsConnector
+import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import connectors.httpParsers.DeletePensionReliefsHttpParser.DeletePensionReliefsResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
+import models.CreateOrUpdatePensionReliefsModel
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -28,6 +30,13 @@ class PensionReliefsService @Inject()(connector: PensionReliefsConnector) {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     connector.getPensionReliefs(nino, taxYear)
+
+  def createOrAmendPensionReliefs(nino: String, taxYear: Int,
+                                  pensionReliefs: CreateOrUpdatePensionReliefsModel)
+                                 (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+
+    connector.createOrAmendPensionReliefs(nino, taxYear, pensionReliefs)
+  }
 
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] =
     connector.deletePensionReliefs(nino, taxYear)
