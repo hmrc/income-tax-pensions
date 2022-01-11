@@ -4,8 +4,10 @@ GET     /pension-charges/nino/:nino/taxYear/:taxYear              controllers.Pe
 
 DELETE  /pension-charges/nino/:nino/taxYear/:taxYear              controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
 
+PUT     /pension-charges/nino/:nino/taxYear/:taxYear              controllers.PensionChargesController.createUpdatePensionCharges(nino:String, taxYear: Int)
+
 GET     /pension-reliefs/nino/:nino/taxYear/:taxYear              controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
 
 PUT     /pension-reliefs/nino/:nino/taxYear/:taxYear              controllers.PensionReliefsController.createOrAmendPensionReliefs(nino: String, taxYear: Int)
 
-DELETE  /pension-reliefs/nino/:nino/taxYear/:taxYear               controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
+DELETE  /pension-reliefs/nino/:nino/taxYear/:taxYear              controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)

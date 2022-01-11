@@ -17,8 +17,10 @@
 package services
 
 import connectors.PensionChargesConnector
+import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import connectors.httpParsers.DeletePensionChargesHttpParser.DeletePensionChargesResponse
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
+import models.CreateUpdatePensionChargesRequestModel
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -31,5 +33,10 @@ class PensionChargesService @Inject()(connector: PensionChargesConnector) {
 
   def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] =
     connector.deletePensionCharges(nino, taxYear)
+
+  def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)
+                                (implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
+    connector.createUpdatePensionCharges(nino, taxYear, model)
+
 
 }
