@@ -15,4 +15,6 @@ PUT     /pension-reliefs/nino/:nino/taxYear/:taxYear                            
 DELETE  /pension-reliefs/nino/:nino/taxYear/:taxYear                                  controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
 
 #State Benefits
+GET     /state-benefits/nino/:nino/taxYear/:taxYear              controllers.StateBenefitsController.getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String])
+
 DELETE  /state-benefits-override/nino/:nino/taxYear/:taxYear/benefitId/:benefitId     controllers.StateBenefitsController.deleteStateBenefit(nino: String, taxYear: Int, benefitId: String)

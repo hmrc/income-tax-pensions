@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 
 
 case class CreateOrUpdatePensionReliefsModel(
-                                              pensionReliefs: PensionReliefsType
+                                              pensionReliefs: PensionReliefs
                                             )
 
 object CreateOrUpdatePensionReliefsModel {

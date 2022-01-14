@@ -18,6 +18,7 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import play.api.Logging
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.StateBenefitsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -26,9 +27,16 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class StateBenefitsController @Inject()(service: StateBenefitsService,
-                                        auth: AuthorisedAction,
-                                        cc: ControllerComponents
-                                       )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+                                         auth: AuthorisedAction,
+                                         cc: ControllerComponents
+                                        )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+
+  def getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String]): Action[AnyContent] = auth.async { implicit user =>
+    service.getStateBenefits(nino, taxYear, benefitId).map {
+      case Right(model) => Ok(Json.toJson(model))
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
+  }
 
   def deleteStateBenefit(nino: String, taxYear: Int, benefitId: String): Action[AnyContent] = auth.async { implicit user =>
     service.deleteOverrideStateBenefit(nino, taxYear, benefitId).map {

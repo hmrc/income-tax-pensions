@@ -18,7 +18,7 @@ package api
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
-import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, PensionReliefsType}
+import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, PensionReliefs}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import play.api.http.Status._
@@ -27,10 +27,10 @@ import utils.DESTaxYearHelper.desTaxYearConverter
 
 class CreateOrAmendPensionReliefsITest extends WiremockSpec with ScalaFutures {
 
-  val minimumPensionReliefs: PensionReliefsType = PensionReliefsType(
+  val minimumPensionReliefs: PensionReliefs = PensionReliefs(
     regularPensionContributions = Some(10.22), None, None, None, None)
 
-  val fullPensionReliefs: PensionReliefsType = PensionReliefsType(
+  val fullPensionReliefs: PensionReliefs = PensionReliefs(
     regularPensionContributions = Some(10.22),
     oneOffPensionContributionsPaid = Some(11.33),
     retirementAnnuityPayments = Some(12.44),

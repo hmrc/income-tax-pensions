@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class PensionReliefsType(
+case class PensionReliefs(
                                regularPensionContributions: Option[BigDecimal],
                                oneOffPensionContributionsPaid: Option[BigDecimal],
                                retirementAnnuityPayments: Option[BigDecimal],
@@ -26,14 +26,14 @@ case class PensionReliefsType(
                                overseasPensionSchemeContributions: Option[BigDecimal]
                              )
 
-object PensionReliefsType {
-  implicit val format: OFormat[PensionReliefsType] = Json.format[PensionReliefsType]
+object PensionReliefs {
+  implicit val format: OFormat[PensionReliefs] = Json.format[PensionReliefs]
 }
 
 case class GetPensionReliefsModel(
                                    submittedOn: String,
                                    deletedOn: Option[String],
-                                   pensionReliefs: PensionReliefsType
+                                   pensionReliefs: PensionReliefs
                                  )
 
 object GetPensionReliefsModel {

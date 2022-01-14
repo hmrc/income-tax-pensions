@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import connectors.PensionReliefsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
-import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel, PensionReliefsType}
+import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel, PensionReliefs}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -42,10 +42,10 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
   val taxYear: Int = 2021
   val desUrl = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
-  val minimumPensionReliefs: PensionReliefsType = PensionReliefsType(
+  val minimumPensionReliefs: PensionReliefs = PensionReliefs(
     regularPensionContributions = Some(10.22), None, None, None, None)
 
-  val fullPensionReliefs: PensionReliefsType = PensionReliefsType(
+  val fullPensionReliefs: PensionReliefs = PensionReliefs(
     regularPensionContributions = Some(10.22),
     oneOffPensionContributionsPaid = Some(11.33),
     retirementAnnuityPayments = Some(12.44),

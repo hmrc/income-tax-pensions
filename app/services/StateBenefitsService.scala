@@ -18,6 +18,7 @@ package services
 
 import connectors.StateBenefitsConnector
 import connectors.httpParsers.DeleteOverrideStateBenefitHttpParser.DeleteStateBenefitOverrideResponse
+import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -28,4 +29,6 @@ class StateBenefitsService @Inject()(connector: StateBenefitsConnector) {
   def deleteOverrideStateBenefit(nino: String, taxYear: Int, benefitId: String)(implicit hc: HeaderCarrier): Future[DeleteStateBenefitOverrideResponse] =
     connector.deleteOverrideStateBenefit(nino, taxYear, benefitId)
 
+  def getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String])(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
+    connector.getStateBenefits(nino, taxYear, benefitId)
 }
