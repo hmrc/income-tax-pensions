@@ -39,14 +39,14 @@ class GetPensionReliefsModelSpec extends TestUtils {
 
     "parse to Json" in {
       Json.toJson(GetPensionReliefsModel(
-        "2020-01-04T05:01:01Z", Some("2020-01-04T05:01:01Z"), PensionReliefsType(
+        "2020-01-04T05:01:01Z", Some("2020-01-04T05:01:01Z"), PensionReliefs(
           Some(100.01), Some(100.01), Some(100.01), Some(100.01), Some(100.01)
         )
       )) mustBe jsonModel
     }
 
     "parse from Json" in {
-      jsonModel.as[PensionReliefsType]
+      jsonModel.as[PensionReliefs]
     }
   }
 
