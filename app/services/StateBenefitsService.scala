@@ -18,6 +18,7 @@ package services
 
 import connectors.StateBenefitsConnector
 import connectors.httpParsers.DeleteOverrideStateBenefitHttpParser.DeleteStateBenefitOverrideResponse
+import connectors.httpParsers.DeleteStateBenefitsHttpParser.DeleteStateBenefitsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,9 +27,14 @@ import scala.concurrent.Future
 
 class StateBenefitsService @Inject()(connector: StateBenefitsConnector) {
 
+  def getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String])(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
+    connector.getStateBenefits(nino, taxYear, benefitId)
+
+  def deleteStateBenefit(nino: String, taxYear: Int, benefitId: String)(implicit hc: HeaderCarrier): Future[DeleteStateBenefitsResponse] = {
+    connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)
+  }
+
   def deleteOverrideStateBenefit(nino: String, taxYear: Int, benefitId: String)(implicit hc: HeaderCarrier): Future[DeleteStateBenefitOverrideResponse] =
     connector.deleteOverrideStateBenefit(nino, taxYear, benefitId)
 
-  def getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String])(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
-    connector.getStateBenefits(nino, taxYear, benefitId)
 }

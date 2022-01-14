@@ -25,7 +25,7 @@ import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class DeleteOverrideStateBenefitsITest extends WiremockSpec with ScalaFutures {
+class DeleteOverrideStateBenefitITest extends WiremockSpec with ScalaFutures {
 
   trait Setup {
     val timeSpan: Long = 5

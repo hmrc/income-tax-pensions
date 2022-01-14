@@ -27,9 +27,9 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class StateBenefitsController @Inject()(service: StateBenefitsService,
-                                         auth: AuthorisedAction,
-                                         cc: ControllerComponents
-                                        )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+                                        auth: AuthorisedAction,
+                                        cc: ControllerComponents
+                                       )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getStateBenefits(nino: String, taxYear: Int, benefitId: Option[String]): Action[AnyContent] = auth.async { implicit user =>
     service.getStateBenefits(nino, taxYear, benefitId).map {
@@ -39,6 +39,13 @@ class StateBenefitsController @Inject()(service: StateBenefitsService,
   }
 
   def deleteStateBenefit(nino: String, taxYear: Int, benefitId: String): Action[AnyContent] = auth.async { implicit user =>
+    service.deleteStateBenefit(nino, taxYear, benefitId).map {
+      case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
+  }
+
+  def deleteOverrideStateBenefit(nino: String, taxYear: Int, benefitId: String): Action[AnyContent] = auth.async { implicit user =>
     service.deleteOverrideStateBenefit(nino, taxYear, benefitId).map {
       case Right(_) => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)

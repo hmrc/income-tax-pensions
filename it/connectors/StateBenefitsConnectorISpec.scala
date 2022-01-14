@@ -39,10 +39,10 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
 
   val nino: String = "AA123123A"
   val taxYear: Int = 2021
+  val benefitId: String = "a111111a-abcd-111a-123a-11a1a111a1"
 
   ".deleteOverrideStateBenefit" should {
 
-    val benefitId: String = "a111111a-abcd-111a-123a-11a1a111a1"
     val deleteOverrideUrl: String = s"/income-tax/income/state-benefits/$nino/${desTaxYearConverter(taxYear)}/$benefitId"
 
     "include internal headers" when {
@@ -119,7 +119,6 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
 
       "DES returns an unexpected http response that is parsable" in {
 
-
         val errorResponseBody = Json.obj(
           "code" -> "SERVER_ERROR",
           "reason" -> "DES is currently experiencing problems that require live service intervention."
@@ -140,7 +139,6 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
 
   ".GetStateBenefitsConnector" should {
 
-    val benefitId: String = "a1e8057e-fbbc-47a8-a8b4-78d9f015c934"
     val desUrl = s"/income-tax/income/state-benefits/$nino/${desTaxYearConverter(taxYear)}\\?benefitId=$benefitId"
 
     "include internal headers" when {
@@ -268,6 +266,102 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
     }
   }
 
+  ".deleteStateBenefit" should {
+
+    val deleteUrl: String = s"/income-tax/income/state-benefits/$nino/${desTaxYearConverter(taxYear)}/custom/$benefitId"
+
+    "include internal headers" when {
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val internalHost = "localhost"
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new StateBenefitsConnector(httpClient, appConfig(internalHost))
+
+        stubDeleteWithoutResponseBody(deleteUrl,
+          NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+        result mustBe Right(())
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new StateBenefitsConnector(httpClient, appConfig(externalHost))
+
+        stubDeleteWithoutResponseBody(deleteUrl,
+          NO_CONTENT, headersSentToDes)
+
+        val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+        result mustBe Right(())
+      }
+    }
+
+    "return a Right on success" in {
+      stubDeleteWithoutResponseBody(deleteUrl, NO_CONTENT)
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+      result mustBe Right(())
+    }
+
+    "handle a Left error" when {
+
+      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST, FORBIDDEN).foreach { errorStatus =>
+
+        s"DES returns expected error $errorStatus" in {
+          val desError = DesErrorModel(errorStatus, desErrorBodyModel)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+
+          stubDeleteWithResponseBody(deleteUrl, errorStatus, desError.toJson.toString())
+
+          val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+          result mustBe Left(desError)
+        }
+      }
+
+      "DES returns a non parsable response" in {
+        val errorResponseBody = "a non parsable body"
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubDeleteWithResponseBody(deleteUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "DES returns an unexpected http response that is parsable" in {
+
+
+        val errorResponseBody = Json.obj(
+          "code" -> "SERVER_ERROR",
+          "reason" -> "DES is currently experiencing problems that require live service intervention."
+        )
+
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel(
+          "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention."))
+
+        stubDeleteWithResponseBody(deleteUrl, BAD_GATEWAY, errorResponseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.deleteStateBenefitEndOfYear(nino, taxYear, benefitId)(hc))
+
+        result mustBe Left(expectedResult)
+
+      }
+    }
+  }
 
 }
 

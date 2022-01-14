@@ -43,10 +43,13 @@ object DesErrorBodyModel {
     "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
   val invalidPayload: DesErrorBodyModel = DesErrorBodyModel(
     "INVALID_PAYLOAD", "Submission has not passed validation. Invalid payload.")
+  val noDataFound: DesErrorBodyModel = DesErrorBodyModel(
+    "NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found.")
   val invalidBenefitId: DesErrorBodyModel = DesErrorBodyModel(
     "INVALID_BENEFIT_ID", "Submission has not passed validation. Invalid parameter benefitId.")
   val serviceUnavailable: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
   val serverError: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
+
 }
 
 /** Multiple DES Errors **/
