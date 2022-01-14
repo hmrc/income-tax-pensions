@@ -29,7 +29,7 @@ case class DesErrorModel(status: Int, body: DesErrorBody) {
   }
 }
 
-/** Single DES Error * */
+/** Single DES Error **/
 case class DesErrorBodyModel(code: String, reason: String) extends DesErrorBody
 
 object DesErrorBodyModel {
@@ -43,11 +43,13 @@ object DesErrorBodyModel {
     "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
   val invalidPayload: DesErrorBodyModel = DesErrorBodyModel(
     "INVALID_PAYLOAD", "Submission has not passed validation. Invalid payload.")
+  val invalidBenefitId: DesErrorBodyModel = DesErrorBodyModel(
+    "INVALID_BENEFIT_ID", "Submission has not passed validation. Invalid parameter benefitId.")
   val serviceUnavailable: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
   val serverError: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
 }
 
-/** Multiple DES Errors * */
+/** Multiple DES Errors **/
 case class DesErrorsBodyModel(failures: Seq[DesErrorBodyModel]) extends DesErrorBody
 
 object DesErrorsBodyModel {
