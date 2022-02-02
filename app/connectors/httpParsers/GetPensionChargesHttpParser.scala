@@ -24,7 +24,7 @@ import utils.PagerDutyHelper.pagerDutyLog
 
 object GetPensionChargesHttpParser extends DESParser {
 
-  type GetPensionChargesResponse = Either[DesErrorModel, GetPensionChargesRequestModel]
+  type GetPensionChargesResponse = Either[DesErrorModel, Option[GetPensionChargesRequestModel]]
 
   override val parserName: String = "GetPensionChargesHttpParser"
   implicit object GetPensionChargesHttpReads extends HttpReads[GetPensionChargesResponse] {
@@ -36,15 +36,16 @@ object GetPensionChargesHttpParser extends DESParser {
             pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES,s"[GetPensionChargesHttpParser][read] Invalid Json from DES.")
             Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
           },
-          parsedModel => Right(parsedModel)
+          parsedModel => Right(Some(parsedModel))
         )
+        case NOT_FOUND => Right(None)
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
           handleDESError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
           handleDESError(response)
-        case BAD_REQUEST | NOT_FOUND =>
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
           handleDESError(response)
         case _ =>

@@ -195,8 +195,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
       "return 404 if a user has no recorded pension charges" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "NO_DATA_FOUND", "The remote endpoint has indicated that no data can be found.")).toString()
+        val errorResponseBody: String = Json.toJson(DesErrorBodyModel.noDataFound).toString()
 
         stubGetWithResponseBody(
           url = desUrl,

@@ -18,7 +18,7 @@ package controllers
 
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import controllers.predicates.AuthorisedAction
-import models.CreateOrUpdatePensionReliefsModel
+import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -36,6 +36,7 @@ class PensionReliefsController @Inject()(
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.getPensionReliefs(nino, taxYear).map{
+      case Right(None) => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
       case Right(model) => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
