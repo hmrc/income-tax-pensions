@@ -78,7 +78,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Some(expectedResult))
       }
 
       "the host for DES is 'External'" in {
@@ -90,7 +90,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Some(expectedResult))
       }
     }
 
@@ -101,7 +101,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getPensionReliefs(nino, taxYear)(hc)).right.get
 
-      result mustBe expectedResult
+      result mustBe Some(expectedResult)
     }
 
     "return a Parsing error INTERNAL_SERVER_ERROR response" in {
@@ -144,17 +144,12 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
     }
 
     "return a NOT_FOUND" in {
-      val responseBody = Json.obj(
-        "code" -> "NOT_FOUND",
-        "reason" -> "The remote endpoint has indicated that no data can be found."
-      )
-      val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND", "The remote endpoint has indicated that no data can be found."))
 
-      stubGetWithResponseBody(desUrl, NOT_FOUND, responseBody.toString())
+      stubGetWithResponseBody(desUrl, NOT_FOUND, "")
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
-      result mustBe Left(expectedResult)
+      result mustBe Right(None)
     }
 
     "return an INTERNAL_SERVER_ERROR" in {
