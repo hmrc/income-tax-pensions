@@ -1,5 +1,7 @@
 # microservice specific routes
 
+GET     /income-tax/nino/:nino/sources                                                controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
+
 #Pension Charges
 GET     /pension-charges/nino/:nino/taxYear/:taxYear                                  controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
