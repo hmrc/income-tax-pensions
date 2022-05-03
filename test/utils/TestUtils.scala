@@ -215,9 +215,27 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     ))
   )
 
+  val employmentsModel = GetEmploymentPensionsModel(
+    hmrcEmploymentData = Seq(),
+    customerEmploymentData = Seq(
+      EmploymentPensionModel(
+        employmentId = "1234567890",
+        pensionSchemeName = "The One and Only",
+        pensionSchemeRef = Some("453"),
+        pensionId = Some("1"),
+        startDate = Some("The other day"),
+        endDate = Some("The other other day"),
+        amount = Some(BigDecimal(3)),
+        taxAmount = Some(BigDecimal(1)),
+        occPen = Some(true)
+      )
+    )
+  )
+
   val fullPensionsModel = AllPensionsData(
     pensionReliefs = Some(fullPensionReliefsModel),
     pensionCharges = Some(fullPensionChargesModel),
-    stateBenefits = Some(fullStateBenefitsModel)
+    stateBenefits = Some(fullStateBenefitsModel),
+    employmentPensions = Some(employmentsModel)
   )
 }

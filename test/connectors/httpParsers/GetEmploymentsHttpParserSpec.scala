@@ -17,7 +17,7 @@
 package connectors.httpParsers
 
 import connectors.httpParsers.GetEmploymentsHttpParser.GetEmploymentsHttpReads
-import models.{EmploymentPensionModel, ErrorModel, GetEmploymentPensionsModel}
+import models.{DesErrorBodyModel, DesErrorModel, EmploymentPensionModel, ErrorModel, GetEmploymentPensionsModel}
 import play.api.http.Status
 import uk.gov.hmrc.http.HttpResponse
 import utils.TestUtils
@@ -203,7 +203,7 @@ class GetEmploymentsHttpParserSpec extends TestUtils {
             |""".stripMargin
         }
 
-        val expectedResult = Left(ErrorModel(500, "Invalid Json"))
+        val expectedResult = Left(DesErrorModel(500, DesErrorBodyModel("PARSING_ERROR", "Error parsing response")))
 
         GetEmploymentsHttpReads.read("", "",
           HttpResponse(Status.OK, employmentBody)) mustBe expectedResult
@@ -223,7 +223,7 @@ class GetEmploymentsHttpParserSpec extends TestUtils {
       "a status other then 200, 201 is returned from employment BE" in {
         GetEmploymentsHttpReads.read("", "",
           HttpResponse(Status.BAD_REQUEST, "")) mustBe
-          Left(ErrorModel(Status.BAD_REQUEST, "Error returned when attempting to retrieve employment details"))
+          Left(DesErrorModel(400, DesErrorBodyModel("400", "Error returned when attempting to retrieve employment details")))
       }
     }
   }

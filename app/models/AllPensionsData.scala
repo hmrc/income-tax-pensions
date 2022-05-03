@@ -20,7 +20,8 @@ import play.api.libs.json.{Json, OFormat}
 
 case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
                            pensionCharges: Option[GetPensionChargesRequestModel],
-                           stateBenefits: Option[GetStateBenefitsModel])
+                           stateBenefits: Option[GetStateBenefitsModel],
+                           employmentPensions: Option[GetEmploymentPensionsModel])
 
 object AllPensionsData {
   implicit val formats: OFormat[AllPensionsData] = Json.format[AllPensionsData]

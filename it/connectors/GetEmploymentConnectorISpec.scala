@@ -59,7 +59,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
         stubGetWithResponseBody(employmentsUrl,
           OK, expectedResponseBody, headersSentToBenefits)
 
-        val result = await(connector.getEmploymentPensions(nino)(hc))
+        val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
         result mustBe Right(Some(expectedResult))
       }
@@ -72,7 +72,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
         stubGetWithResponseBody(employmentsUrl,
           OK, expectedResponseBody, headersSentToBenefits)
 
-        val result = await(connector.getEmploymentPensions(nino)(hc))
+        val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
         result mustBe Right(Some(expectedResult))
       }
@@ -86,7 +86,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
         stubGetWithResponseBody(employmentsUrl, OK, expectedResponseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getEmploymentPensions(nino)(hc)).right.get
+        val result = await(connector.getEmploymentPensions(nino, taxYear)(hc)).right.get
 
         result mustBe Some(expectedResult)
       }
@@ -95,7 +95,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
     "return a Right None when NOT_FOUND" in {
       stubGetWithResponseBody(employmentsUrl, NOT_FOUND, "")
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Right(None)
     }
@@ -107,7 +107,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(employmentsUrl, OK, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -121,7 +121,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
       stubGetWithResponseBody(employmentsUrl
         , SERVICE_UNAVAILABLE, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -136,7 +136,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
       stubGetWithResponseBody(employmentsUrl
         , BAD_REQUEST, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -151,7 +151,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
       stubGetWithResponseBody(employmentsUrl
         , INTERNAL_SERVER_ERROR, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -162,7 +162,7 @@ class GetEmploymentConnectorISpec extends WiremockSpec {
       stubGetWithoutResponseBody(employmentsUrl
         , NO_CONTENT)
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getEmploymentPensions(nino)(hc))
+      val result = await(connector.getEmploymentPensions(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }

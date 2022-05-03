@@ -16,13 +16,13 @@
 
 package connectors.httpParsers
 
-import models.{ErrorModel, GetEmploymentPensionsModel}
+import models.{DesErrorBodyModel, DesErrorModel, GetEmploymentPensionsModel}
 import play.api.Logging
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 object GetEmploymentsHttpParser extends Logging {
-  type GetEmploymentsResponse = Either[ErrorModel, Option[GetEmploymentPensionsModel]]
+  type GetEmploymentsResponse = Either[DesErrorModel, Option[GetEmploymentPensionsModel]]
 
   val parserName: String = "GetEmploymentsHttpParser"
 
@@ -32,7 +32,7 @@ object GetEmploymentsHttpParser extends Logging {
         case OK => response.json.validate[GetEmploymentPensionsModel].fold[GetEmploymentsResponse](
           invalid => {
             logger.warn(s"[$parserName][read] Invalid Json - $invalid")
-            Left(ErrorModel(INTERNAL_SERVER_ERROR, "Invalid Json"))
+            Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("PARSING_ERROR", "Error parsing response")))
           },
           valid =>
             Right(Some(GetEmploymentPensionsModel(
@@ -43,7 +43,7 @@ object GetEmploymentsHttpParser extends Logging {
         case NO_CONTENT => Right(None)
         case status =>
           logger.warn(s"[$parserName][read] Received status: $status from income-tax-employment")
-          Left(ErrorModel(status, "Error returned when attempting to retrieve employment details"))
+          Left(DesErrorModel(status, DesErrorBodyModel(s"$status", "Error returned when attempting to retrieve employment details")))
       }
     }
   }

@@ -17,10 +17,11 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
+import connectors.httpParsers.GetEmploymentsHttpParser.GetEmploymentsResponse
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
+import connectors.{EmploymentConnector, GetStateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
 import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel}
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +35,8 @@ class PensionsServiceSpec extends TestUtils {
   val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
   val chargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
-  val service: PensionsService = new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector)
+  val employmentConnector: EmploymentConnector = mock[EmploymentConnector]
+  val service: PensionsService = new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, employmentConnector)
 
   val taxYear = 2022
   val nino = "AA123456A"
@@ -45,6 +47,7 @@ class PensionsServiceSpec extends TestUtils {
     val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
     val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
     val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
+    val expectedEmploymentPensionsResult: GetEmploymentsResponse = Right(Some(employmentsModel))
 
     "get all pension reliefs and charges data and return a full AllPensionsData model" in {
 
@@ -59,6 +62,10 @@ class PensionsServiceSpec extends TestUtils {
       (stateBenefitsConnector.getStateBenefits(_:String, _:Int)(_:HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
+
+      (employmentConnector.getEmploymentPensions(_:String, _:Int)(_:HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(expectedEmploymentPensionsResult))
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
@@ -78,9 +85,13 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
+      (employmentConnector.getEmploymentPensions(_:String, _:Int)(_:HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(None)))
+
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
-      result mustBe Right(AllPensionsData(None, None, None))
+      result mustBe Right(AllPensionsData(None, None, None, None))
     }
 
     "return an error if a connector call fails" in {

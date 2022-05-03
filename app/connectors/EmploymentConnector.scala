@@ -26,12 +26,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class EmploymentConnector @Inject()(val http: HttpClient,
                                     val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
-  def getEmploymentInfo(nino: String): String = {
-    appConfig.employmentBaseUrl + s"/income-tax-employment/income-tax/nino/$nino/sources"
-  }
-
-  def getEmploymentPensions(nino: String)(implicit hc: HeaderCarrier): Future[GetEmploymentsResponse] = {
-    val employmentUri: String = appConfig.employmentBaseUrl + s"/income-tax-employment/income-tax/nino/$nino/sources"
+  def getEmploymentPensions(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetEmploymentsResponse] = {
+    val employmentUri: String = appConfig.employmentBaseUrl + s"/income-tax-employment/income-tax/nino/$nino/sources?taxYear=$taxYear"
 
     def call(implicit hc: HeaderCarrier): Future[GetEmploymentsResponse] = {
       http.GET[GetEmploymentsResponse](employmentUri)(GetEmploymentsHttpReads, hc, ec)
