@@ -39,7 +39,7 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
       reliefsData <- FutureEitherOps[DesErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
       pensionData <- FutureEitherOps[DesErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
       stateBenefitsData <- FutureEitherOps[DesErrorModel, Option[GetStateBenefitsModel]](getStateBenefits(nino, taxYear, mtditid)(hc))
-      employmentsData <- FutureEitherOps[DesErrorModel, Option[GetEmploymentPensionsModel]](getEmploymentData(nino, taxYear)(hc))
+      employmentsData <- FutureEitherOps[DesErrorModel, Option[GetEmploymentPensionsModel]](getEmploymentData(nino, taxYear, mtditid)(hc))
     } yield {
       AllPensionsData(
         pensionReliefs = reliefsData,
@@ -60,6 +60,6 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
   private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
     stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withExtraHeaders("mtditid" -> mtditid))
 
-  private def getEmploymentData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetEmploymentsResponse] =
-    employmentConnector.getEmploymentPensions(nino, taxYear)
+  private def getEmploymentData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetEmploymentsResponse] =
+    employmentConnector.getEmploymentPensions(nino, taxYear)(hc.withExtraHeaders("mtditid" -> mtditid))
 }

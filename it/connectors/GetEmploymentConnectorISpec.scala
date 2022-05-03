@@ -180,7 +180,8 @@ object GetEmploymentConnectorISpec {
       |      "pensionSchemeName":"HMRC pensions scheme",
       |      "pensionSchemeRef":"Some HMRC ref",
       |      "amount":"127000",
-      |      "taxAmount":"450"
+      |      "taxAmount":"450",
+      |      "occPen":true
       |    },
       |    {
       |      "employmentId":"1234567890",
