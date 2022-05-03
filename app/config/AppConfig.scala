@@ -30,6 +30,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val benefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-benefits")
+  val employmentBaseUrl: String = servicesConfig.baseUrl("income-tax-employment")
 
   val environment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
@@ -43,6 +44,7 @@ trait AppConfig  {
 
   val desBaseUrl: String
   val benefitsBaseUrl: String
+  val employmentBaseUrl: String
 
   val environment: String
   val authorisationToken: String
