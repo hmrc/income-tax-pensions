@@ -18,9 +18,9 @@ package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
-import connectors.PensionReliefsConnectorISpec.expectedResponseBody
+import connectors.PensionIncomeConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
-import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel, PensionReliefs}
+import models._
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -28,9 +28,9 @@ import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class PensionReliefsConnectorISpec extends WiremockSpec {
+class PensionIncomeConnectorISpec extends WiremockSpec {
 
-  lazy val connector: PensionReliefsConnector = app.injector.instanceOf[PensionReliefsConnector]
+  lazy val connector: PensionIncomeConnector = app.injector.instanceOf[PensionIncomeConnector]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
 
@@ -40,25 +40,73 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
   val nino: String = "123456789"
   val taxYear: Int = 2021
-  val desUrl = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
+  val desUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
-  val minimumPensionReliefs: PensionReliefs = PensionReliefs(
-    regularPensionContributions = Some(10.22), None, None, None, None)
+  val fullForeignPensionModel = Seq(
+    ForeignPension(
+      countryCode = "FRA",
+      taxableAmount = 1999.99,
+      amountBeforeTax = Some(1999.99),
+      taxTakenOff = Some(1999.99),
+      specialWithholdingTax = Some(1999.99),
+      foreignTaxCreditRelief = Some(false)
+    )
+  )
 
-  val fullPensionReliefs: PensionReliefs = PensionReliefs(
-    regularPensionContributions = Some(10.22),
-    oneOffPensionContributionsPaid = Some(11.33),
-    retirementAnnuityPayments = Some(12.44),
-    paymentToEmployersSchemeNoTaxRelief = Some(13.55),
-    overseasPensionSchemeContributions = Some(14.66))
+  val minForeignPensionModel = Seq(
+    ForeignPension(
+      countryCode = "FRA",
+      taxableAmount = 1999.99,
+      amountBeforeTax = None,
+      taxTakenOff = None,
+      specialWithholdingTax = None,
+      foreignTaxCreditRelief = None
+    )
+  )
 
-  val fullCreateOrUpdatePensionReliefsData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(fullPensionReliefs)
-  val minEmploymentFinancialData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(minimumPensionReliefs)
-  val fullCreateOrUpdatePensionReliefsJsonBody: String = Json.toJson(fullCreateOrUpdatePensionReliefsData).toString()
-  val minEmploymentFinancialDataJsonBody: String = Json.toJson(minEmploymentFinancialData).toString()
+  val fullOverseasPensionContributionModel = Seq(
+    OverseasPensionContribution(
+      customerReference = Some("PENSIONINCOME245"),
+      exemptEmployersPensionContribs = 1999.99,
+      migrantMemReliefQopsRefNo = Some("QOPS000000"),
+      dblTaxationRelief = Some(1999.99),
+      dblTaxationCountry = Some("FRA"),
+      dblTaxationArticle = Some("AB3211-1"),
+      dblTaxationTreaty = Some("Munich"),
+      sf74Reference = Some("SF74-123456")
+    )
+  )
+  val minOverseasPensionContributionModel = Seq(
+    OverseasPensionContribution(
+      customerReference = None,
+      exemptEmployersPensionContribs = 1999.99,
+      migrantMemReliefQopsRefNo = None,
+      dblTaxationRelief = None,
+      dblTaxationCountry = None,
+      dblTaxationArticle = None,
+      dblTaxationTreaty = None,
+      sf74Reference = None
+    )
+  )
+
+  val fullPensionIncomeModel: GetPensionIncomeModel =
+    GetPensionIncomeModel(
+      submittedOn = "2022-07-28T07:59:39.041Z",
+      deletedOn = Some("2022-07-28T07:59:39.041Z"),
+      foreignPension = fullForeignPensionModel,
+      overseasPensionContribution = fullOverseasPensionContributionModel
+    )
+
+  val fullCreateOrUpdatePensionIncomeData: CreateUpdatePensionIncomeModel =
+    CreateUpdatePensionIncomeModel(fullForeignPensionModel, fullOverseasPensionContributionModel)
+  val fullCreateOrUpdatePensionIncomeJsonBody: String = Json.toJson(fullCreateOrUpdatePensionIncomeData).toString()
+
+  val minCreateOrUpdatePensionIncomeData: CreateUpdatePensionIncomeModel =
+    CreateUpdatePensionIncomeModel(minForeignPensionModel, minOverseasPensionContributionModel)
+  val minCreateOrUpdatePensionIncomeJsonBody: String = Json.toJson(minCreateOrUpdatePensionIncomeData).toString()
 
 
-  ".GetPensionReliefsConnector" should {
+  ".GetPensionIncomeConnector" should {
     "include internal headers" when {
 
       val headersSentToDes = Seq(
@@ -71,35 +119,35 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
+        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
+        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
 
         stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
 
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
         result mustBe Right(Some(expectedResult))
       }
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
+        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
+        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
 
         stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
 
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
         result mustBe Right(Some(expectedResult))
       }
     }
 
-    "return a GetPensionReliefsModel when nino and taxYear are present" in {
-      val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
+    "return a GetPensionIncomeModel when nino and taxYear are present" in {
+      val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
       stubGetWithResponseBody(desUrl, OK, expectedResponseBody)
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc)).right.get
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc)).right.get
 
       result mustBe Some(expectedResult)
     }
@@ -111,7 +159,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(desUrl, OK, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -124,7 +172,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(desUrl, SERVICE_UNAVAILABLE, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -138,7 +186,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(desUrl, BAD_REQUEST, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -147,7 +195,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(desUrl, NOT_FOUND, "")
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Right(None)
     }
@@ -162,7 +210,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(desUrl, INTERNAL_SERVER_ERROR, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -172,13 +220,13 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       stubGetWithoutResponseBody(desUrl, NO_CONTENT)
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
   }
 
-  ".deletePensionReliefs " should {
+  ".deletePensionIncome " should {
 
     "include internal headers" when {
       val headersSentToDes = Seq(
@@ -191,22 +239,22 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
+        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
 
         stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
 
-        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
 
         result mustBe Right(())
       }
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
+        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
 
         stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
 
-        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
 
         result mustBe Right(())
       }
@@ -217,7 +265,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
 
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST, NOT_FOUND).foreach { status =>
 
         s"Des returns $status" in {
           val desError = DesErrorModel(status, desErrorBodyModel)
@@ -225,7 +273,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
           stubDeleteWithResponseBody(desUrl, status, desError.toJson.toString())
 
-          val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+          val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
 
           result mustBe Left(desError)
         }
@@ -237,16 +285,15 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubDeleteWithResponseBody(desUrl, BAD_GATEWAY, desError.toJson.toString())
 
-        val result = await(connector.deletePensionReliefs(nino, taxYear)(hc))
+        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
 
         result mustBe Left(desError)
       }
 
     }
-
   }
 
-  ".createOrAmendPensionReliefs" should {
+  ".createOrAmendPensionIncome" should {
 
     "include internal headers" when {
       val headersSentToDes = Seq(
@@ -259,44 +306,44 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
+        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT, headersSentToDes)
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
 
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Right(())
       }
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
+        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT, headersSentToDes)
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
 
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Right(())
       }
     }
 
     "return a Right(())" when {
-      "request body is a full valid pension reliefs model" in {
+      "request body is a full valid pension income model" in {
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Right(())
       }
 
-      "request body is a minimum valid pension reliefs model" in {
+      "request body is a minimum valid pension income model" in {
 
-        stubPutWithoutResponseBody(desUrl, minEmploymentFinancialDataJsonBody, NO_CONTENT)
+        stubPutWithoutResponseBody(desUrl, minCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, minEmploymentFinancialData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, minCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Right(())
       }
@@ -313,9 +360,9 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
           )
           val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
 
-          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, responseBody.toString(), httpErrorStatus)
+          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), httpErrorStatus)
           implicit val hc: HeaderCarrier = HeaderCarrier()
-          val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
           result mustBe Left(expectedResult)
         }
@@ -323,11 +370,11 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         s"DES returns $httpErrorStatus response that does not have a parsable error body" in {
           val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel.parsingError)
 
-          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody,
+          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody,
             "UNEXPECTED RESPONSE BODY", httpErrorStatus)
 
           implicit val hc: HeaderCarrier = HeaderCarrier()
-          val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
           result mustBe Left(expectedResult)
         }
@@ -342,9 +389,9 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         )
         val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("BAD_GATEWAY", "bad gateway"))
 
-        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, responseBody.toString(), BAD_GATEWAY)
+        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), BAD_GATEWAY)
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -352,9 +399,9 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
       "DES returns an unexpected http response that is not parsable" in {
         val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
-        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, "Bad Gateway", BAD_GATEWAY)
+        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, "Bad Gateway", BAD_GATEWAY)
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
+        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -364,19 +411,34 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
   }
 }
 
-object PensionReliefsConnectorISpec {
+object PensionIncomeConnectorISpec {
   val expectedResponseBody: String =
     """
-      |{
-      |  "submittedOn": "2020-01-04T05:01:01Z",
-      |  "deletedOn": "2020-01-04T05:01:01Z",
-      |  "pensionReliefs": {
-      |    "regularPensionContributions": 0,
-      |    "oneOffPensionContributionsPaid": 0,
-      |    "retirementAnnuityPayments": 0,
-      |    "paymentToEmployersSchemeNoTaxRelief": 0,
-      |    "overseasPensionSchemeContributions": 0
+      | {
+      |    "submittedOn": "2022-07-28T07:59:39.041Z",
+      |    "deletedOn": "2022-07-28T07:59:39.041Z",
+      |    "foreignPension": [
+      |      {
+      |        "countryCode": "FRA",
+      |        "amountBeforeTax": 1999.99,
+      |        "taxTakenOff": 1999.99,
+      |        "specialWithholdingTax": 1999.99,
+      |        "foreignTaxCreditRelief": false,
+      |        "taxableAmount": 1999.99
+      |      }
+      |    ],
+      |    "overseasPensionContribution": [
+      |      {
+      |        "customerReference": "PENSIONINCOME245",
+      |        "exemptEmployersPensionContribs": 1999.99,
+      |        "migrantMemReliefQopsRefNo": "QOPS000000",
+      |        "dblTaxationRelief": 1999.99,
+      |        "dblTaxationCountry": "FRA",
+      |        "dblTaxationArticle": "AB3211-1",
+      |        "dblTaxationTreaty": "Munich",
+      |        "sf74Reference": "SF74-123456"
+      |      }
+      |    ]
       |  }
-      |}
       |""".stripMargin
 }
