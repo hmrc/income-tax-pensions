@@ -25,7 +25,7 @@ case class ForeignPension (
                             amountBeforeTax: Option[BigDecimal],
                             taxTakenOff: Option[BigDecimal],
                             specialWithholdingTax: Option[BigDecimal],
-                            foreignTaxCreditRelief: Option[Boolean],
+                            foreignTaxCreditRelief: Option[Boolean]
                           )
 
 object ForeignPension {
