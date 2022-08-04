@@ -77,7 +77,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         )
       )
     )
-    
+
   val fullPensionIncomeJson: JsValue = Json.parse(
     """
       | {
@@ -106,7 +106,6 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
       |  }
       |""".stripMargin
   )
-
 
 
   trait Setup {
@@ -139,13 +138,53 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 400 if the body payload validation fails" in new Setup {
+      "return 400 if the body is empty" in new Setup {
 
         authorised()
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
           .put(Json.obj())) {
+          result =>
+            result.status mustBe BAD_REQUEST
+        }
+      }
+
+      "return 400 if the body payload validation fails" in new Setup {
+
+        authorised()
+        val invalidJson =
+          """
+            |{
+            |   "foreignPensionBadObjectName":[
+            |      {
+            |         "badCountryCode":"FRA",
+            |         "amountBeforeTax":1999.99,
+            |         "taxTakenOff":1999.99,
+            |         "specialWithholdingTax":1999.99,
+            |         "foreignTaxCreditRelief":false,
+            |         "taxableAmount":1999.99
+            |      }
+            |   ],
+            |   "overseasPensionContributionBadObject":[
+            |      {
+            |         "customerReference":"PENSIONINCOME245",
+            |         "exemptEmployersPensionContribs":1999.99,
+            |         "migrantMemReliefQopsRefNo":"QOPS000000",
+            |         "dblTaxationRelief":1999.99,
+            |         "dblTaxationCountry":"FRA",
+            |         "dblTaxationArticle":"AB3211-1",
+            |         "dblTaxationTreaty":"Munich",
+            |         "sf74Reference":"SF74-123456"
+            |      }
+            |   ]
+            |}""".stripMargin
+
+        Json.toJson(invalidJson)
+
+        whenReady(buildClient(serviceUrl)
+          .withHttpHeaders(mtditidHeader)
+          .put(Json.toJson(invalidJson))) {
           result =>
             result.status mustBe BAD_REQUEST
         }

@@ -34,6 +34,8 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
                                 pensionIncomeConnector: PensionIncomeConnector
                                ) {
 
+  val mtditidHeader = "mtditid"
+
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[DesErrorModel, AllPensionsData]] = {
     (for {
@@ -60,8 +62,8 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
     chargesConnector.getPensionCharges(nino, taxYear)
 
   private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
-    stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withExtraHeaders("mtditid" -> mtditid))
+    stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
 
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
-    pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders("mtditid" -> mtditid))
+    pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
 }

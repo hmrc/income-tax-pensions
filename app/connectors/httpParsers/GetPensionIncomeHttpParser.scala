@@ -31,7 +31,7 @@ object GetPensionIncomeHttpParser extends DESParser {
     override def read(method: String, url: String, response: HttpResponse): GetPensionIncomeResponse = {
       response.status match {
         case OK => response.json.validate[GetPensionIncomeModel].fold[GetPensionIncomeResponse](
-          jsonErrors => {
+          _ => {
             pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[GetPensionIncomeHttParser][read] Invalid Json from DES.")
             Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
           },
