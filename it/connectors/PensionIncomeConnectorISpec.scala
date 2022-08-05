@@ -180,6 +180,7 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
         s"Des returns $status" in {
           val desError: DesErrorModel = DesErrorModel(status, desErrorBodyModel)
           val result = runErrorTest(status, desError)
+          auditStubs()
 
           result mustBe Left(desError)
         }
