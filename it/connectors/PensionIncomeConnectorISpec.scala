@@ -160,6 +160,8 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
     "return a NOT_FOUND" in {
       stubGetWithResponseBody(desUrl, NOT_FOUND, "")
       implicit val hc: HeaderCarrier = HeaderCarrier()
+      auditStubs()
+
       val result = await(connector.getPensionIncome(nino, taxYear)(hc))
       result mustBe Right(None)
     }
