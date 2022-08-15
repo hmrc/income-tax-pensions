@@ -21,7 +21,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
 import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel}
-import org.scalamock.handlers.CallHandler5
+import org.scalamock.handlers.{CallHandler4, CallHandler5}
 import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import services.PensionsService
@@ -54,7 +54,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
   def mockGetAllPensionsDataNoCharges(): CallHandler5[String, Int, String, HeaderCarrier, ExecutionContext,
     Future[Either[DesErrorModel, AllPensionsData]]] = {
-    val validAllPensionsData = Right(AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel), Some(fullPensionIncomeModel)))
+    val validAllPensionsData = Right(AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel)))
     (pensionsService.getAllPensionsData(_:String, _:Int, _:String)(_:HeaderCarrier, _:ExecutionContext))
       .expects(*, *, *, *, *)
       .returning(Future.successful(validAllPensionsData))
@@ -62,7 +62,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
   def mockGetAllPensionsDataEmpty(): CallHandler5[String, Int, String, HeaderCarrier, ExecutionContext,
     Future[Either[DesErrorModel, AllPensionsData]]] = {
-    val validEmptyPensionsData = Right(AllPensionsData(None, None, None, None))
+    val validEmptyPensionsData = Right(AllPensionsData(None, None, None))
     (pensionsService.getAllPensionsData(_:String, _:Int, _:String)(_:HeaderCarrier, _:ExecutionContext))
       .expects(*, *, *, *, *)
       .returning(Future.successful(validEmptyPensionsData))
@@ -99,7 +99,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
       status(result) mustBe OK
       bodyOf(result) mustBe Json.toJson(
-        AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel), Some(fullPensionIncomeModel))).toString()
+        AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel))).toString()
     }
 
 
