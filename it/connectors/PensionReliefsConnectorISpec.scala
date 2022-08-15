@@ -261,7 +261,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT, headersSentToDes)
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
 
         val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
 
@@ -272,7 +272,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT, headersSentToDes)
+        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionReliefsJsonBody, NO_CONTENT)
 
         val result = await(connector.createOrAmendPensionReliefs(nino, taxYear, fullCreateOrUpdatePensionReliefsData)(hc))
 

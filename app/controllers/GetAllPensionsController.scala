@@ -34,7 +34,8 @@ class GetAllPensionsController @Inject()(service: PensionsService,
 
   def getAllPensions(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.getAllPensionsData(nino, taxYear, user.mtditid).map {
-      case Right(pensions) if pensions.isEmpty => NoContent
+      case Right(AllPensionsData(pensionReliefs, pensionCharges, stateBenefits)) if pensionReliefs.isEmpty &&
+        pensionCharges.isEmpty && stateBenefits.isEmpty => NoContent
       case Right(model) => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
