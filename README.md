@@ -33,6 +33,12 @@ This service runs on port: `localhost:9322`
 
 **DELETE  /pension-reliefs/nino/:nino/taxYear/:taxYear** (Deletes the pension reliefs for a given nino and tax year)
 
+**GET     /pension-income/nino/:nino/taxYear/:taxYear** (Retrieves the pension income for a given nino and tax year)
+
+**PUT     /pension-income/nino/:nino/taxYear/:taxYear** (Creates or updates on one or more types of pension income)
+
+**DELETE  /pension-income/nino/:nino/taxYear/:taxYear** (Deletes the pension income for a given nino and tax year)
+
 ### Downstream services
 All Pensions data are retrieved / updated via this downstream system.
 - DES (Data Exchange Service)
