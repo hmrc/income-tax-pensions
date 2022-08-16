@@ -34,7 +34,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
     val agentClientCookie: Map[String, String] = Map("MTDITID" -> "555555555")
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
-    val desUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val iFUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
@@ -75,7 +75,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
     "the user is an individual" must {
       "return a 200 and the pension income" in new Setup {
 
-        stubGetWithResponseBody(desUrl, OK, GetPensionIncomeDesResponseBody)
+        stubGetWithResponseBody(iFUrl, OK, GetPensionIncomeDesResponseBody)
 
         authorised()
 
@@ -92,7 +92,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
 
-        stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubGetWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
         authorised()
         whenReady(buildClient(serviceUrl)
         .withHttpHeaders(mtditidHeader)
@@ -108,7 +108,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
 
-        stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubGetWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
         authorised()
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(mtditidHeader)
@@ -125,7 +125,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel.noDataFound).toString()
 
         stubGetWithResponseBody(
-          url = desUrl,
+          url = iFUrl,
           status = NOT_FOUND,
           response = errorResponseBody
         )
@@ -147,7 +147,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
         stubGetWithResponseBody(
-          url = desUrl,
+          url = iFUrl,
           status = SERVICE_UNAVAILABLE,
           response = errorResponseBody
         )
@@ -169,7 +169,7 @@ class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
         stubGetWithResponseBody(
-          url = desUrl,
+          url = iFUrl,
           status = INTERNAL_SERVER_ERROR,
           response = errorResponseBody
         )

@@ -28,19 +28,25 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PensionIncomeConnector @Inject()(val http: HttpClient,
-                                       val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+                                       val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+
+  object PensionIncomeConnectorApiNumbers {
+    val Get = "1612"
+    val Update = "1611"
+    val Delete = "1613"
+  }
 
   def pensionIncomeSourceUri(nino: String, taxYear: Int): String =
-    appConfig.desBaseUrl + s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    appConfig.integrationFrameworkBaseUrl + s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
 
   def getPensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] = {
     val incomeSourcesUri: String = pensionIncomeSourceUri(nino, taxYear)
 
-    def desCall(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] = {
+    def integrationFrameworkCall(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] = {
       http.GET[GetPensionIncomeResponse](incomeSourcesUri)
     }
 
-    desCall(desHeaderCarrier(incomeSourcesUri))
+    integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourcesUri, PensionIncomeConnectorApiNumbers.Get))
   }
 
   def createOrAmendPensionIncome(nino: String, taxYear: Int, pensionIncome: CreateUpdatePensionIncomeModel)
@@ -50,22 +56,21 @@ class PensionIncomeConnector @Inject()(val http: HttpClient,
 
     import connectors.httpParsers.CreateOrAmendPensionIncomeHttpParser.{CreateOrAmendPensionIncomeHttpReads, CreateOrAmendPensionIncomeResponse}
 
-    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionIncomeResponse] = {
+    def integrationFrameworkCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionIncomeResponse] = {
       http.PUT[CreateUpdatePensionIncomeModel,
         CreateOrAmendPensionIncomeResponse](incomeSourcesUri,
         pensionIncome)(CreateUpdatePensionIncomeModel.format.writes, CreateOrAmendPensionIncomeHttpReads, hc, ec)
     }
 
-    desCall(desHeaderCarrier(incomeSourcesUri))
+    integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourcesUri, PensionIncomeConnectorApiNumbers.Update))
   }
 
   def deletePensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionIncomeResponse] = {
     val incomeSourceUri: String = pensionIncomeSourceUri(nino, taxYear)
 
-    def desCall(implicit hc: HeaderCarrier): Future[DeletePensionIncomeResponse] = {
+    def integrationFrameworkCall(implicit hc: HeaderCarrier): Future[DeletePensionIncomeResponse] = {
       http.DELETE[DeletePensionIncomeResponse](incomeSourceUri)(DeletePensionIncomeHttpReads, hc, ec)
     }
-
-    desCall(desHeaderCarrier(incomeSourceUri))
+    integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourceUri, PensionIncomeConnectorApiNumbers.Delete))
   }
 }

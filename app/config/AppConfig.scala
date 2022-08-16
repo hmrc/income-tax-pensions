@@ -30,9 +30,12 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val benefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-benefits")
+  val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
 
   val environment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
+  val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
+  def integrationFrameworkAuthorisationToken(api:String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }
 
 @ImplementedBy(classOf[BackendAppConfig])
@@ -42,8 +45,11 @@ trait AppConfig  {
   val graphiteHost: String
 
   val desBaseUrl: String
+  val integrationFrameworkBaseUrl: String
   val benefitsBaseUrl: String
 
   val environment: String
   val authorisationToken: String
+  val integrationFrameworkEnvironment: String
+  def integrationFrameworkAuthorisationToken(api: String): String
 }

@@ -34,7 +34,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
     val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
-    val desUrl: String = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val iFUrl: String = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
@@ -44,7 +44,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
     "the user is an individual" must {
       "return a No content Success response" in new Setup {
 
-        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT)
+        stubDeleteWithoutResponseBody(iFUrl, NO_CONTENT)
 
         authorised()
 
@@ -62,7 +62,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
@@ -81,7 +81,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
@@ -100,7 +100,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, NOT_FOUND, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, NOT_FOUND, errorResponseBody)
 
         authorised()
 
@@ -118,7 +118,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, SERVICE_UNAVAILABLE, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, SERVICE_UNAVAILABLE, errorResponseBody)
 
         authorised()
 
@@ -136,7 +136,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
 
         authorised()
 

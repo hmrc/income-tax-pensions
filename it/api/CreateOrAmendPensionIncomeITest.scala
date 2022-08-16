@@ -115,7 +115,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
     val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
-    val desUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val iFUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
@@ -125,7 +125,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
     "the user is an individual" must {
       "return a No content Success response" in new Setup {
 
-        stubPutWithoutResponseBody(desUrl, Json.toJson(fullPensionIncomeModel).toString(), NO_CONTENT)
+        stubPutWithoutResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), NO_CONTENT)
 
         authorised()
 
@@ -195,7 +195,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
 
-        stubPutWithResponseBody(desUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, BAD_REQUEST)
+        stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, BAD_REQUEST)
 
         authorised()
 
@@ -213,7 +213,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         // e,g, 404 not found is not expected as create or update will create if not found
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel.parsingError).toString()
 
-        stubPutWithResponseBody(desUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, NOT_FOUND)
+        stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, NOT_FOUND)
 
         authorised()
 
@@ -231,7 +231,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
-        stubPutWithResponseBody(desUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, SERVICE_UNAVAILABLE)
+        stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, SERVICE_UNAVAILABLE)
 
         authorised()
 
@@ -250,7 +250,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
-        stubPutWithResponseBody(desUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, INTERNAL_SERVER_ERROR)
+        stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, INTERNAL_SERVER_ERROR)
 
         authorised()
 
