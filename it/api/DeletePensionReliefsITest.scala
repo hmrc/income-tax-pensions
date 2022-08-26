@@ -33,7 +33,8 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
     val nino: String = "AA123123A"
     val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
+    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
     val desUrl: String = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
     auditStubs()
@@ -49,7 +50,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete) {
           result =>
             result.status mustBe NO_CONTENT
@@ -67,7 +68,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -86,7 +87,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -105,7 +106,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe NOT_FOUND
@@ -123,7 +124,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe SERVICE_UNAVAILABLE
@@ -141,7 +142,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
@@ -154,7 +155,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         unauthorisedOtherEnrolment()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .delete()) {
           result =>
             result.status mustBe UNAUTHORIZED

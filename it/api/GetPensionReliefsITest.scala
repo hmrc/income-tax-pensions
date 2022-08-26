@@ -33,7 +33,8 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
     val taxYear = 2021
     val agentClientCookie: Map[String, String] = Map("MTDITID" -> "555555555")
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
+    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
     val desUrl = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
     auditStubs()
@@ -65,7 +66,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe OK
@@ -80,7 +81,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
         authorised()
         whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .get) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -96,7 +97,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         stubGetWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
         authorised()
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -118,7 +119,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe NOT_FOUND
@@ -140,7 +141,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe SERVICE_UNAVAILABLE
@@ -162,7 +163,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
@@ -175,7 +176,7 @@ class GetPensionReliefsITest extends WiremockSpec with ScalaFutures {
         unauthorisedOtherEnrolment()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .get) {
           result =>
             result.status mustBe UNAUTHORIZED

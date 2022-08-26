@@ -35,7 +35,8 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
     val nino: String = "AA123123A"
     val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val requestHeaders: Seq[HttpHeader] = Seq(new HttpHeader("mtditid", "555555555"))
+    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
     val desUrl: String = s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-charges/nino/$nino/taxYear/$taxYear"
     auditStubs()
@@ -176,7 +177,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         result =>
           result.status mustBe NO_CONTENT
@@ -198,7 +199,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
           |}""".stripMargin)
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(badJson)) {
         result =>
           result.status mustBe BAD_REQUEST
@@ -219,7 +220,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         result =>
           result.status mustBe BAD_REQUEST
@@ -242,7 +243,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         result =>
           result.status mustBe BAD_REQUEST
@@ -265,7 +266,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         {
           result =>
@@ -290,7 +291,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(Json.obj())) {
         result =>
           result.status mustBe BAD_REQUEST
@@ -309,7 +310,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         result =>
           result.status mustBe INTERNAL_SERVER_ERROR
@@ -329,7 +330,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
       authorised()
 
       whenReady(buildClient(serviceUrl)
-        .withHttpHeaders(mtditidHeader)
+        .withHttpHeaders(requestHeaders:_*)
         .put(createUpdatePensionChargesPayload)) {
         result =>
           result.status mustBe SERVICE_UNAVAILABLE
@@ -343,7 +344,7 @@ class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
         unauthorisedOtherEnrolment()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(mtditidHeader)
+          .withHttpHeaders(requestHeaders:_*)
           .put(minimumRequestPayload)) {
           result =>
             result.status mustBe UNAUTHORIZED
