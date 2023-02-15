@@ -22,7 +22,8 @@ import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.PensionChargesService
+import services.{PensionChargesService, PensionsService}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -30,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PensionChargesController @Inject()(service: PensionChargesService,
                                          authorisedAction: AuthorisedAction,
-                                         cc: ControllerComponents
+                                         cc: ControllerComponents,
+                                         pensionService: PensionsService
                                         )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getPensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
@@ -55,6 +57,26 @@ class PensionChargesController @Inject()(service: PensionChargesService,
     user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
       case Some(JsSuccess(model, _)) => responseHandler(service.createUpdatePensionCharges(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
+    }
+  }
+
+  def savePensionChargesData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+
+
+    user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
+      case Some(data: JsSuccess[CreateUpdatePensionChargesRequestModel]) => handleSaveUserData(nino,user.mtditid, taxYear, data.value)
+      case _ =>
+        val logMessage = "[PensionChargesController][savePensionChargesData] Save pension charges request is invalid"
+        logger.warn(logMessage)
+        Future.successful(BadRequest)
+    }
+  }
+
+  private def handleSaveUserData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
+                                (implicit hc: HeaderCarrier): Future[Result] = {
+    pensionService.saveUserPensionChargesData(nino, mtditid, taxYear, userData).map {
+      case Left(_) => InternalServerError
+      case Right(_) => NoContent
     }
   }
 

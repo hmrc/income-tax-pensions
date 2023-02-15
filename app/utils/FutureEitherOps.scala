@@ -17,10 +17,11 @@
 package utils
 
 import uk.gov.hmrc.http.HeaderCarrier
-import models.DesErrorModel
+import models.ServiceErrorModel
+
 import scala.concurrent.{ExecutionContext, Future}
 
-case class FutureEitherOps[E <: DesErrorModel, R](value: Future[Either[E, R]])(implicit ec: ExecutionContext, hc: HeaderCarrier){
+case class FutureEitherOps[E <: ServiceErrorModel, R](value: Future[Either[E, R]])(implicit ec: ExecutionContext, hc: HeaderCarrier){
 
   def map[B](mappingFunction: R => B): FutureEitherOps[E, B] = {
     FutureEitherOps(value.map {
@@ -36,5 +37,4 @@ case class FutureEitherOps[E <: DesErrorModel, R](value: Future[Either[E, R]])(i
     }
     case Left(currentLeft) => Future.successful(Left(currentLeft))
   })
-
 }

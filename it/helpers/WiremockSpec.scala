@@ -41,7 +41,7 @@ trait WiremockSpec extends PlaySpec with BeforeAndAfterEach with BeforeAndAfterA
 
   val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(wireMockPort))
 
-  lazy val connectedServices: Seq[String] = Seq("auth", "des", "income-tax-benefits", "integration-framework")
+  lazy val connectedServices: Seq[String] = Seq("auth", "des", "income-tax-benefits", "integration-framework", "income-tax-submission")
 
   def servicesToUrlConfig: Seq[(String, String)] = connectedServices
     .flatMap(service => Seq(s"microservice.services.$service.host" -> s"localhost", s"microservice.services.$service.port" -> wireMockPort.toString))
