@@ -35,6 +35,9 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val environment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
+
+  val submissionBaseUrl: String = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
+
   def integrationFrameworkAuthorisationToken(api:String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }
 
@@ -51,5 +54,7 @@ trait AppConfig  {
   val environment: String
   val authorisationToken: String
   val integrationFrameworkEnvironment: String
+  val submissionBaseUrl: String
+
   def integrationFrameworkAuthorisationToken(api: String): String
 }

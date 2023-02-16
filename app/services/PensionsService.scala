@@ -20,8 +20,8 @@ import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesRespo
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionIncomeConnector, PensionReliefsConnector}
-import models.{AllPensionsData, DesErrorModel, GetPensionChargesRequestModel, GetPensionIncomeModel, GetPensionReliefsModel, GetStateBenefitsModel}
+import connectors._
+import models._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureEitherOps
 
@@ -31,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
                                 chargesConnector: PensionChargesConnector,
                                 stateBenefitsConnector: GetStateBenefitsConnector,
-                                pensionIncomeConnector: PensionIncomeConnector
+                                pensionIncomeConnector: PensionIncomeConnector,
+                                submissionConnector: SubmissionConnector
                                ) {
 
   val mtditidHeader = "mtditid"
@@ -54,6 +55,19 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
     }).value
   }
 
+  def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
+                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+
+    (for {
+      pensionCharges <- FutureEitherOps[ServiceErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
+      mergedChanges = createUpdateRequest(pensionCharges, userData)
+      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, mergedChanges))
+      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      result
+    }).value
+  }
+
 
   private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
@@ -66,4 +80,18 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
 
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
+
+  private def createUpdateRequest(currentModel: Option[GetPensionChargesRequestModel], updatedModel: CreateUpdatePensionChargesRequestModel) = {
+    CreateUpdatePensionChargesRequestModel(
+      pensionSavingsTaxCharges = currentOrUpdated(currentModel.flatMap(_.pensionSavingsTaxCharges), updatedModel.pensionSavingsTaxCharges),
+      pensionSchemeOverseasTransfers = currentOrUpdated(currentModel.flatMap(_.pensionSchemeOverseasTransfers), updatedModel.pensionSchemeOverseasTransfers),
+      pensionSchemeUnauthorisedPayments = currentOrUpdated(currentModel.flatMap(_.pensionSchemeUnauthorisedPayments), updatedModel.pensionSchemeUnauthorisedPayments),
+      pensionContributions = currentOrUpdated(currentModel.flatMap(_.pensionContributions), updatedModel.pensionContributions),
+      overseasPensionContributions = currentOrUpdated(currentModel.flatMap(_.overseasPensionContributions), updatedModel.overseasPensionContributions)
+    )
+  }
+
+  private def currentOrUpdated[T](current: Option[T], updated: Option[T]): Option[T] = {
+    updated.fold(current)(x => Some(x))
+  }
 }

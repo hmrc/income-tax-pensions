@@ -18,9 +18,18 @@ package models
 
 import play.api.libs.json.{JsValue, Json, OFormat}
 
-sealed trait DesErrorBody
+trait ServiceErrorBody
 
-case class DesErrorModel(status: Int, body: DesErrorBody) {
+trait ServiceErrorModel {
+  val status: Int
+  val body: ServiceErrorBody
+
+  def toJson: JsValue
+}
+
+sealed trait DesErrorBody extends ServiceErrorBody
+
+case class DesErrorModel(status: Int, body: DesErrorBody) extends ServiceErrorModel {
   def toJson: JsValue = {
     body match {
       case error: DesErrorBodyModel => Json.toJson(error)
@@ -29,7 +38,7 @@ case class DesErrorModel(status: Int, body: DesErrorBody) {
   }
 }
 
-/** Single DES Error **/
+/** Single DES Error * */
 case class DesErrorBodyModel(code: String, reason: String) extends DesErrorBody
 
 object DesErrorBodyModel {
@@ -52,7 +61,7 @@ object DesErrorBodyModel {
 
 }
 
-/** Multiple DES Errors **/
+/** Multiple DES Errors * */
 case class DesErrorsBodyModel(failures: Seq[DesErrorBodyModel]) extends DesErrorBody
 
 object DesErrorsBodyModel {
