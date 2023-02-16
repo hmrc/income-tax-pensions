@@ -17,7 +17,6 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.IncomeTaxUserDataHttpParser.{IncomeTaxUserDataHttpReads, IncomeTaxUserDataResponse}
 import connectors.httpParsers.RefreshIncomeSourceHttpParser.{RefreshIncomeSourceResponse, RefreshIncomeSourcesHttpReads}
 import models.RefreshIncomeSourceRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
