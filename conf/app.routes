@@ -25,3 +25,5 @@ GET           /pension-income/nino/:nino/taxYear/:taxYear                      c
 PUT           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.createOrAmendPensionIncome(nino: String, taxYear: Int)
 
 DELETE        /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.deletePensionIncome(nino: String, taxYear: Int)
+
+PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)

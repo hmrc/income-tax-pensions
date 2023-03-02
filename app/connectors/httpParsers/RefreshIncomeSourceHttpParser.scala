@@ -16,14 +16,14 @@
 
 package connectors.httpParsers
 
-import models.APIErrorModel
+import models.ServiceErrorModel
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_API, INTERNAL_SERVER_ERROR_FROM_API, SERVICE_UNAVAILABLE_FROM_API, UNEXPECTED_RESPONSE_FROM_API}
 import utils.PagerDutyHelper.pagerDutyLog
 
 object RefreshIncomeSourceHttpParser extends APIParser {
-  type RefreshIncomeSourceResponse = Either[APIErrorModel, Unit]
+  type RefreshIncomeSourceResponse = Either[ServiceErrorModel, Unit]
 
   override val parserName: String = "RefreshIncomeHttpParser"
   override val service: String = "income-tax-submission"

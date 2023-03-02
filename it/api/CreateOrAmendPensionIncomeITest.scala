@@ -29,7 +29,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
 
 
   val minimumPensionIncomeModel: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(
-    foreignPension = Seq(
+    foreignPension = Some(Seq(
       ForeignPension(
         countryCode = "FRA",
         taxableAmount = 1999.99,
@@ -38,8 +38,8 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         specialWithholdingTax = None,
         foreignTaxCreditRelief = None
       )
-    ),
-    overseasPensionContribution = Seq(
+    )),
+    overseasPensionContribution = Some(Seq(
       OverseasPensionContribution(
         customerReference = None,
         exemptEmployersPensionContribs = 1999.99,
@@ -50,11 +50,11 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         dblTaxationTreaty = None,
         sf74Reference = None
       )
-    )
+    ))
   )
   val fullPensionIncomeModel: CreateUpdatePensionIncomeModel =
     CreateUpdatePensionIncomeModel(
-      foreignPension = Seq(
+      foreignPension = Some(Seq(
         ForeignPension(
           countryCode = "FRA",
           taxableAmount = 1999.99,
@@ -63,8 +63,8 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
           specialWithholdingTax = Some(1999.99),
           foreignTaxCreditRelief = Some(false)
         )
-      ),
-      overseasPensionContribution = Seq(
+      )),
+      overseasPensionContribution = Some(Seq(
         OverseasPensionContribution(
           customerReference = Some("PENSIONINCOME245"),
           exemptEmployersPensionContribs = 1999.99,
@@ -75,6 +75,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
           dblTaxationTreaty = Some("Munich"),
           sf74Reference = Some("SF74-123456")
         )
+      )
       )
     )
 
@@ -114,7 +115,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
     val nino: String = "AA123123A"
     val taxYear: Int = 2021
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
+    val mtdBearerToken: (String, String) = ("Authorization", "Bearer:XYZ")
     val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
     val iFUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
@@ -131,23 +132,11 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe NO_CONTENT
 
-        }
-      }
-
-      "return 400 if the body is empty" in new Setup {
-
-        authorised()
-
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(Json.obj())) {
-          result =>
-            result.status mustBe BAD_REQUEST
         }
       }
 
@@ -184,7 +173,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         Json.toJson(invalidJson)
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(Json.toJson(invalidJson))) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -201,7 +190,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe BAD_REQUEST
@@ -219,7 +208,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
@@ -237,7 +226,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe SERVICE_UNAVAILABLE
@@ -256,7 +245,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         authorised()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
@@ -270,7 +259,7 @@ class CreateOrAmendPensionIncomeITest extends WiremockSpec with ScalaFutures {
         unauthorisedOtherEnrolment()
 
         whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
+          .withHttpHeaders(requestHeaders: _*)
           .put(fullPensionIncomeJson)) {
           result =>
             result.status mustBe UNAUTHORIZED

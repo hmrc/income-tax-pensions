@@ -16,17 +16,19 @@
 
 package services
 
-import connectors.PensionIncomeConnector
+import cats.data.EitherT
+import connectors.{PensionIncomeConnector, SubmissionConnector}
 import connectors.httpParsers.CreateOrAmendPensionIncomeHttpParser.CreateOrAmendPensionIncomeResponse
 import connectors.httpParsers.DeletePensionIncomeHttpParser.DeletePensionIncomeResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
-import models.CreateUpdatePensionIncomeModel
+import models.{CreateUpdatePensionIncomeModel, ServiceErrorModel}
 import uk.gov.hmrc.http.HeaderCarrier
+import cats.implicits._
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class PensionIncomeService @Inject()(connector: PensionIncomeConnector) {
+class PensionIncomeService @Inject()(connector: PensionIncomeConnector, submissionConnector: SubmissionConnector)(implicit ec: ExecutionContext) {
 
   def getPensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     connector.getPensionIncome(nino, taxYear)
@@ -38,4 +40,16 @@ class PensionIncomeService @Inject()(connector: PensionIncomeConnector) {
 
   def deletePensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionIncomeResponse] =
     connector.deletePensionIncome(nino, taxYear)
+
+
+  def savePensionIncomeSessionData(nino: String, taxYear: Int, mtditid: String,
+                                   pensionIncome: CreateUpdatePensionIncomeModel)
+                                  (implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] = {
+    (for {
+      _ <- EitherT(connector.createOrAmendPensionIncome(nino, taxYear, pensionIncome))
+      res <- EitherT(submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      res
+    }).value
+  }
 }
