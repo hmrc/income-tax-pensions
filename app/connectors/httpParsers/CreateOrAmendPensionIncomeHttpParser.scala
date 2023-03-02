@@ -16,14 +16,14 @@
 
 package connectors.httpParsers
 
-import models.DesErrorModel
+import models.ServiceErrorModel
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
 object CreateOrAmendPensionIncomeHttpParser extends DESParser {
-  type CreateOrAmendPensionIncomeResponse = Either[DesErrorModel, Unit]
+  type CreateOrAmendPensionIncomeResponse = Either[ServiceErrorModel, Unit]
 
   override val parserName: String = "CreateOrAmendPensionIncomeHttpParser"
 

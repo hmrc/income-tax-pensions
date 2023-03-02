@@ -100,11 +100,11 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
     )
 
   val fullCreateOrUpdatePensionIncomeData: CreateUpdatePensionIncomeModel =
-    CreateUpdatePensionIncomeModel(fullForeignPensionModel, fullOverseasPensionContributionModel)
+    CreateUpdatePensionIncomeModel(Some(fullForeignPensionModel), Some(fullOverseasPensionContributionModel))
   val fullCreateOrUpdatePensionIncomeJsonBody: String = Json.toJson(fullCreateOrUpdatePensionIncomeData).toString()
 
   val minCreateOrUpdatePensionIncomeData: CreateUpdatePensionIncomeModel =
-    CreateUpdatePensionIncomeModel(minForeignPensionModel, minOverseasPensionContributionModel)
+    CreateUpdatePensionIncomeModel(Some(minForeignPensionModel), Some(minOverseasPensionContributionModel))
   val minCreateOrUpdatePensionIncomeJsonBody: String = Json.toJson(minCreateOrUpdatePensionIncomeData).toString()
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
