@@ -16,7 +16,6 @@
 
 package api
 
-import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
 import models.DesErrorBodyModel
 import org.scalatest.concurrent.ScalaFutures
@@ -121,7 +120,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe OK
             Json.parse(result.body) mustBe Json.parse(GetPensionChargesDesResponseBody)
@@ -142,7 +141,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -164,7 +163,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -186,7 +185,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe BAD_REQUEST
             Json.parse(result.body) mustBe Json.obj(
@@ -208,7 +207,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe NOT_FOUND
             result.body mustBe errorResponseBody
@@ -230,7 +229,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe SERVICE_UNAVAILABLE
             Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
@@ -252,7 +251,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe INTERNAL_SERVER_ERROR
             Json.parse(result.body) mustBe Json.obj(
@@ -265,7 +264,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe UNAUTHORIZED
             result.body mustBe ""
@@ -274,7 +273,7 @@ class GetPensionChargesITest extends WiremockSpec with ScalaFutures {
 
       "return 401 if the request has no MTDITID header present" in new Setup {
         whenReady(buildClient(serviceUrl)
-          .get) {
+          .get()) {
           result =>
             result.status mustBe UNAUTHORIZED
             result.body mustBe ""

@@ -16,7 +16,6 @@
 
 package api
 
-import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
 import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, PensionReliefs}
 import org.scalatest.concurrent.ScalaFutures
