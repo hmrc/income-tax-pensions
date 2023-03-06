@@ -15,6 +15,7 @@
  */
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
+
 val appName = "income-tax-pensions"
 
 lazy val coverageSettings: Seq[Setting[_]] = {
@@ -45,17 +46,17 @@ lazy val coverageSettings: Seq[Setting[_]] = {
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
+  .settings(PlayKeys.playDefaultPort := 9322)
   .settings(
     majorVersion                     := 0,
     scalaVersion                     := "2.13.10",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-    scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",  //suppress warnings
-    scalacOptions += "-Wconf:src=routes/.*:s"
+    scalacOptions                    += "-Wconf:cat=unused-imports&src=html/.*:s",  //suppress warnings
+    scalacOptions                    += "-Wconf:src=routes/.*:s"
   )
-  .configs(IntegrationTest)
+  .configs(IntegrationTest extend Test)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
-  .settings(PlayKeys.playDefaultPort := 9322)
-  .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
-  .disablePlugins(JUnitXmlReportPlugin)
   .settings(coverageSettings: _*)
