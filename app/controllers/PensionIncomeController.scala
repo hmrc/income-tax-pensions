@@ -63,4 +63,14 @@ class PensionIncomeController @Inject()(
     }
   }
 
+
+  def savePensionIncomeSessionData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
+    user.body.asJson.map(_.validate[CreateUpdatePensionIncomeModel]) match {
+      case Some(JsSuccess(model, _)) => service.savePensionIncomeSessionData(nino, taxYear, user.mtditid, model).map {
+        case Left(_) => InternalServerError
+        case Right(_) => NoContent
+      }
+      case foo => Future.successful(BadRequest)
+    }
+  }
 }
