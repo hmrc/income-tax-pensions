@@ -95,8 +95,8 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
     GetPensionIncomeModel(
       submittedOn = "2022-07-28T07:59:39.041Z",
       deletedOn = Some("2022-07-28T07:59:39.041Z"),
-      foreignPension = fullForeignPensionModel,
-      overseasPensionContribution = fullOverseasPensionContributionModel
+      foreignPension = Some(fullForeignPensionModel),
+      overseasPensionContribution = Some(fullOverseasPensionContributionModel)
     )
 
   val fullCreateOrUpdatePensionIncomeData: CreateUpdatePensionIncomeModel =
