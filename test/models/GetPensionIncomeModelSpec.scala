@@ -71,6 +71,20 @@ class GetPensionIncomeModelSpec extends TestUtils {
       |""".stripMargin
   )
 
+  val foreignPensionIncomeOnly: JsValue = Json.parse(
+    """
+      | {
+      |    "submittedOn": "2022-07-28T07:59:39.041Z",
+      |    "foreignPension": [
+      |      {
+      |        "countryCode": "FRA",
+      |        "taxableAmount": 1999.99
+      |      }
+      |    ]
+      |  }
+      |""".stripMargin
+  )
+
   val pensionIncomeJsonWithMinForeignPension: JsValue = Json.parse(
     """
       | {
@@ -129,7 +143,7 @@ class GetPensionIncomeModelSpec extends TestUtils {
       GetPensionIncomeModel(
         submittedOn = "2022-07-28T07:59:39.041Z",
         deletedOn = Some("2022-07-28T07:59:39.041Z"),
-        foreignPension = Seq(
+        foreignPension = Some(Seq(
           ForeignPension(
             countryCode = "FRA",
             taxableAmount = 1999.99,
@@ -138,8 +152,8 @@ class GetPensionIncomeModelSpec extends TestUtils {
             specialWithholdingTax = Some(1999.99),
             foreignTaxCreditRelief = Some(false)
           )
-        ),
-        overseasPensionContribution = Seq(
+        )),
+        overseasPensionContribution = Some(Seq(
           OverseasPensionContribution(
             customerReference = Some("PENSIONINCOME245"),
             exemptEmployersPensionContribs = 1999.99,
@@ -152,12 +166,12 @@ class GetPensionIncomeModelSpec extends TestUtils {
 
           )
         )
-      )
+        ))
 
     val pensionIncomeWithMinForeignPensionModel: GetPensionIncomeModel = GetPensionIncomeModel(
       submittedOn = "2022-07-28T07:59:39.041Z",
       deletedOn = Some("2022-07-28T07:59:39.041Z"),
-      foreignPension = Seq(
+      foreignPension = Some(Seq(
         ForeignPension(
           countryCode = "FRA",
           taxableAmount = 1999.99,
@@ -166,8 +180,8 @@ class GetPensionIncomeModelSpec extends TestUtils {
           specialWithholdingTax = None,
           foreignTaxCreditRelief = None
         )
-      ),
-      overseasPensionContribution = Seq(
+      )),
+      overseasPensionContribution = Some(Seq(
         OverseasPensionContribution(
           customerReference = Some("PENSIONINCOME245"),
           exemptEmployersPensionContribs = 1999.99,
@@ -180,12 +194,12 @@ class GetPensionIncomeModelSpec extends TestUtils {
 
         )
       )
-    )
+      ))
 
     val minimumPensionIncomeModel: GetPensionIncomeModel = GetPensionIncomeModel(
       submittedOn = "2022-07-28T07:59:39.041Z",
       deletedOn = None,
-      foreignPension = Seq(
+      foreignPension = Some(Seq(
         ForeignPension(
           countryCode = "FRA",
           taxableAmount = 1999.99,
@@ -194,8 +208,8 @@ class GetPensionIncomeModelSpec extends TestUtils {
           specialWithholdingTax = None,
           foreignTaxCreditRelief = None
         )
-      ),
-      overseasPensionContribution = Seq(
+      )),
+      overseasPensionContribution = Some(Seq(
         OverseasPensionContribution(
           customerReference = None,
           exemptEmployersPensionContribs = 1999.99,
@@ -207,14 +221,29 @@ class GetPensionIncomeModelSpec extends TestUtils {
           sf74Reference = None
         )
       )
-    )
+      ))
+
+    val foreignPensionOnlyPensionIncomeModel: GetPensionIncomeModel = GetPensionIncomeModel(
+      submittedOn = "2022-07-28T07:59:39.041Z",
+      deletedOn = None,
+      foreignPension = Some(Seq(
+        ForeignPension(
+          countryCode = "FRA",
+          taxableAmount = 1999.99,
+          amountBeforeTax = None,
+          taxTakenOff = None,
+          specialWithholdingTax = None,
+          foreignTaxCreditRelief = None
+        )
+      )),
+      overseasPensionContribution = None)
 
 
     val pensionIncomeWithMinOverseasPensionContributionModel =
       GetPensionIncomeModel(
         submittedOn = "2022-07-28T07:59:39.041Z",
         deletedOn = Some("2022-07-28T07:59:39.041Z"),
-        foreignPension = Seq(
+        foreignPension = Some(Seq(
           ForeignPension(
             countryCode = "FRA",
             taxableAmount = 1999.99,
@@ -223,8 +252,8 @@ class GetPensionIncomeModelSpec extends TestUtils {
             specialWithholdingTax = Some(1999.99),
             foreignTaxCreditRelief = Some(false)
           )
-        ),
-        overseasPensionContribution = Seq(
+        )),
+        overseasPensionContribution = Some(Seq(
           OverseasPensionContribution(
             customerReference = None,
             exemptEmployersPensionContribs = 1999.99,
@@ -235,7 +264,7 @@ class GetPensionIncomeModelSpec extends TestUtils {
             dblTaxationTreaty = None,
             sf74Reference = None
           )
-        )
+        ))
       )
     "serialize valid values" when {
       "there is a full model" in {
@@ -251,6 +280,10 @@ class GetPensionIncomeModelSpec extends TestUtils {
 
       "there is a minimal model" in {
         Json.toJson(minimumPensionIncomeModel) mustBe minimumPensionIncomeJson
+      }
+
+      "there is only foreign pension income in the model" in {
+        Json.toJson(foreignPensionOnlyPensionIncomeModel) mustBe foreignPensionIncomeOnly
       }
     }
 
@@ -270,6 +303,11 @@ class GetPensionIncomeModelSpec extends TestUtils {
       "there is a minimal model" in {
         minimumPensionIncomeJson.as[GetPensionIncomeModel] mustBe minimumPensionIncomeModel
       }
+      "there is only foreign pension income in the model" in {
+        foreignPensionIncomeOnly.as[GetPensionIncomeModel] mustBe foreignPensionOnlyPensionIncomeModel
+      }
+
+
     }
   }
 }
