@@ -20,7 +20,7 @@ import sbt._
 object AppDependencies {
 
   private val bootstrapPlay28Versions = "7.13.0"
-  private val flexmarkVersion = "0.62.2" //Only upgrade after upgrading JDK to Java 11+ "0.36.8" "0.40.0" "0.62.2" 
+  private val flexmarkVersion = "0.62.2" //Only upgrade after upgrading JDK to Java 11+ "0.40.0" to "0.50.50"
 
   val compile = Seq(
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-28"  % bootstrapPlay28Versions,
