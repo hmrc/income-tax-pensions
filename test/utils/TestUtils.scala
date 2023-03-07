@@ -219,7 +219,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     GetPensionIncomeModel(
       submittedOn = "2022-07-28T07:59:39.041Z",
       deletedOn = Some("2022-07-28T07:59:39.041Z"),
-      foreignPension = Seq(
+      foreignPension = Some(Seq(
         ForeignPension(
           countryCode = "FRA",
           taxableAmount = 1999.99,
@@ -228,8 +228,8 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
           specialWithholdingTax = Some(1999.99),
           foreignTaxCreditRelief = Some(false)
         )
-      ),
-      overseasPensionContribution = Seq(
+      )),
+      overseasPensionContribution = Some(Seq(
         OverseasPensionContribution(
           customerReference = Some("PENSIONINCOME245"),
           exemptEmployersPensionContribs = 1999.99,
@@ -239,10 +239,9 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
           dblTaxationArticle = Some("AB3211-1"),
           dblTaxationTreaty = Some("Munich"),
           sf74Reference = Some("SF74-123456")
-
         )
       )
-    )
+      ))
 
   val fullPensionsModel: AllPensionsData = AllPensionsData(
     pensionReliefs = Some(fullPensionReliefsModel),

@@ -50,8 +50,8 @@ object OverseasPensionContribution {
 case class GetPensionIncomeModel (
                            submittedOn: String,
                            deletedOn: Option[String],
-                           foreignPension: Seq[ForeignPension],
-                           overseasPensionContribution: Seq[OverseasPensionContribution]
+                           foreignPension: Option[Seq[ForeignPension]],
+                           overseasPensionContribution: Option[Seq[OverseasPensionContribution]]
                          )
 object GetPensionIncomeModel {
   implicit val format: OFormat[GetPensionIncomeModel] = Json.format[GetPensionIncomeModel]

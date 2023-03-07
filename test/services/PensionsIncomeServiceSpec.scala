@@ -58,7 +58,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
 
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
-          Some(fullPensionIncomeModel.foreignPension),
+          fullPensionIncomeModel.foreignPension,
           None
         )
 
@@ -102,8 +102,8 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
 
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
-          Some(fullPensionIncomeModel.foreignPension),
-          Some(fullPensionIncomeModel.overseasPensionContribution)
+          fullPensionIncomeModel.foreignPension,
+          fullPensionIncomeModel.overseasPensionContribution
         )
 
         (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
@@ -124,7 +124,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
           None,
-          Some(fullPensionIncomeModel.overseasPensionContribution)
+          fullPensionIncomeModel.overseasPensionContribution
         )
 
         (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
@@ -145,8 +145,8 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
     "return error when Create Pension Input fails" in {
       val pensionIncomeModel = CreateUpdatePensionIncomeModel(
-        Some(fullPensionIncomeModel.foreignPension),
-        Some(fullPensionIncomeModel.overseasPensionContribution)
+        fullPensionIncomeModel.foreignPension,
+        fullPensionIncomeModel.overseasPensionContribution
       )
 
       val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
@@ -167,7 +167,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
       val pensionIncomeModel = CreateUpdatePensionIncomeModel(
         None,
-        Some(fullPensionIncomeModel.overseasPensionContribution)
+        fullPensionIncomeModel.overseasPensionContribution
       )
 
       (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
