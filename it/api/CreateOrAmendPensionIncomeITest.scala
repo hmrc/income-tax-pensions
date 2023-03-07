@@ -16,9 +16,8 @@
 
 package api
 
-import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
-import models.{CreateUpdatePensionIncomeModel, DesErrorBodyModel, ForeignPension, GetPensionIncomeModel, OverseasPensionContribution}
+import models.{CreateUpdatePensionIncomeModel, DesErrorBodyModel, ForeignPension, OverseasPensionContribution}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import play.api.http.Status._

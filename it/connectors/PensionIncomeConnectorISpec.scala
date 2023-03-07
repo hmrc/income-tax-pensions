@@ -152,7 +152,7 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
       auditStubs()
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionIncome(nino, taxYear)(hc)).right.get
+      val result = await(connector.getPensionIncome(nino, taxYear)(hc)).toOption.get
 
       result mustBe Some(expectedResult)
     }

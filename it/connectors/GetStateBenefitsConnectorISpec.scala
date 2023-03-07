@@ -86,7 +86,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
         stubGetWithResponseBody(benefitsUrl, OK, expectedResponseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getStateBenefits(nino, taxYear)(hc)).right.get
+        val result = await(connector.getStateBenefits(nino, taxYear)(hc)).toOption.get
 
         result mustBe Some(expectedResult)
       }

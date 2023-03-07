@@ -99,7 +99,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
       stubGetWithResponseBody(desUrl, OK, expectedResponseBody)
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionReliefs(nino, taxYear)(hc)).right.get
+      val result = await(connector.getPensionReliefs(nino, taxYear)(hc)).toOption.get
 
       result mustBe Some(expectedResult)
     }

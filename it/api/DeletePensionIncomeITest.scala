@@ -16,7 +16,6 @@
 
 package api
 
-import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
 import models.DesErrorBodyModel
 import org.scalatest.concurrent.ScalaFutures
@@ -51,7 +50,7 @@ class DeletePensionIncomeITest extends WiremockSpec with ScalaFutures{
 
         whenReady(buildClient(serviceUrl)
           .withHttpHeaders(requestHeaders:_*)
-          .delete) {
+          .delete()) {
           result =>
             result.status mustBe NO_CONTENT
 
