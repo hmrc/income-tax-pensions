@@ -249,4 +249,11 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     stateBenefits = Some(fullStateBenefitsModel),
     pensionIncome = Some(fullPensionIncomeModel)
   )
+
+  val tempFullPensionsModel: AllPensionsData = AllPensionsData(
+    pensionReliefs = Some(fullPensionReliefsModel),
+    pensionCharges = Some(fullPensionChargesModel),
+    stateBenefits = None,
+    pensionIncome = Some(fullPensionIncomeModel)
+  )
 }
