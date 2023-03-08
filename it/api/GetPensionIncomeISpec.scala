@@ -24,7 +24,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class GetPensionIncomeITest extends WiremockSpec with ScalaFutures {
+class GetPensionIncomeISpec extends WiremockSpec with ScalaFutures {
 
   trait Setup {
     implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(5.0, Seconds))

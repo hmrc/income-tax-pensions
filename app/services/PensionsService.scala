@@ -83,11 +83,15 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
 
   private def createUpdateRequest(currentModel: Option[GetPensionChargesRequestModel], updatedModel: CreateUpdatePensionChargesRequestModel) = {
     CreateUpdatePensionChargesRequestModel(
-      pensionSavingsTaxCharges = currentOrUpdated(currentModel.flatMap(_.pensionSavingsTaxCharges), updatedModel.pensionSavingsTaxCharges),
-      pensionSchemeOverseasTransfers = currentOrUpdated(currentModel.flatMap(_.pensionSchemeOverseasTransfers), updatedModel.pensionSchemeOverseasTransfers),
-      pensionSchemeUnauthorisedPayments = currentOrUpdated(currentModel.flatMap(_.pensionSchemeUnauthorisedPayments), updatedModel.pensionSchemeUnauthorisedPayments),
+      pensionSavingsTaxCharges = currentOrUpdated(currentModel.flatMap(_.pensionSavingsTaxCharges),
+        updatedModel.pensionSavingsTaxCharges),
+      pensionSchemeOverseasTransfers = currentOrUpdated(currentModel.flatMap(_.pensionSchemeOverseasTransfers),
+        updatedModel.pensionSchemeOverseasTransfers),
+      pensionSchemeUnauthorisedPayments = currentOrUpdated(currentModel.flatMap(_.pensionSchemeUnauthorisedPayments),
+        updatedModel.pensionSchemeUnauthorisedPayments),
       pensionContributions = currentOrUpdated(currentModel.flatMap(_.pensionContributions), updatedModel.pensionContributions),
-      overseasPensionContributions = currentOrUpdated(currentModel.flatMap(_.overseasPensionContributions), updatedModel.overseasPensionContributions)
+      overseasPensionContributions = currentOrUpdated(currentModel.flatMap(_.overseasPensionContributions),
+        updatedModel.overseasPensionContributions)
     )
   }
 
