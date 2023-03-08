@@ -24,7 +24,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
+class DeletePensionIncomeISpec extends WiremockSpec with ScalaFutures{
 
   trait Setup {
     val timeSpan: Long = 5
@@ -34,17 +34,17 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
     val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
-    val desUrl: String = s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
+    val iFUrl: String = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
 
-  "delete pension reliefs" when {
+  "delete pension income" when {
 
     "the user is an individual" must {
       "return a No content Success response" in new Setup {
 
-        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT)
+        stubDeleteWithoutResponseBody(iFUrl, NO_CONTENT)
 
         authorised()
 
@@ -62,7 +62,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
@@ -81,7 +81,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, BAD_REQUEST, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, BAD_REQUEST, errorResponseBody)
 
         authorised()
 
@@ -95,12 +95,12 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         }
       }
 
-      "return 404 if a user has no recorded pension reliefs to delete" in new Setup {
+      "return 404 if a user has no recorded pension income to delete" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, NOT_FOUND, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, NOT_FOUND, errorResponseBody)
 
         authorised()
 
@@ -118,7 +118,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, SERVICE_UNAVAILABLE, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, SERVICE_UNAVAILABLE, errorResponseBody)
 
         authorised()
 
@@ -136,7 +136,7 @@ class DeletePensionReliefsITest extends WiremockSpec with ScalaFutures{
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
-        stubDeleteWithResponseBody(desUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
+        stubDeleteWithResponseBody(iFUrl, INTERNAL_SERVER_ERROR, errorResponseBody)
 
         authorised()
 

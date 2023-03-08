@@ -26,7 +26,7 @@ import play.api.libs.json.OFormat.oFormatFromReadsAndOWrites
 import play.api.libs.json.{JsObject, JsValue, Json}
 import utils.DESTaxYearHelper.desTaxYearConverter
 
-class CreateUpdatePensionChargesITest extends WiremockSpec with ScalaFutures {
+class CreateUpdatePensionChargesISpec extends WiremockSpec with ScalaFutures {
 
   trait Setup {
     val timeSpan: Long = 5

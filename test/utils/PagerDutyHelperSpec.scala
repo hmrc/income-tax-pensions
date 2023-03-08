@@ -18,7 +18,7 @@ package utils
 
 import uk.gov.hmrc.http.HttpResponse
 
-class PagerDutyHelperTest extends TestUtils {
+class PagerDutyHelperSpec extends TestUtils {
 
   "PagerDutyHelper" should {
 

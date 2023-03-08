@@ -25,9 +25,10 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.PensionReliefsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class PensionReliefsController @Inject()(
                                           service: PensionReliefsService,
                                           auth: AuthorisedAction,

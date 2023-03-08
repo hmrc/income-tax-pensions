@@ -25,9 +25,10 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.PensionIncomeService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class PensionIncomeController @Inject()(
                                          service: PensionIncomeService,
                                          auth: AuthorisedAction,
@@ -70,7 +71,7 @@ class PensionIncomeController @Inject()(
         case Left(_) => InternalServerError
         case Right(_) => NoContent
       }
-      case foo => Future.successful(BadRequest)
+      case _ => Future.successful(BadRequest)
     }
   }
 }
