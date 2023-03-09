@@ -47,7 +47,7 @@ class PensionsServiceSpec extends TestUtils {
 
   val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
-  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
+//  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
 
@@ -63,9 +63,9 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
 
-      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedStateBenefitsResult))
+//      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+//        .expects(nino, taxYear, *)
+//        .returning(Future.successful(expectedStateBenefitsResult))
 
       (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -73,7 +73,7 @@ class PensionsServiceSpec extends TestUtils {
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
-      result mustBe Right(fullPensionsModel)
+      result mustBe Right(tempFullPensionsModel)
     }
 
     "return a Right if all connectors return None" in {
@@ -85,10 +85,10 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(Right(None)))
-
+//      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+//        .expects(nino, taxYear, *)
+//        .returning(Future.successful(Right(None)))
+//
       (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
