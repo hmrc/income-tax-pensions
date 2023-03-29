@@ -26,6 +26,7 @@ import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import services.PensionsService
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.TestUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +43,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
   val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
-  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
+  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
 
   def mockGetAllPensionsData(): CallHandler5[String, Int, String, HeaderCarrier, ExecutionContext,
   Future[Either[DesErrorModel, AllPensionsData]]] = {
@@ -54,7 +55,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
   def mockGetAllPensionsDataNoCharges(): CallHandler5[String, Int, String, HeaderCarrier, ExecutionContext,
     Future[Either[DesErrorModel, AllPensionsData]]] = {
-    val validAllPensionsData = Right(AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel), Some(fullPensionIncomeModel)))
+    val validAllPensionsData = Right(AllPensionsData(Some(fullPensionReliefsModel), None, Some(anAllStateBenefitsData), Some(fullPensionIncomeModel)))
     (pensionsService.getAllPensionsData(_:String, _:Int, _:String)(_:HeaderCarrier, _:ExecutionContext))
       .expects(*, *, *, *, *)
       .returning(Future.successful(validAllPensionsData))
@@ -99,7 +100,7 @@ class GetAllPensionsControllerSpec extends TestUtils{
 
       status(result) mustBe OK
       bodyOf(result) mustBe Json.toJson(
-        AllPensionsData(Some(fullPensionReliefsModel), None, Some(fullStateBenefitsModel), Some(fullPensionIncomeModel))).toString()
+        AllPensionsData(Some(fullPensionReliefsModel), None, Some(anAllStateBenefitsData), Some(fullPensionIncomeModel))).toString()
     }
 
 

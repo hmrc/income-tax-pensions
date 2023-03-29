@@ -18,18 +18,16 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
-                           pensionCharges: Option[GetPensionChargesRequestModel],
-                           stateBenefits: Option[AllStateBenefitsData],
-                           pensionIncome: Option[GetPensionIncomeModel]
-                          ) {
-  def isEmpty: Boolean = {
-    pensionReliefs.isEmpty && pensionCharges.isEmpty && stateBenefits.isEmpty && pensionIncome.isEmpty
-  }
+import java.time.{Instant, LocalDate}
+import java.util.UUID
+
+case class CustomerAddedStateBenefit(benefitId: UUID,
+                                     startDate: LocalDate,
+                                     endDate: Option[LocalDate] = None,
+                                     submittedOn: Option[Instant] = None,
+                                     amount: Option[BigDecimal] = None,
+                                     taxPaid: Option[BigDecimal] = None)
+
+object CustomerAddedStateBenefit {
+  implicit val format: OFormat[CustomerAddedStateBenefit] = Json.format[CustomerAddedStateBenefit]
 }
-
-object AllPensionsData {
-  implicit val formats: OFormat[AllPensionsData] = Json.format[AllPensionsData]
-
-}
-

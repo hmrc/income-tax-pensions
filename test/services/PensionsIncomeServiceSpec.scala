@@ -26,6 +26,7 @@ import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceR
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.TestUtils
 
 import scala.concurrent.Future
@@ -46,7 +47,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
   val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
-  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
+  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
 

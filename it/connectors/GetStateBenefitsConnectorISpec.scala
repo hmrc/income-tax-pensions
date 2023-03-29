@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{DesErrorBodyModel, DesErrorModel, GetStateBenefitsModel}
+import models.{AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -54,7 +54,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val connector = new GetStateBenefitsConnector(httpClient, appConfig(internalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetStateBenefitsModel]
+        val expectedResult = Json.parse(expectedResponseBody).as[AllStateBenefitsData]
 
         stubGetWithResponseBody(benefitsUrl,
           OK, expectedResponseBody, headersSentToBenefits)
@@ -67,7 +67,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val connector = new GetStateBenefitsConnector(httpClient, appConfig(externalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetStateBenefitsModel]
+        val expectedResult = Json.parse(expectedResponseBody).as[AllStateBenefitsData]
 
         stubGetWithResponseBody(benefitsUrl,
           OK, expectedResponseBody, headersSentToBenefits)
@@ -81,7 +81,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
     "return a GetStateBenefitsModel" when {
 
       "nino and tax year are present" in {
-        val expectedResult = Json.parse(expectedResponseBody).as[GetStateBenefitsModel]
+        val expectedResult = Json.parse(expectedResponseBody).as[AllStateBenefitsData]
 
         stubGetWithResponseBody(benefitsUrl, OK, expectedResponseBody)
 

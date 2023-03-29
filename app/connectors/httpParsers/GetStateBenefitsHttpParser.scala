@@ -16,7 +16,7 @@
 
 package connectors.httpParsers
 
-import models.{DesErrorModel, GetStateBenefitsModel}
+import models.{AllStateBenefitsData, DesErrorModel}
 import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
@@ -24,15 +24,15 @@ import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
 object GetStateBenefitsHttpParser extends DESParser with Logging {
-  type GetStateBenefitsResponse = Either[DesErrorModel, Option[GetStateBenefitsModel]]
+  type GetStateBenefitsResponse = Either[DesErrorModel, Option[AllStateBenefitsData]]
 
   override val parserName: String = "GetStateBenefitsHttpParser"
 
   implicit object GetStateBenefitsHttpReads extends HttpReads[GetStateBenefitsResponse] {
     override def read(method: String, url: String, response: HttpResponse): GetStateBenefitsResponse = {
       response.status match {
-        case OK => response.json.validate[GetStateBenefitsModel].fold[GetStateBenefitsResponse](
-          jsonErrors => {
+        case OK => response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
+          _ => {
             badSuccessJsonFromDES
           },
           parsedModel => Right(Some(parsedModel))
