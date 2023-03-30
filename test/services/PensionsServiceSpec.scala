@@ -21,12 +21,13 @@ import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdateP
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceResponse
-import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionIncomeConnector, PensionReliefsConnector, SubmissionConnector}
-import models.{APIErrorBodyModel, APIErrorModel, AllPensionsData, Charge, CreateUpdatePensionChargesRequestModel, DesErrorBodyModel, DesErrorModel, PensionSchemeUnauthorisedPayments}
+import connectors._
+import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
+import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.TestUtils
 
 import scala.concurrent.Future
@@ -47,7 +48,7 @@ class PensionsServiceSpec extends TestUtils {
 
   val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
-//  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(fullStateBenefitsModel))
+  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
 
@@ -63,9 +64,9 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
 
-//      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-//        .expects(nino, taxYear, *)
-//        .returning(Future.successful(expectedStateBenefitsResult))
+      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(expectedStateBenefitsResult))
 
       (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -85,10 +86,10 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-//      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-//        .expects(nino, taxYear, *)
-//        .returning(Future.successful(Right(None)))
-//
+      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(None)))
+
       (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))

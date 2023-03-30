@@ -42,7 +42,7 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
     (for {
       reliefsData <- FutureEitherOps[DesErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
       pensionData <- FutureEitherOps[DesErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
-//      stateBenefitsData <- FutureEitherOps[DesErrorModel, Option[GetStateBenefitsModel]](getStateBenefits(nino, taxYear, mtditid)(hc))
+      stateBenefitsData <- FutureEitherOps[DesErrorModel, Option[AllStateBenefitsData]](getStateBenefits(nino, taxYear, mtditid)(hc))
       pensionIncomeData <- FutureEitherOps[DesErrorModel, Option[GetPensionIncomeModel]](getPensionIncome(nino, taxYear, mtditid)(hc))
 
     } yield {

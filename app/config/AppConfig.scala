@@ -30,6 +30,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val benefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-benefits")
+  val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
 
   val environment: String = config.get[String]("microservice.services.des.environment")
@@ -39,6 +40,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val submissionBaseUrl: String = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
 
   def integrationFrameworkAuthorisationToken(api:String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+
 }
 
 @ImplementedBy(classOf[BackendAppConfig])
@@ -50,6 +52,7 @@ trait AppConfig  {
   val desBaseUrl: String
   val integrationFrameworkBaseUrl: String
   val benefitsBaseUrl: String
+  val stateBenefitsBaseUrl: String
 
   val environment: String
   val authorisationToken: String

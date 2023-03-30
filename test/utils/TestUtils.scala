@@ -22,7 +22,6 @@ import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import controllers.predicates.AuthorisedAction
-import models.{GetStateBenefitsModel, StateBenefit, StateBenefits}
 import models._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -38,6 +37,7 @@ import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
@@ -174,46 +174,6 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     ))
   )
 
-  val stateBenefitModel = StateBenefit(
-    benefitId = "a1e8057e-fbbc-47a8-a8b4-78d9f015c934",
-    startDate = "2019-11-13",
-    dateIgnored = Some("2019-04-11T16:22:00Z"),
-    endDate = Some("2020-08-23"),
-    amount = Some(1212.34),
-    submittedOn = Some("2020-09-11T17:23:00Z"),
-    taxPaid = Some(22323.23)
-  )
-
-  val customerStateBenefitModel = StateBenefit(
-    benefitId = "a1e8057e-fbbc-47a8-a8b4-78d9f015c935",
-    startDate = "2019-11-13",
-    dateIgnored = None,
-    endDate = Some("2020-08-23"),
-    amount = Some(1212.34),
-    submittedOn = Some("2020-09-11T17:23:00Z"),
-    taxPaid = Some(22323.23)
-  )
-
-  val fullStateBenefitsModel = GetStateBenefitsModel(
-    stateBenefits = Some(StateBenefits(
-      incapacityBenefit = Some(Seq(stateBenefitModel)),
-      statePension = Some(stateBenefitModel),
-      statePensionLumpSum = Some(stateBenefitModel),
-      employmentSupportAllowance = Some(Seq(stateBenefitModel)),
-      jobSeekersAllowance = Some(Seq(stateBenefitModel)),
-      bereavementAllowance = Some(stateBenefitModel),
-      otherStateBenefits = Some(stateBenefitModel)
-    )),
-    customerAddedStateBenefits = Some(StateBenefits(
-      incapacityBenefit = Some(Seq(customerStateBenefitModel)),
-      statePension = Some(customerStateBenefitModel),
-      statePensionLumpSum = Some(customerStateBenefitModel),
-      employmentSupportAllowance = Some(Seq(customerStateBenefitModel)),
-      jobSeekersAllowance = Some(Seq(customerStateBenefitModel)),
-      bereavementAllowance = Some(customerStateBenefitModel),
-      otherStateBenefits = Some(customerStateBenefitModel)
-    ))
-  )
 
   val fullPensionIncomeModel: GetPensionIncomeModel =
     GetPensionIncomeModel(
@@ -246,7 +206,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   val fullPensionsModel: AllPensionsData = AllPensionsData(
     pensionReliefs = Some(fullPensionReliefsModel),
     pensionCharges = Some(fullPensionChargesModel),
-    stateBenefits = Some(fullStateBenefitsModel),
+    stateBenefits = Some(anAllStateBenefitsData),
     pensionIncome = Some(fullPensionIncomeModel)
   )
 
