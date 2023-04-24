@@ -48,7 +48,7 @@ class SavePensionsChargesUserDataISpec extends WiremockSpec with ScalaFutures { 
     auditStubs()
   }
 
-  "save pension reliefs user data" when {
+  "save pension charges user data" when {
 
     "the user is an individual" must {
 
@@ -63,15 +63,6 @@ class SavePensionsChargesUserDataISpec extends WiremockSpec with ScalaFutures { 
       "return a status error when" should {
         for ( errorStatus <- Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST)) {
           val errorResponseBody: String  = Json.obj("code" -> errorStatus.toString,"reason" -> "SOME_DES_ERROR_REASON").toString
-
-          s"a downstream $errorStatus error occurs on a pension charges GET" in new Setup {
-            stubGetWithResponseBody(desUrl, errorStatus, errorResponseBody)
-            authorised()
-            whenReady(buildClient(serviceUrl).withHttpHeaders(requestHeaders: _*).put(createUpdatePensionChargesPayload)) { result =>
-              result.body mustBe errorResponseBody
-              result.status mustBe errorStatus
-            }
-          }
 
           s"a downstream $errorStatus error occurs on a pension charges PUT" in new Setup {
             stubChargesGET()

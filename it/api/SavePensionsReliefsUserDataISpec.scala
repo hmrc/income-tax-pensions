@@ -64,15 +64,6 @@ class SavePensionsReliefsUserDataISpec extends WiremockSpec with ScalaFutures { 
         for ( errorStatus <- Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST)) {
           val errorResponseBody: String  = Json.obj("code" -> errorStatus.toString,"reason" -> "SOME_DES_ERROR_REASON").toString
 
-          s"a downstream $errorStatus error occurs on a pension reliefs GET" in new Setup {
-            stubGetWithResponseBody(desUrl, errorStatus, errorResponseBody)
-            authorised()
-            whenReady(buildClient(serviceUrl).withHttpHeaders(requestHeaders: _*).put(pensionsReliefPayload)) { result =>
-              result.body mustBe errorResponseBody
-              result.status mustBe errorStatus
-            }
-          }
-
           s"a downstream $errorStatus error occurs on a pensions relief PUT" in new Setup {
             stubReliefsGET()
             stubPutWithResponseBody(desUrl, Json.toJson(createOrUpdatePensionReliefs).toString(), errorResponseBody, errorStatus)

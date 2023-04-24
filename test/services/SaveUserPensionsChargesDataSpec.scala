@@ -45,46 +45,15 @@ class SaveUserPensionsChargesDataSpec extends TestUtils {
 
   "saveUserPensionChargesData" should {
 
+    val (userData, pensionSchemeUnauthorisedPayments) = createUserData()
+    
     "return Right(unit) " should {
+      
       "successfully merge changes if update contains pensionSchemeUnauthorisedPayments" in {
-
-        val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-          pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-          surcharge = Some(Charge(
-            amount = 124.44,
-            foreignTaxPaid = 123.33
-          )),
-          noSurcharge = Some(Charge(
-            amount = 222.44,
-            foreignTaxPaid = 223.33
-          ))
-        ))
-
-        val userData = CreateUpdatePensionChargesRequestModel(
-          None,
-          None,
-          pensionSchemeUnauthorisedPayments,
-          None,
-          None
-        )
-
-        val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-          fullPensionChargesModel.pensionSavingsTaxCharges,
-          fullPensionChargesModel.pensionSchemeOverseasTransfers,
-          pensionSchemeUnauthorisedPayments,
-          fullPensionChargesModel.pensionContributions,
-          fullPensionChargesModel.overseasPensionContributions,
-        )
-
-
         fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
 
-        (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(expectedChargesResult))
-
         (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-          .expects(nino, taxYear, expectedMergedDataChange, *)
+          .expects(nino, taxYear, userData, *)
           .returning(Future.successful(Right(())))
 
         (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
@@ -93,131 +62,32 @@ class SaveUserPensionsChargesDataSpec extends TestUtils {
 
         val Right(result) = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
 
-        result mustBe (())
-
+        result mustBe ()
       }
-    }
-
-    "return error when Get Pension Charges fails" in {
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedErrorResult))
-
-      val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
-
-      result mustBe expectedErrorResult
     }
 
 
     "return error when Create Pension Charges fails" in {
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-        fullPensionChargesModel.pensionSavingsTaxCharges,
-        fullPensionChargesModel.pensionSchemeOverseasTransfers,
-        pensionSchemeUnauthorisedPayments,
-        fullPensionChargesModel.pensionContributions,
-        fullPensionChargesModel.overseasPensionContributions,
-      )
       val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
       fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
 
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedChargesResult))
-
       (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-        .expects(nino, taxYear, expectedMergedDataChange, *)
+        .expects(nino, taxYear, userData, *)
         .returning(Future.successful(expectedErrorResult))
 
       val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
 
       result mustBe expectedErrorResult
-
     }
 
     "return error when Refresh submission tax fails" in {
-
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-        fullPensionChargesModel.pensionSavingsTaxCharges,
-        fullPensionChargesModel.pensionSchemeOverseasTransfers,
-        pensionSchemeUnauthorisedPayments,
-        fullPensionChargesModel.pensionContributions,
-        fullPensionChargesModel.overseasPensionContributions,
-      )
-
-
       fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
-
-
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedChargesResult))
+      
 
       (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-        .expects(nino, taxYear, expectedMergedDataChange, *)
+        .expects(nino, taxYear, userData, *)
         .returning(Future.successful(Right(())))
 
       (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
@@ -227,9 +97,31 @@ class SaveUserPensionsChargesDataSpec extends TestUtils {
       val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
 
       result mustBe expectedErrorResult
-
     }
+  }
 
+  private def createUserData() = {
+    val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
+      pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
+      surcharge = Some(Charge(
+        amount = 124.44,
+        foreignTaxPaid = 123.33
+      )),
+      noSurcharge = Some(Charge(
+        amount = 222.44,
+        foreignTaxPaid = 223.33
+      ))
+    ))
+
+    val userData = CreateUpdatePensionChargesRequestModel(
+      None,
+      None,
+      pensionSchemeUnauthorisedPayments,
+      None,
+      None
+    )
+
+    (userData, pensionSchemeUnauthorisedPayments)
   }
 
 }
