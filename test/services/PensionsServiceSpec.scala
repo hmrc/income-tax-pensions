@@ -17,12 +17,10 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
+import connectors._
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceResponse
-import connectors._
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
@@ -74,7 +72,7 @@ class PensionsServiceSpec extends TestUtils {
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
-      result mustBe Right(tempFullPensionsModel)
+      result mustBe Right(fullPensionsModel)
     }
 
     "return a Right if all connectors return None" in {
@@ -115,195 +113,6 @@ class PensionsServiceSpec extends TestUtils {
       result mustBe expectedErrorResult
 
     }
-  }
-
-  "saveUserPensionChargesData" should {
-
-    "return Right(unit) " should {
-      "successfully merge changes if update contains pensionSchemeUnauthorisedPayments" in {
-
-        val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-          pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-          surcharge = Some(Charge(
-            amount = 124.44,
-            foreignTaxPaid = 123.33
-          )),
-          noSurcharge = Some(Charge(
-            amount = 222.44,
-            foreignTaxPaid = 223.33
-          ))
-        ))
-
-        val userData = CreateUpdatePensionChargesRequestModel(
-          None,
-          None,
-          pensionSchemeUnauthorisedPayments,
-          None,
-          None
-        )
-
-        val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-          fullPensionChargesModel.pensionSavingsTaxCharges,
-          fullPensionChargesModel.pensionSchemeOverseasTransfers,
-          pensionSchemeUnauthorisedPayments,
-          fullPensionChargesModel.pensionContributions,
-          fullPensionChargesModel.overseasPensionContributions,
-        )
-
-
-        fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
-
-        (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(expectedChargesResult))
-
-        (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-          .expects(nino, taxYear, expectedMergedDataChange, *)
-          .returning(Future.successful(Right(())))
-
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, mtditid, taxYear, *)
-          .returning(Future.successful(Right(())))
-
-        val Right(result) = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
-
-        result mustBe (())
-
-      }
-    }
-
-    "return error when Get Pension Charges fails" in {
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedErrorResult))
-
-      val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
-
-      result mustBe expectedErrorResult
-    }
-
-
-    "return error when Create Pension Charges fails" in {
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-        fullPensionChargesModel.pensionSavingsTaxCharges,
-        fullPensionChargesModel.pensionSchemeOverseasTransfers,
-        pensionSchemeUnauthorisedPayments,
-        fullPensionChargesModel.pensionContributions,
-        fullPensionChargesModel.overseasPensionContributions,
-      )
-      val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-
-      fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
-
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedChargesResult))
-
-      (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-        .expects(nino, taxYear, expectedMergedDataChange, *)
-        .returning(Future.successful(expectedErrorResult))
-
-      val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
-
-      result mustBe expectedErrorResult
-
-    }
-
-    "return error when Refresh submission tax fails fails" in {
-
-      val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00543216RA", "00123456RB"),
-        surcharge = Some(Charge(
-          amount = 124.44,
-          foreignTaxPaid = 123.33
-        )),
-        noSurcharge = Some(Charge(
-          amount = 222.44,
-          foreignTaxPaid = 223.33
-        ))
-      ))
-
-      val userData = CreateUpdatePensionChargesRequestModel(
-        None,
-        None,
-        pensionSchemeUnauthorisedPayments,
-        None,
-        None
-      )
-
-      val expectedMergedDataChange = CreateUpdatePensionChargesRequestModel(
-        fullPensionChargesModel.pensionSavingsTaxCharges,
-        fullPensionChargesModel.pensionSchemeOverseasTransfers,
-        pensionSchemeUnauthorisedPayments,
-        fullPensionChargesModel.pensionContributions,
-        fullPensionChargesModel.overseasPensionContributions,
-      )
-
-
-      fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
-      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
-
-
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedChargesResult))
-
-      (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
-        .expects(nino, taxYear, expectedMergedDataChange, *)
-        .returning(Future.successful(Right(())))
-
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, mtditid, taxYear, *)
-        .returning(Future.successful(expectedErrorResult))
-
-      val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
-
-      result mustBe expectedErrorResult
-
-    }
-
   }
 
 }

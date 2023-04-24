@@ -29,7 +29,6 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 
   val desBaseUrl: String = servicesConfig.baseUrl("des")
-  val benefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-benefits")
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
 
@@ -51,7 +50,6 @@ trait AppConfig  {
 
   val desBaseUrl: String
   val integrationFrameworkBaseUrl: String
-  val benefitsBaseUrl: String
   val stateBenefitsBaseUrl: String
 
   val environment: String

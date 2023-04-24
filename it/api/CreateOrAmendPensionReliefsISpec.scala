@@ -66,7 +66,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
   "create or amend pension reliefs" when {
 
     "the user is an individual" must {
-      "return a No content Success response" in new Setup {
+      "return a No content(204) Success response" in new Setup {
 
         stubPutWithoutResponseBody(desUrl, Json.toJson(fullCreateOrUpdatePensionReliefsData).toString(), NO_CONTENT)
 
@@ -81,7 +81,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 400 if the body payload validation fails" in new Setup {
+      "return Bad Request(400) if the body payload validation fails" in new Setup {
 
         authorised()
 
@@ -93,7 +93,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 400 if a downstream bad request error occurs" in new Setup {
+      "return Bad Request(400) if a downstream bad request error occurs" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
@@ -111,7 +111,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 500 if an unexpected error is returned from DES user" in new Setup {
+      "return Internal Server Error(500) if an unexpected error is returned from DES user" in new Setup {
 
         // e,g, 404 not found is not expected as create or update will create if not found
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel.parsingError).toString()
@@ -129,7 +129,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 503 if a downstream service unavailable error occurs" in new Setup {
+      "return Service Unavailable(503) if a downstream service unavailable error occurs" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
@@ -148,7 +148,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 500 if a downstream internal server error occurs" in new Setup {
+      "return Internal Server Error(500) if a downstream internal server error occurs" in new Setup {
 
         val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
           "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
@@ -168,7 +168,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 401 if the user has no HMRC-MTD-IT enrolment" in new Setup {
+      "return Unauthorised(401) if the user has no HMRC-MTD-IT enrolment" in new Setup {
         unauthorisedOtherEnrolment()
 
         whenReady(buildClient(serviceUrl)
@@ -180,7 +180,7 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 401 if the request has no MTDITID header present" in new Setup {
+      "return Unauthorised(401) if the request has no MTDITID header present" in new Setup {
         whenReady(buildClient(serviceUrl)
           .put(fullJson)) {
           result =>

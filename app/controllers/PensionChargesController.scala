@@ -18,12 +18,11 @@ package controllers
 
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import controllers.predicates.AuthorisedAction
-import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel}
+import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel, ServiceErrorModel}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.{PensionChargesService, PensionsService}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -62,24 +61,21 @@ class PensionChargesController @Inject()(service: PensionChargesService,
   }
 
   def savePensionChargesData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-
-
     user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
-      case Some(data: JsSuccess[CreateUpdatePensionChargesRequestModel]) => handleSaveUserData(nino,user.mtditid, taxYear, data.value)
+      case Some(data: JsSuccess[CreateUpdatePensionChargesRequestModel]) =>
+        saveUserDataHandler(pensionService.saveUserPensionChargesData(nino, user.mtditid, taxYear, data.value))
       case _ =>
         val logMessage = "[PensionChargesController][savePensionChargesData] Save pension charges request is invalid"
         logger.warn(logMessage)
         Future.successful(BadRequest)
     }
   }
-
-  private def handleSaveUserData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
-                                (implicit hc: HeaderCarrier): Future[Result] = {
-    pensionService.saveUserPensionChargesData(nino, mtditid, taxYear, userData).map {
-      case Left(_) => InternalServerError
+  
+  private def saveUserDataHandler(saveResponsee: Future[Either[ServiceErrorModel, Unit]]): Future[Result] =
+    saveResponsee.map {
       case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
-  }
 
   def responseHandler(serviceResponse: Future[CreateUpdatePensionChargesResponse]): Future[Result] = {
     serviceResponse.map {

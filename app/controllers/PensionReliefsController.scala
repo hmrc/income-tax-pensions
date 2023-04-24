@@ -18,11 +18,11 @@ package controllers
 
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import controllers.predicates.AuthorisedAction
-import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel}
+import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, ServiceErrorModel}
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.PensionReliefsService
+import services.{PensionReliefsService, PensionsService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -32,7 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PensionReliefsController @Inject()(
                                           service: PensionReliefsService,
                                           auth: AuthorisedAction,
-                                          cc: ControllerComponents
+                                          cc: ControllerComponents,
+                                          pensionService: PensionsService
                                         )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
@@ -49,6 +50,23 @@ class PensionReliefsController @Inject()(
       case _ => Future.successful(BadRequest)
     }
   }
+  
+  def savePensionReliefsUserData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
+    user.body.asJson.map(_.validate[CreateOrUpdatePensionReliefsModel]) match {
+      case Some(data: JsSuccess[CreateOrUpdatePensionReliefsModel]) =>
+        saveUserDataHandler(pensionService.saveUserPensionReliefsData(nino, user.mtditid, taxYear, data.value))
+      case _ =>
+        val logMessage = "[PensionReliefsController][savePensionReliefsUserData] Save pension relief request is invalid"
+        logger.warn(logMessage)
+        Future.successful(BadRequest)
+    }
+  }
+
+  private def saveUserDataHandler(saveResponsee: Future[Either[ServiceErrorModel, Unit]]): Future[Result] =
+    saveResponsee.map {
+      case Right(_) => NoContent
+      case  Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
+    }
 
   def responseHandler(serviceResponse: Future[CreateOrAmendPensionReliefsResponse]): Future[Result] ={
     serviceResponse.map {

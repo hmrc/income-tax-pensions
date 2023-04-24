@@ -49,7 +49,7 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
       AllPensionsData(
         pensionReliefs = reliefsData,
         pensionCharges = pensionData,
-        stateBenefits = None, //Temporarily returning None for stateBenefitsData until migration from income-tax-benefits to income-tax-state-beneifts is completed
+        stateBenefits = stateBenefitsData,
         pensionIncome = pensionIncomeData
       )
     }).value
@@ -60,8 +60,20 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
 
     (for {
       pensionCharges <- FutureEitherOps[ServiceErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
-      mergedChanges = createUpdateRequest(pensionCharges, userData)
+      mergedChanges = createUpdateChargesRequest(pensionCharges, userData)
       _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, mergedChanges))
+      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      result
+    }).value
+  }
+  
+  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)
+                                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+    (for {
+      pensionReliefs <- FutureEitherOps[ServiceErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
+      mergedChanges = createOrUpdateReliefs(pensionReliefs, userData)
+      _ <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, mergedChanges))
       result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
     } yield {
       result
@@ -81,19 +93,38 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
 
-  private def createUpdateRequest(currentModel: Option[GetPensionChargesRequestModel], updatedModel: CreateUpdatePensionChargesRequestModel) = {
+  private def createUpdateChargesRequest(currentModel: Option[GetPensionChargesRequestModel], updatedModel: CreateUpdatePensionChargesRequestModel) = {
     CreateUpdatePensionChargesRequestModel(
-      pensionSavingsTaxCharges = currentOrUpdated(currentModel.flatMap(_.pensionSavingsTaxCharges),
-        updatedModel.pensionSavingsTaxCharges),
-      pensionSchemeOverseasTransfers = currentOrUpdated(currentModel.flatMap(_.pensionSchemeOverseasTransfers),
-        updatedModel.pensionSchemeOverseasTransfers),
+      pensionSavingsTaxCharges = currentOrUpdated(currentModel.flatMap(_.pensionSavingsTaxCharges), updatedModel.pensionSavingsTaxCharges),
+      pensionSchemeOverseasTransfers = currentOrUpdated(currentModel.flatMap(_.pensionSchemeOverseasTransfers),updatedModel.pensionSchemeOverseasTransfers),
+      
       pensionSchemeUnauthorisedPayments = currentOrUpdated(currentModel.flatMap(_.pensionSchemeUnauthorisedPayments),
         updatedModel.pensionSchemeUnauthorisedPayments),
+      
       pensionContributions = currentOrUpdated(currentModel.flatMap(_.pensionContributions), updatedModel.pensionContributions),
-      overseasPensionContributions = currentOrUpdated(currentModel.flatMap(_.overseasPensionContributions),
-        updatedModel.overseasPensionContributions)
+      overseasPensionContributions = currentOrUpdated(currentModel.flatMap(_.overseasPensionContributions), updatedModel.overseasPensionContributions)
     )
   }
+  
+  private def createOrUpdateReliefs(currentModel: Option[GetPensionReliefsModel], updatedModel: CreateOrUpdatePensionReliefsModel) =
+    CreateOrUpdatePensionReliefsModel(pensionReliefs = PensionReliefs(
+      regularPensionContributions = currentOrUpdated(currentModel.flatMap(_.pensionReliefs.regularPensionContributions),
+        updatedModel.pensionReliefs.regularPensionContributions),
+      
+      oneOffPensionContributionsPaid = currentOrUpdated(currentModel.flatMap(_.pensionReliefs.oneOffPensionContributionsPaid),
+        updatedModel.pensionReliefs.oneOffPensionContributionsPaid),
+      
+      retirementAnnuityPayments = currentOrUpdated(currentModel.flatMap(_.pensionReliefs.retirementAnnuityPayments),
+        updatedModel.pensionReliefs.retirementAnnuityPayments),
+      
+      paymentToEmployersSchemeNoTaxRelief = currentOrUpdated(currentModel.flatMap(_.pensionReliefs.paymentToEmployersSchemeNoTaxRelief),
+        updatedModel.pensionReliefs.paymentToEmployersSchemeNoTaxRelief),
+      
+      overseasPensionSchemeContributions = currentOrUpdated(currentModel.flatMap(_.pensionReliefs.overseasPensionSchemeContributions),
+        updatedModel.pensionReliefs.overseasPensionSchemeContributions)
+    ))
+  
+  
 
   private def currentOrUpdated[T](current: Option[T], updated: Option[T]): Option[T] = {
     updated.fold(current)(x => Some(x))
