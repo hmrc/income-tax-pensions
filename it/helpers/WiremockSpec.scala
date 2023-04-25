@@ -24,6 +24,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
@@ -41,12 +42,12 @@ trait WiremockSpec extends PlaySpec with BeforeAndAfterEach with BeforeAndAfterA
 
   val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(wireMockPort))
 
-  lazy val connectedServices: Seq[String] = Seq("auth", "des", "income-tax-benefits", "integration-framework", "income-tax-submission")
+  lazy val connectedServices: Seq[String] = Seq("auth", "des", "income-tax-state-benefits", "integration-framework", "income-tax-submission")
 
   def servicesToUrlConfig: Seq[(String, String)] = connectedServices
     .flatMap(service => Seq(s"microservice.services.$service.host" -> s"localhost", s"microservice.services.$service.port" -> wireMockPort.toString))
 
-  override implicit lazy val app = GuiceApplicationBuilder()
+  override implicit lazy val app: Application = GuiceApplicationBuilder()
     .configure(
       ("auditing.consumer.baseUri.port" -> wireMockPort) +:
         servicesToUrlConfig: _*

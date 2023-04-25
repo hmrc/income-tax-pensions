@@ -18,25 +18,18 @@ package services
 
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
-import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
-import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceResponse
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.TestUtils
 
 import scala.concurrent.Future
 
-class PensionsIncomeServiceSpec extends TestUtils {
+class PensionIncomeServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
-
-  val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
-  val chargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
-  val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
+  
   val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
   val submissionConnector: SubmissionConnector = mock[SubmissionConnector]
   val service = new PensionIncomeService(pensionIncomeConnector, submissionConnector)
@@ -44,10 +37,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
   val taxYear = 2022
   val nino = "AA123456A"
   val mtditid = "1234567890"
-
-  val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
-  val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
-  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
+  
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
 
@@ -95,11 +85,10 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
         val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
 
-        result mustBe (())
+        result mustBe ()
 
       }
       "successfully update when both foreign pension and overseas pension contribution are provided" in {
-
 
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
           fullPensionIncomeModel.foreignPension,
@@ -116,7 +105,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
         val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
 
-        result mustBe (())
+        result mustBe ()
 
       }
       "successfully update when only pension contribution is provided" in {
@@ -137,7 +126,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
 
         val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
 
-        result mustBe (())
+        result mustBe ()
 
       }
     }
@@ -150,7 +139,6 @@ class PensionsIncomeServiceSpec extends TestUtils {
       )
 
       val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-
 
       (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
         .expects(nino, taxYear, pensionIncomeModel, *)
@@ -173,9 +161,7 @@ class PensionsIncomeServiceSpec extends TestUtils {
       (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
         .expects(nino, taxYear, pensionIncomeModel, *)
         .returning(Future.successful(Right(())))
-
-
-
+      
 
       (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)

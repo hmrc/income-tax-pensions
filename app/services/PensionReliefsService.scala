@@ -16,28 +16,39 @@
 
 package services
 
-import connectors.PensionReliefsConnector
+import connectors.{PensionReliefsConnector, SubmissionConnector}
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import connectors.httpParsers.DeletePensionReliefsHttpParser.DeletePensionReliefsResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import models.CreateOrUpdatePensionReliefsModel
+import models.{CreateOrUpdatePensionReliefsModel, ServiceErrorModel}
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.FutureEitherOps
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class PensionReliefsService @Inject()(connector: PensionReliefsConnector) {
+class PensionReliefsService @Inject()(reliefsConnector: PensionReliefsConnector, submissionConnector: SubmissionConnector) {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
-    connector.getPensionReliefs(nino, taxYear)
+    reliefsConnector.getPensionReliefs(nino, taxYear)
 
   def createOrAmendPensionReliefs(nino: String, taxYear: Int,
                                   pensionReliefs: CreateOrUpdatePensionReliefsModel)
                                  (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
 
-    connector.createOrAmendPensionReliefs(nino, taxYear, pensionReliefs)
+    reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, pensionReliefs)
   }
 
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] =
-    connector.deletePensionReliefs(nino, taxYear)
+    reliefsConnector.deletePensionReliefs(nino, taxYear)
+
+  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)
+                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+    (for {
+      _ <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
+      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      result
+    }).value
+  }
 }

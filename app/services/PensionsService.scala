@@ -31,8 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
                                 chargesConnector: PensionChargesConnector,
                                 stateBenefitsConnector: GetStateBenefitsConnector,
-                                pensionIncomeConnector: PensionIncomeConnector,
-                                submissionConnector: SubmissionConnector
+                                pensionIncomeConnector: PensionIncomeConnector
                                ) {
 
   val mtditidHeader = "mtditid"
@@ -49,23 +48,11 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
       AllPensionsData(
         pensionReliefs = reliefsData,
         pensionCharges = pensionData,
-        stateBenefits = None, //Temporarily returning None for stateBenefitsData until migration from income-tax-benefits to income-tax-state-beneifts is completed
+        stateBenefits = stateBenefitsData,
         pensionIncome = pensionIncomeData
       )
     }).value
   }
-
-  def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
-                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
-
-    (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
-
 
   private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
@@ -79,4 +66,5 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
 
+  
 }
