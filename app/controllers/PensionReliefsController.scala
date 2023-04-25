@@ -22,22 +22,20 @@ import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, ServiceErro
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{PensionReliefsService, PensionsService}
+import services.PensionReliefsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PensionReliefsController @Inject()(
-                                          service: PensionReliefsService,
-                                          auth: AuthorisedAction,
-                                          cc: ControllerComponents,
-                                          pensionService: PensionsService
+class PensionReliefsController @Inject()(pensionReliefsService: PensionReliefsService,
+                                         auth: AuthorisedAction,
+                                         cc: ControllerComponents
                                         )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    service.getPensionReliefs(nino, taxYear).map{
+    pensionReliefsService.getPensionReliefs(nino, taxYear).map{
       case Right(None) => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
       case Right(model) => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
@@ -46,7 +44,7 @@ class PensionReliefsController @Inject()(
 
   def createOrAmendPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateOrUpdatePensionReliefsModel]) match {
-      case Some(JsSuccess(model, _)) => responseHandler(service.createOrAmendPensionReliefs(nino, taxYear, model))
+      case Some(JsSuccess(model, _)) => responseHandler(pensionReliefsService.createOrAmendPensionReliefs(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -54,7 +52,7 @@ class PensionReliefsController @Inject()(
   def savePensionReliefsUserData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateOrUpdatePensionReliefsModel]) match {
       case Some(data: JsSuccess[CreateOrUpdatePensionReliefsModel]) =>
-        saveUserDataHandler(pensionService.saveUserPensionReliefsData(nino, user.mtditid, taxYear, data.value))
+        saveUserDataHandler(pensionReliefsService.saveUserPensionReliefsData(nino, user.mtditid, taxYear, data.value))
       case _ =>
         val logMessage = "[PensionReliefsController][savePensionReliefsUserData] Save pension relief request is invalid"
         logger.warn(logMessage)
@@ -76,7 +74,7 @@ class PensionReliefsController @Inject()(
   }
 
   def deletePensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    service.deletePensionReliefs(nino, taxYear).map{
+    pensionReliefsService.deletePensionReliefs(nino, taxYear).map{
       case Right(_) => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }

@@ -22,22 +22,21 @@ import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel, Servic
 import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{PensionChargesService, PensionsService}
+import services.PensionChargesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PensionChargesController @Inject()(service: PensionChargesService,
+class PensionChargesController @Inject()(pensionChargesService: PensionChargesService,
                                          authorisedAction: AuthorisedAction,
-                                         cc: ControllerComponents,
-                                         pensionService: PensionsService
+                                         cc: ControllerComponents
                                         )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getPensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
 
-    service.getPensionCharges(nino, taxYear).map {
+    pensionChargesService.getPensionCharges(nino, taxYear).map {
       case Right(None) => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
       case Right(model) => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
@@ -47,7 +46,7 @@ class PensionChargesController @Inject()(service: PensionChargesService,
 
   def deletePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
 
-    service.deletePensionCharges(nino, taxYear).map {
+    pensionChargesService.deletePensionCharges(nino, taxYear).map {
       case Right(_) => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
@@ -55,7 +54,7 @@ class PensionChargesController @Inject()(service: PensionChargesService,
 
   def createUpdatePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
-      case Some(JsSuccess(model, _)) => responseHandler(service.createUpdatePensionCharges(nino, taxYear, model))
+      case Some(JsSuccess(model, _)) => responseHandler(pensionChargesService.createUpdatePensionCharges(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -63,7 +62,7 @@ class PensionChargesController @Inject()(service: PensionChargesService,
   def savePensionChargesData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
       case Some(data: JsSuccess[CreateUpdatePensionChargesRequestModel]) =>
-        saveUserDataHandler(pensionService.saveUserPensionChargesData(nino, user.mtditid, taxYear, data.value))
+        saveUserDataHandler(pensionChargesService.saveUserPensionChargesData(nino, user.mtditid, taxYear, data.value))
       case _ =>
         val logMessage = "[PensionChargesController][savePensionChargesData] Save pension charges request is invalid"
         logger.warn(logMessage)

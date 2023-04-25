@@ -31,8 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
                                 chargesConnector: PensionChargesConnector,
                                 stateBenefitsConnector: GetStateBenefitsConnector,
-                                pensionIncomeConnector: PensionIncomeConnector,
-                                submissionConnector: SubmissionConnector
+                                pensionIncomeConnector: PensionIncomeConnector
                                ) {
 
   val mtditidHeader = "mtditid"
@@ -54,28 +53,6 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
       )
     }).value
   }
-
-  def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
-                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
-
-    (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
-  
-  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)
-                                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
-    (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
-
 
   private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
