@@ -41,7 +41,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
   val nino: String = "123456789"
   val taxYear: Int = 2021
-  val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/taxYear/$taxYear"
+  val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
 
   ".getStateBenefits" should {
 

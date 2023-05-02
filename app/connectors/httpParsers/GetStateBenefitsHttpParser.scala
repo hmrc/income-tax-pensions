@@ -31,12 +31,18 @@ object GetStateBenefitsHttpParser extends DESParser with Logging {
   implicit object GetStateBenefitsHttpReads extends HttpReads[GetStateBenefitsResponse] {
     override def read(method: String, url: String, response: HttpResponse): GetStateBenefitsResponse = {
       response.status match {
-        case OK => response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
+        case OK =>
+          logger.info("JSON response")
+          logger.info(response.json.toString())
+          response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
           _ => {
             badSuccessJsonFromDES
           },
           parsedModel => Right(Some(parsedModel))
         )
+        case NO_CONTENT =>
+          logger.info(logMessage(response))
+          Right(None)
         case NOT_FOUND => Right(None)
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
