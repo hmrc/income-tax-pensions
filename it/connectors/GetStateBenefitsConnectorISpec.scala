@@ -41,7 +41,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
   val nino: String = "123456789"
   val taxYear: Int = 2021
-  val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
+  val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/taxYear/$taxYear"
 
   ".getStateBenefits" should {
 
@@ -91,17 +91,6 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
       result mustBe Right(None)
     }
 
-    "return a Right None when NO_CONTENT" in {
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithoutResponseBody(stateBenefitsUrl
-        , NO_CONTENT)
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
-
-      result mustBe Right(None)
-    }
-
     "return a SERVICE_UNAVAILABLE" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
@@ -140,6 +129,17 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
       stubGetWithResponseBody(stateBenefitsUrl
         , INTERNAL_SERVER_ERROR, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a INTERNAL_SERVER_ERROR  when DES throws an unexpected result" in {
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+      stubGetWithoutResponseBody(stateBenefitsUrl
+        , NO_CONTENT)
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getStateBenefits(nino, taxYear)(hc))
 
