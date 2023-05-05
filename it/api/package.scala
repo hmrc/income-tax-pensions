@@ -130,7 +130,7 @@ package object api {
         
     val createUpdatePensionChargesRequest = CreateUpdatePensionChargesRequestModel(
       pensionSavingsTaxCharges = Some(PensionSavingsTaxCharges(
-        pensionSchemeTaxReference = Seq("00123456RA"),
+        pensionSchemeTaxReference = Some(Seq("00123456RA")),
         lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
           amount = 123.45,
           taxPaid = 12.45)),
@@ -152,7 +152,7 @@ package object api {
         transferChargeTaxPaid = 0
       )),
       pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Seq("00123456RA"),
+        pensionSchemeTaxReference = Some(Seq("00123456RA")),
         surcharge = Some(Charge(
           amount = 123.45,
           foreignTaxPaid = 123.45

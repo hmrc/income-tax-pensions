@@ -32,8 +32,6 @@ object GetStateBenefitsHttpParser extends DESParser with Logging {
     override def read(method: String, url: String, response: HttpResponse): GetStateBenefitsResponse = {
       response.status match {
         case OK =>
-          logger.info(s"$parserName - JSON response")
-          logger.info(response.json.toString())
           response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
           _ => {
             badSuccessJsonFromDES
