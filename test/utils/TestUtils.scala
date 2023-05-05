@@ -122,7 +122,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   val fullPensionChargesModel = GetPensionChargesRequestModel(
     submittedOn = "2020-07-27T17:00:19Z",
     pensionSavingsTaxCharges = Some(PensionSavingsTaxCharges(
-      pensionSchemeTaxReference = Seq("00123456RA", "00123456RB"),
+      pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
       lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
         amount = 800.02,
         taxPaid = 200.02
@@ -147,7 +147,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       transferChargeTaxPaid = 33.88
     )),
     pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-      pensionSchemeTaxReference = Seq("00123456RA", "00123456RB"),
+      pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
       surcharge = Some(Charge(
         amount = 124.44,
         foreignTaxPaid = 123.33

@@ -65,7 +65,7 @@ object LifetimeAllowance {
   implicit val format: OFormat[LifetimeAllowance] = Json.format[LifetimeAllowance]
 }
 
-case class PensionSavingsTaxCharges(pensionSchemeTaxReference: Seq[String],
+case class PensionSavingsTaxCharges(pensionSchemeTaxReference: Option[Seq[String]],
                                     lumpSumBenefitTakenInExcessOfLifetimeAllowance: Option[LifetimeAllowance],
                                     benefitInExcessOfLifetimeAllowance: Option[LifetimeAllowance],
                                     isAnnualAllowanceReduced: Boolean,
@@ -75,7 +75,7 @@ object PensionSavingsTaxCharges {
   implicit val format: OFormat[PensionSavingsTaxCharges] = Json.format[PensionSavingsTaxCharges]
 }
 
-case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Seq[String],
+case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]],
                                              surcharge: Option[Charge],
                                              noSurcharge: Option[Charge])
 

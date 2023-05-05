@@ -287,9 +287,9 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       shortServiceRefund, shortServiceRefundTaxPaid)
 
   val pensionSchemeUnauthorisedPayments: PensionSchemeUnauthorisedPayments =
-    PensionSchemeUnauthorisedPayments(pensionSchemeTaxRef.get, surcharge = Some(surcharge), noSurcharge = Some(noSurcharge))
+    PensionSchemeUnauthorisedPayments(pensionSchemeTaxRef, surcharge = Some(surcharge), noSurcharge = Some(noSurcharge))
 
-  val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(pensionSchemeTaxRef.get,
+  val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(pensionSchemeTaxRef,
     lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
     benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
     isAnnualAllowanceReduced = false, taperedAnnualAllowance = Some(false),
