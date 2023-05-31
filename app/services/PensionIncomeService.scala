@@ -52,4 +52,14 @@ class PensionIncomeService @Inject()(connector: PensionIncomeConnector, submissi
       res
     }).value
   }
+
+  def deletePensionIncomeSessionData(nino: String, taxYear: Int, mtditid: String)
+                                    (implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] = {
+    (for {
+      _ <- EitherT(connector.deletePensionIncome(nino, taxYear))
+      res <- EitherT(submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      res
+    }).value
+  }
 }

@@ -62,7 +62,7 @@ class SubmissionConnectorISpec extends WiremockSpec {
 
     "return a Left error" when {
 
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { errorStatus =>
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST, UNPROCESSABLE_ENTITY).foreach { errorStatus =>
 
         val desResponseBody = Json.obj(
           "code" -> "SOME_DES_ERROR_CODE",
@@ -73,8 +73,10 @@ class SubmissionConnectorISpec extends WiremockSpec {
 
 
         s"API returns $errorStatus" in {
-          val expectedResult = APIErrorModel(errorStatus, APIErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
-
+          val expectedResult =
+            APIErrorModel(
+              status = if (errorStatus == UNPROCESSABLE_ENTITY) INTERNAL_SERVER_ERROR else errorStatus,
+              APIErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
 
           stubPutWithResponseBody(desUrl, jsValue.toString(), desResponseBody, errorStatus)
 
@@ -84,7 +86,10 @@ class SubmissionConnectorISpec extends WiremockSpec {
         }
 
         s"API returns $errorStatus response that does not have a parsable error body" in {
-          val expectedResult = APIErrorModel(errorStatus, APIErrorBodyModel("PARSING_ERROR", "Error parsing response from API"))
+          val expectedResult =
+            APIErrorModel(
+              status = if (errorStatus == UNPROCESSABLE_ENTITY) INTERNAL_SERVER_ERROR else errorStatus,
+            APIErrorBodyModel("PARSING_ERROR", "Error parsing response from API"))
 
           stubPutWithResponseBody(desUrl, jsValue.toString(), "UNEXPECTED RESPONSE BODY", errorStatus)
 
