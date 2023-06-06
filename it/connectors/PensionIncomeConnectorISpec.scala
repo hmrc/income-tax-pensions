@@ -27,7 +27,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.DESTaxYearHelper.desTaxYearConverter
+import utils.TaxYearHelper.{desIfTaxYearConverter, ifTysTaxYearConverter}
 
 class PensionIncomeConnectorISpec extends WiremockSpec {
 
@@ -35,14 +35,16 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
 
-  def appConfig(desHost: String): AppConfig = new BackendAppConfig(
+  def appConfig(desIfHost: String): AppConfig = new BackendAppConfig(
     app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+    override val desBaseUrl: String = s"http://$desIfHost:$wireMockPort"
+    override val ifBaseUrl: String = s"http://$desIfHost:$wireMockPort"
   }
 
   val nino: String = "123456789"
-  val taxYear: Int = 2021
-  val desUrl = s"/income-tax/income/pensions/$nino/${desTaxYearConverter(taxYear)}"
+  val (nonTysTaxYear, tysTaxYear) = (2023, 2024)
+  val desUrl = s"/income-tax/income/pensions/$nino/${desIfTaxYearConverter(nonTysTaxYear)}"
+  val ifTysUrl = s"/income-tax/income/pensions/${ifTysTaxYearConverter(tysTaxYear)}/$nino"
 
   val fullForeignPensionModel = Seq(
     ForeignPension(
@@ -113,298 +115,285 @@ class PensionIncomeConnectorISpec extends WiremockSpec {
     new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
   )
 
+  for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {
+    s".GetPensionIncomeConnector - $taxYear" should {
+      "include internal headers" when {
 
-  ".GetPensionIncomeConnector" should {
-    "include internal headers" when {
+        lazy val internalHost = "localhost"
+        lazy val externalHost = "127.0.0.1"
 
-      lazy val internalHost = "localhost"
-      lazy val externalHost = "127.0.0.1"
+        "the host for DES-IF is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
+          val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
 
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
-
-        stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
-        auditStubs()
-
-        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-
-        result mustBe Right(Some(expectedResult))
-      }
-
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
-
-        stubGetWithResponseBody(desUrl, OK, expectedResponseBody, headersSentToDes)
-        auditStubs()
-
-        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-
-        result mustBe Right(Some(expectedResult))
-      }
-    }
-    "return a GetPensionIncomeModel when nino and taxYear are present" in {
-      val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
-      stubGetWithResponseBody(desUrl, OK, expectedResponseBody)
-      auditStubs()
-
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionIncome(nino, taxYear)(hc)).toOption.get
-
-      result mustBe Some(expectedResult)
-    }
-
-    "return a NOT_FOUND" in {
-      stubGetWithResponseBody(desUrl, NOT_FOUND, "")
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      auditStubs()
-
-      val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-      result mustBe Right(None)
-    }
-
-
-    "handle error" when {
-      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
-
-      def runErrorTest(status: Int, desError: DesErrorModel): GetPensionIncomeResponse = {
-        stubGetWithResponseBody(desUrl, status, desError.toJson.toString())
-        auditStubs()
-
-        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-        result
-      }
-
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { status =>
-        s"Des returns $status" in {
-          val desError: DesErrorModel = DesErrorModel(status, desErrorBodyModel)
-          val result = runErrorTest(status, desError)
+          stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody, headersSentToDes)
           auditStubs()
 
-          result mustBe Left(desError)
+          val result = await(connector.getPensionIncome(nino, taxYear)(hc))
+
+          result mustBe Right(Some(expectedResult))
+        }
+
+        "the host for DES-IF is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
+          val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
+
+          stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody, headersSentToDes)
+          auditStubs()
+
+          val result = await(connector.getPensionIncome(nino, taxYear)(hc))
+
+          result mustBe Right(Some(expectedResult))
         }
       }
+      "return a GetPensionIncomeModel when nino and taxYear are present" in {
+        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionIncomeModel]
+        stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody)
+        auditStubs()
 
-      "return a INTERNAL_SERVER_ERROR  when DES throws an unexpected result" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.getPensionIncome(nino, taxYear)(hc)).toOption.get
 
-        stubGetWithoutResponseBody(desUrl, NO_CONTENT)
+        result mustBe Some(expectedResult)
+      }
+
+      "return a NOT_FOUND" in {
+        stubGetWithResponseBody(desIfUrl, NOT_FOUND, "")
+        implicit val hc: HeaderCarrier = HeaderCarrier()
         auditStubs()
 
         val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-
-        result mustBe Left(expectedResult)
+        result mustBe Right(None)
       }
 
-      "return a Parsing error INTERNAL_SERVER_ERROR response" in {
-        lazy val invalidJson = Json.obj("submittedOn" -> true)
 
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      "handle error" when {
+        val desErrorBodyModel = DesErrorBodyModel("DES-IF_CODE", "DES-IF_REASON")
 
-        stubGetWithResponseBody(desUrl, OK, invalidJson.toString())
-        auditStubs()
-
-        val result = await(connector.getPensionIncome(nino, taxYear)(hc))
-
-        result mustBe Left(expectedResult)
-      }
-    }
-  }
-
-  ".deletePensionIncome " should {
-
-    "include internal headers" when {
-
-      val internalHost = "localhost"
-      val externalHost = "127.0.0.1"
-
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
-
-        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
-        auditStubs()
-
-
-        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
-
-        result mustBe Right(())
-      }
-
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
-
-        stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
-        auditStubs()
-
-
-        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
-
-        result mustBe Right(())
-      }
-    }
-
-
-    "handle error" when {
-
-      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
-
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST, NOT_FOUND).foreach { status =>
-
-        s"Des returns $status" in {
-          val desError = DesErrorModel(status, desErrorBodyModel)
-          implicit val hc: HeaderCarrier = HeaderCarrier()
-
-          stubDeleteWithResponseBody(desUrl, status, desError.toJson.toString())
+        def runErrorTest(status: Int, desError: DesErrorModel): GetPensionIncomeResponse = {
+          stubGetWithResponseBody(desIfUrl, status, desError.toJson.toString())
           auditStubs()
 
+          val result = await(connector.getPensionIncome(nino, taxYear)(hc))
+          result
+        }
+
+        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { status =>
+          s"Des returns $status" in {
+            val desError: DesErrorModel = DesErrorModel(status, desErrorBodyModel)
+            val result = runErrorTest(status, desError)
+            auditStubs()
+
+            result mustBe Left(desError)
+          }
+        }
+
+        "return a INTERNAL_SERVER_ERROR  when DES-IF throws an unexpected result" in {
+          val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+          stubGetWithoutResponseBody(desIfUrl, NO_CONTENT)
+          auditStubs()
+
+          val result = await(connector.getPensionIncome(nino, taxYear)(hc))
+          result mustBe Left(expectedResult)
+        }
+
+        "return a Parsing error INTERNAL_SERVER_ERROR response" in {
+          lazy val invalidJson = Json.obj("submittedOn" -> true)
+
+          val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+          stubGetWithResponseBody(desIfUrl, OK, invalidJson.toString())
+          auditStubs()
+
+          val result = await(connector.getPensionIncome(nino, taxYear)(hc))
+          result mustBe Left(expectedResult)
+        }
+      }
+    }
+
+    s".deletePensionIncome- $taxYear " should {
+
+      "include internal headers" when {
+
+        val internalHost = "localhost"
+        val externalHost = "127.0.0.1"
+
+        "the host for DES-IF is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
+
+          stubDeleteWithoutResponseBody(desIfUrl, NO_CONTENT, headersSentToDes)
+          auditStubs()
 
           val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
+          result mustBe Right(())
+        }
 
-          result mustBe Left(desError)
+        "the host for DES-IF is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
+
+          stubDeleteWithoutResponseBody(desIfUrl, NO_CONTENT, headersSentToDes)
+          auditStubs()
+
+          val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
+          result mustBe Right(())
         }
       }
 
-      "DES returns an unexpected error code - 502 BadGateway" in {
-        val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
-        implicit val hc: HeaderCarrier = HeaderCarrier()
 
-        stubDeleteWithResponseBody(desUrl, BAD_GATEWAY, desError.toJson.toString())
-        auditStubs()
+      "handle error" when {
 
+        val desErrorBodyModel = DesErrorBodyModel("DES-IF_CODE", "DES-IF_REASON")
 
-        val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
+        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST, NOT_FOUND).foreach { status =>
 
-        result mustBe Left(desError)
-      }
+          s"Des returns $status" in {
+            val desError = DesErrorModel(status, desErrorBodyModel)
+            implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    }
-  }
+            stubDeleteWithResponseBody(desIfUrl, status, desError.toJson.toString())
+            auditStubs()
 
-  ".createOrAmendPensionIncome" should {
+            val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
+            result mustBe Left(desError)
+          }
+        }
 
-    "include internal headers" when {
-      val internalHost = "localhost"
-      val externalHost = "127.0.0.1"
+        "DES-IF returns an unexpected error code - 502 BadGateway" in {
+          val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
 
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
+          stubDeleteWithResponseBody(desIfUrl, BAD_GATEWAY, desError.toJson.toString())
+          auditStubs()
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
-        auditStubs()
-
-
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
-
-        result mustBe Right(())
-      }
-
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
-
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
-        auditStubs()
-
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
-
-        result mustBe Right(())
+          val result = await(connector.deletePensionIncome(nino, taxYear)(hc))
+          result mustBe Left(desError)
+        }
       }
     }
 
-    "return a the expected object" when {
-      "request body is a full valid pension income model" in {
+    s".createOrAmendPensionIncome - $taxYear" should {
 
-        stubPutWithoutResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
-        auditStubs()
+      "include internal headers" when {
+        val internalHost = "localhost"
+        val externalHost = "127.0.0.1"
+
+        "the host for DES-IF is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(internalHost))
+
+          stubPutWithoutResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
+          auditStubs()
 
 
-        implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
-        result mustBe Right(())
-      }
+          result mustBe Right(())
+        }
 
-      "request body is a minimum valid pension income model" in {
+        "the host for DES-IF is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector = new PensionIncomeConnector(httpClient, appConfig(externalHost))
 
-        stubPutWithoutResponseBody(desUrl, minCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
-        auditStubs()
-
-        implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, minCreateOrUpdatePensionIncomeData)(hc))
-
-        result mustBe Right(())
-      }
-    }
-
-    "return expected error" when {
-
-      Seq(BAD_REQUEST, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE).foreach { httpErrorStatus =>
-
-        s"DES returns $httpErrorStatus response that has a parsable error body" in {
-          val responseBody = Json.obj(
-            "code" -> "SOME_DES_ERROR_CODE",
-            "reason" -> "SOME_DES_ERROR_REASON"
-          )
-          val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
-
-          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), httpErrorStatus)
+          stubPutWithoutResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT, headersSentToDes)
           auditStubs()
 
           val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
-          result mustBe Left(expectedResult)
+          result mustBe Right(())
         }
+      }
 
-        s"DES returns $httpErrorStatus response that does not have a parsable error body" in {
-          val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel.parsingError)
+      "return a the expected object" when {
+        "request body is a full valid pension income model" in {
 
-          stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody,
-            "UNEXPECTED RESPONSE BODY", httpErrorStatus)
+          stubPutWithoutResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
           auditStubs()
 
 
           implicit val hc: HeaderCarrier = HeaderCarrier()
           val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
 
+          result mustBe Right(())
+        }
+
+        "request body is a minimum valid pension income model" in {
+
+          stubPutWithoutResponseBody(desIfUrl, minCreateOrUpdatePensionIncomeJsonBody, NO_CONTENT)
+          auditStubs()
+
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, minCreateOrUpdatePensionIncomeData)(hc))
+
+          result mustBe Right(())
+        }
+      }
+
+      "return expected error" when {
+
+        Seq(BAD_REQUEST, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE).foreach { httpErrorStatus =>
+
+          s"DES-IF returns $httpErrorStatus response that has a parsable error body" in {
+            val responseBody = Json.obj(
+              "code" -> "SOME_DES-IF_ERROR_CODE",
+              "reason" -> "SOME_DES-IF_ERROR_REASON"
+            )
+            val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel("SOME_DES-IF_ERROR_CODE", "SOME_DES-IF_ERROR_REASON"))
+
+            stubPutWithResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), httpErrorStatus)
+            auditStubs()
+
+            val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
+
+            result mustBe Left(expectedResult)
+          }
+
+          s"DES-IF returns $httpErrorStatus response that does not have a parsable error body" in {
+            val expectedResult = DesErrorModel(httpErrorStatus, DesErrorBodyModel.parsingError)
+
+            stubPutWithResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody,
+              "UNEXPECTED RESPONSE BODY", httpErrorStatus)
+            auditStubs()
+
+
+            implicit val hc: HeaderCarrier = HeaderCarrier()
+            val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
+
+            result mustBe Left(expectedResult)
+          }
+
+        }
+
+        "DES-IF returns an unexpected http response that is parsable" in {
+
+          val responseBody = Json.obj(
+            "code" -> "BAD_GATEWAY",
+            "reason" -> "bad gateway"
+          )
+          val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("BAD_GATEWAY", "bad gateway"))
+
+          stubPutWithResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), BAD_GATEWAY)
+          auditStubs()
+
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
           result mustBe Left(expectedResult)
         }
 
+        "DES-IF returns an unexpected http response that is not parsable" in {
+          val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+          stubPutWithResponseBody(desIfUrl, fullCreateOrUpdatePensionIncomeJsonBody, "Bad Gateway", BAD_GATEWAY)
+          auditStubs()
+
+          val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
+          result mustBe Left(expectedResult)
+        }
       }
-
-      "DES returns an unexpected http response that is parsable" in {
-
-        val responseBody = Json.obj(
-          "code" -> "BAD_GATEWAY",
-          "reason" -> "bad gateway"
-        )
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("BAD_GATEWAY", "bad gateway"))
-
-        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, responseBody.toString(), BAD_GATEWAY)
-        auditStubs()
-
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
-        result mustBe Left(expectedResult)
-      }
-
-      "DES returns an unexpected http response that is not parsable" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-        stubPutWithResponseBody(desUrl, fullCreateOrUpdatePensionIncomeJsonBody, "Bad Gateway", BAD_GATEWAY)
-        auditStubs()
-
-        val result = await(connector.createOrAmendPensionIncome(nino, taxYear, fullCreateOrUpdatePensionIncomeData)(hc))
-
-        result mustBe Left(expectedResult)
-      }
-
     }
-
   }
 }
 
