@@ -92,7 +92,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
     }
 
     "return a Right None when NO_CONTENT" in {
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+//      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithoutResponseBody(stateBenefitsUrl
         , NO_CONTENT)

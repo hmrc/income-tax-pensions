@@ -23,11 +23,11 @@ import utils.TestUtils
 
 class IFConnectorSpec extends TestUtils {
 
-  class FakeConnector(override val appConfig: AppConfig) extends IFConnector {
+  class IFFakeConnector(override val appConfig: AppConfig) extends DesIFConnector {
     def headerCarrierTest(url: String)(hc: HeaderCarrier): HeaderCarrier = integrationFrameworkHeaderCarrier(url, "1611")(hc)
   }
 
-  val connector = new FakeConnector(appConfig = mockAppConfig)
+  val connector = new IFFakeConnector(appConfig = mockAppConfig)
 
   "FakeConnector" when {
 

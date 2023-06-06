@@ -23,10 +23,10 @@ import utils.TestUtils
 
 class DesConnectorSpec extends TestUtils{
 
-  class FakeConnector(override val appConfig: AppConfig) extends DesConnector {
+  class DesFakeConnector(override val appConfig: AppConfig) extends DesIFConnector {
     def headerCarrierTest(url: String)(hc: HeaderCarrier): HeaderCarrier = desHeaderCarrier(url)(hc)
   }
-  val connector = new FakeConnector(appConfig = mockAppConfig)
+  val connector = new DesFakeConnector(appConfig = mockAppConfig)
 
   "FakeConnector" when {
 

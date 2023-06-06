@@ -25,7 +25,7 @@ import play.api.http.Status._
 import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.OFormat.oFormatFromReadsAndOWrites
 import play.api.libs.json.{JsValue, Json}
-import utils.DESTaxYearHelper.desTaxYearConverter
+import utils.TaxYearHelper.desIfTaxYearConverter
 
 class CreateUpdatePensionChargesISpec extends WiremockSpec with ScalaFutures {
 
@@ -37,7 +37,7 @@ class CreateUpdatePensionChargesISpec extends WiremockSpec with ScalaFutures {
     val mtditidHeader: (String, String) = ("mtditid", "555555555")
     val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
     val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
-    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-charges/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }

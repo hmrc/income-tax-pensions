@@ -17,56 +17,73 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
+import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
 import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
 import models.CreateOrUpdatePensionReliefsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import utils.DESTaxYearHelper.desTaxYearConverter
+import utils.TaxYearHelper
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PensionReliefsConnector @Inject()(val http: HttpClient,
-                                        val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+                                        val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesIFConnector {
 
-  def pensionReliefsIncomeSourceUri(nino: String, taxYear: Int): String =
-    appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${desTaxYearConverter(taxYear)}"
+  private object BaseApiNumbers {
+    val Get = "1656"
+    val Update = "1655"
+    val Delete = "1657"
+  }
+  private def pensionReliefsIfIncomeSourceUri(nino: String, taxYear: Int, apiNum: String): String =
+    appConfig.ifBaseUrl + s"/income-tax/reliefs/pensions/${TaxYearHelper.apiPath(nino, taxYear, apiNum)}"
 
+  private def pensionReliefsDesIncomeSourceUri(nino: String, taxYear: Int): String =
+    appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
+    
+  
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
-    val incomeSourcesUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
-
-    def desCall(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
-      http.GET[GetPensionReliefsResponse](incomeSourcesUri)
+    def desIfCall(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
+      http.GET[GetPensionReliefsResponse](incomeSourceUri)
     }
-
-    desCall(desHeaderCarrier(incomeSourcesUri))
+    
+    if (TaxYearHelper.isTysApi(taxYear, BaseApiNumbers.Get)) {
+      val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, BaseApiNumbers.Get)
+      desIfCall(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,BaseApiNumbers.Get)))
+    } else {
+      val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
+      desIfCall(incomeSourceUri)(desHeaderCarrier(incomeSourceUri))
+    }
   }
 
   def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)
                                  (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
-
-    val incomeSourcesUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
-
-    import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
-
-    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
-      http.PUT[CreateOrUpdatePensionReliefsModel,
-        CreateOrAmendPensionReliefsResponse](incomeSourcesUri,
-        pensionReliefs)(CreateOrUpdatePensionReliefsModel.format.writes, CreateOrAmendPensionReliefsHttpReads, hc, ec)
+    
+    def desIfCall(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+      http.PUT[CreateOrUpdatePensionReliefsModel, CreateOrAmendPensionReliefsResponse](incomeSourceUri, pensionReliefs)(
+                       CreateOrUpdatePensionReliefsModel.format.writes, CreateOrAmendPensionReliefsHttpReads, hc, ec)
     }
-
-    desCall(desHeaderCarrier(incomeSourcesUri))
+    
+    if (TaxYearHelper.isTysApi(taxYear, BaseApiNumbers.Update)) {
+      val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, BaseApiNumbers.Update)
+      desIfCall(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,BaseApiNumbers.Update)))
+    } else {
+      val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
+      desIfCall(incomeSourceUri)(desHeaderCarrier(incomeSourceUri))
+    }
   }
 
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
-    val incomeSourceUri: String = pensionReliefsIncomeSourceUri(nino, taxYear)
-
-    def desCall(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
+    def desIfCall(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
       http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)(DeletePensionReliefsHttpReads, hc, ec)
     }
-
-    desCall(desHeaderCarrier(incomeSourceUri))
-
+    
+    if (TaxYearHelper.isTysApi(taxYear, BaseApiNumbers.Delete)) {
+      val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, BaseApiNumbers.Delete)
+      desIfCall(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear, BaseApiNumbers.Delete)))
+    } else {
+      val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
+      desIfCall(incomeSourceUri)(desHeaderCarrier(incomeSourceUri))
+    }
   }
 }

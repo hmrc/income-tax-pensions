@@ -24,7 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import play.api.http.Status._
 import play.api.libs.json.Json
-import utils.DESTaxYearHelper.desTaxYearConverter
+import utils.TaxYearHelper.desIfTaxYearConverter
 
 class SavePensionsChargesUserDataISpec extends WiremockSpec with ScalaFutures { //scalastyle:off magic.number
   
@@ -39,7 +39,7 @@ class SavePensionsChargesUserDataISpec extends WiremockSpec with ScalaFutures { 
     val headersSentToDes = Seq(new HttpHeader(mtditidHeader._1, mtditidHeader._2))
     val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, ("Authorization", "Bearer:XYZ"))
     
-    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desTaxYearConverter(taxYear)}"
+    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
     val serviceUrl: String = s"/income-tax-pensions/pension-charges/session-data/nino/$nino/taxYear/$taxYear"
     val submissionUri: String = s"/income-tax-submission-service/income-tax/nino/$nino/sources/session\\?taxYear=$taxYear"
     
