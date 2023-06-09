@@ -145,6 +145,22 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
       result mustBe Left(expectedResult)
     }
+
+    "return an GATEWAY_TIMEOUT" in {
+
+      val responseBody = Json.obj(
+        "code" -> "SERVER_ERROR",
+        "reason" -> "DES is currently experiencing problems that require live service intervention."
+      )
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.serverError)
+
+      stubGetWithResponseBody(stateBenefitsUrl
+        , GATEWAY_TIMEOUT, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
   }
 
 }
