@@ -65,6 +65,14 @@ class PensionIncomeController @Inject()(
   }
 
 
+  def deletePensionIncomeSessionData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
+    service.deletePensionIncomeSessionData(nino, taxYear, user.mtditid).map {
+      case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
+  }
+
+
   def savePensionIncomeSessionData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionIncomeModel]) match {
       case Some(JsSuccess(model, _)) => service.savePensionIncomeSessionData(nino, taxYear, user.mtditid, model).map {

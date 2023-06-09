@@ -99,6 +99,58 @@ class PensionChargesServiceSpec extends TestUtils {
     }
   }
 
+  "deleteUserPensionChargesData" should {
+
+    "return Right(unit) " should {
+
+      "successfully delete pension charges" in {
+
+        (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+          .expects(nino, taxYear, *)
+          .returning(Future.successful(Right(())))
+
+        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+          .expects(nino, mtditid, taxYear, *)
+          .returning(Future.successful(Right(())))
+
+        val Right(result) = await(service.deleteUserPensionChargesData(nino, mtditid, taxYear))
+
+        result mustBe ()
+      }
+    }
+
+
+    "return error when Create Pension Charges fails" in {
+      val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+
+
+      (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(expectedErrorResult))
+
+      val result = await(service.deleteUserPensionChargesData(nino, mtditid, taxYear))
+
+      result mustBe expectedErrorResult
+    }
+
+    "return error when Refresh submission tax fails" in {
+      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+
+
+      (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(())))
+
+      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, mtditid, taxYear, *)
+        .returning(Future.successful(expectedErrorResult))
+
+      val result = await(service.deleteUserPensionChargesData(nino, mtditid, taxYear))
+
+      result mustBe expectedErrorResult
+    }
+  }
+
   private def createUserData() = {
     val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
       pensionSchemeTaxReference = Some(Seq("00543216RA", "00123456RB")),

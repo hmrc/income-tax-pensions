@@ -50,4 +50,14 @@ class PensionChargesService @Inject()(chargesConnector: PensionChargesConnector,
     }).value
   }
 
+  def deleteUserPensionChargesData(nino: String, mtditid: String, taxYear: Int)
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+    (for {
+      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.deletePensionCharges(nino, taxYear))
+      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+    } yield {
+      result
+    }).value
+  }
+
 }

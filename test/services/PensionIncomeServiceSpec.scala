@@ -174,5 +174,62 @@ class PensionIncomeServiceSpec extends TestUtils {
     }
 
   }
+  "deletePensionIncomeSessionData" should {
+
+    "return Right(unit) " should {
+      "successfully delete pension income data" in {
+
+        (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+          .expects(nino, taxYear, *)
+          .returning(Future.successful(Right(())))
+
+        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+          .expects(nino, mtditid, taxYear, *)
+          .returning(Future.successful(Right(())))
+
+        val Right(result) = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+
+        result mustBe ()
+
+      }
+    }
+
+
+    "return error when Delete Pension Input fails" in {
+      val pensionIncomeModel = CreateUpdatePensionIncomeModel(
+        fullPensionIncomeModel.foreignPension,
+        fullPensionIncomeModel.overseasPensionContribution
+      )
+
+      val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+
+      (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(expectedErrorResult))
+
+      val result = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+
+      result mustBe expectedErrorResult
+
+    }
+
+    "return error when Refresh submission tax fails fails" in {
+      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+
+      (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(())))
+
+
+      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, mtditid, taxYear, *)
+        .returning(Future.successful(expectedErrorResult))
+
+      val result = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+
+      result mustBe expectedErrorResult
+    }
+
+  }
 
 }

@@ -69,6 +69,13 @@ class PensionChargesController @Inject()(pensionChargesService: PensionChargesSe
         Future.successful(BadRequest)
     }
   }
+
+  def deletePensionChargesData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+    pensionChargesService.deleteUserPensionChargesData(nino, user.mtditid, taxYear).map {
+      case Right(_) => NoContent
+      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+    }
+  }
   
   private def saveUserDataHandler(saveResponsee: Future[Either[ServiceErrorModel, Unit]]): Future[Result] =
     saveResponsee.map {

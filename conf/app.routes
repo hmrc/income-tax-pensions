@@ -11,6 +11,8 @@ PUT           /pension-charges/nino/:nino/taxYear/:taxYear                     c
 
 PUT           /pension-charges/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionChargesController.savePensionChargesData(nino:String, taxYear: Int)
 
+DELETE        /pension-charges/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionChargesController.deletePensionChargesData(nino:String, taxYear: Int)
+
 
 #Pension Reliefs
 GET           /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
@@ -21,6 +23,8 @@ DELETE        /pension-reliefs/nino/:nino/taxYear/:taxYear                     c
 
 PUT           /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionReliefsController.savePensionReliefsUserData(nino:String, taxYear: Int)
 
+DELETE        /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionReliefsController.deletePensionReliefsUserData(nino:String, taxYear: Int)
+
 #Pension Income
 GET           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.getPensionIncome(nino: String, taxYear: Int)
 
@@ -29,3 +33,5 @@ PUT           /pension-income/nino/:nino/taxYear/:taxYear                      c
 DELETE        /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.deletePensionIncome(nino: String, taxYear: Int)
 
 PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
+
+DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
