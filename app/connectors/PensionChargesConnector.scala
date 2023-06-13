@@ -17,6 +17,7 @@
 package connectors
 
 import config.AppConfig
+import connectors.PensionChargesConnector.PensionChargesBaseApi
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.{CreateUpdatePensionChargesHttpReads, CreateUpdatePensionChargesResponse}
 import connectors.httpParsers.DeletePensionChargesHttpParser.{DeletePensionChargesHttpReads, DeletePensionChargesResponse}
 import connectors.httpParsers.GetPensionChargesHttpParser.{GetPensionChargesHttpReads, GetPensionChargesResponse}
@@ -29,38 +30,41 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PensionChargesConnector @Inject()(val http: HttpClient,
                                         val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesIFConnector {
-  private object BaseApiNumbers {
-    val Get = "1674"
-    val Update = "1673"
-    val Delete = "1675"
-  }
   
   private def pensionChargesIncomeSourceUri(nino: String, taxYear: Int, baseApiNum: String): String =
     appConfig.ifBaseUrl + s"/income-tax/charges/pensions/${TaxYearHelper.apiPath(nino, taxYear, baseApiNum)}"
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
-    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, BaseApiNumbers.Get)
+    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Get)
     def desIfCall(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
       http.GET[GetPensionChargesResponse](incomeSourceUri)
     }
-    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,BaseApiNumbers.Get)))
+    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,PensionChargesBaseApi.Get)))
   }
 
   def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] = {
-    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, BaseApiNumbers.Delete)
+    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Delete)
     def desIfCall(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] = {
       http.DELETE[DeletePensionChargesResponse](incomeSourceUri)(DeletePensionChargesHttpReads, hc, ec)
     }
-    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,BaseApiNumbers.Delete)))
+    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,PensionChargesBaseApi.Delete)))
   }
 
   def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)
                                 (implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
-    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, BaseApiNumbers.Update)
+    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Update)
     def desIfCall(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
       http.PUT[CreateUpdatePensionChargesRequestModel, CreateUpdatePensionChargesResponse](incomeSourceUri,
         model)(CreateUpdatePensionChargesRequestModel.format.writes, CreateUpdatePensionChargesHttpReads, hc, ec)
     }
-    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,BaseApiNumbers.Update)))
+    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, TaxYearHelper.apiVersion(taxYear,PensionChargesBaseApi.Update)))
+  }
+}
+
+object PensionChargesConnector {
+  object PensionChargesBaseApi {
+    val Get = "1674"
+    val Update = "1673"
+    val Delete = "1675"
   }
 }
