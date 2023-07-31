@@ -292,7 +292,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
   val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(pensionSchemeTaxRef,
     lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
     benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
-    isAnnualAllowanceReduced = false, taperedAnnualAllowance = Some(false),
+    isAnnualAllowanceReduced = Some(false), taperedAnnualAllowance = Some(false),
     moneyPurchasedAllowance = Some(false)
   )
 

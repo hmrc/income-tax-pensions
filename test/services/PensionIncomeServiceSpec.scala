@@ -196,11 +196,6 @@ class PensionIncomeServiceSpec extends TestUtils {
 
 
     "return error when Delete Pension Input fails" in {
-      val pensionIncomeModel = CreateUpdatePensionIncomeModel(
-        fullPensionIncomeModel.foreignPension,
-        fullPensionIncomeModel.overseasPensionContribution
-      )
-
       val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
       (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))

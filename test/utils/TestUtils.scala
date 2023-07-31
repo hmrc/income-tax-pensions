@@ -131,7 +131,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
         amount = 800.02,
         taxPaid = 200.02
       )),
-      isAnnualAllowanceReduced = false,
+      isAnnualAllowanceReduced = Some(false),
       taperedAnnualAllowance = Some(false),
       moneyPurchasedAllowance = Some(false)
     )),
