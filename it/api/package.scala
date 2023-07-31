@@ -137,7 +137,7 @@ package object api {
         benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
           amount = 123.45,
           taxPaid = 12.34)),
-        isAnnualAllowanceReduced = true,
+        isAnnualAllowanceReduced =Some(true),
         taperedAnnualAllowance = Some(true),
         moneyPurchasedAllowance = Some(false))),
       pensionSchemeOverseasTransfers = Some(PensionSchemeOverseasTransfers(
