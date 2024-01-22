@@ -130,10 +130,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
         amount = 800.02,
         taxPaid = 200.02
-      )),
-      isAnnualAllowanceReduced = Some(false),
-      taperedAnnualAllowance = Some(false),
-      moneyPurchasedAllowance = Some(false)
+      ))
     )),
     pensionSchemeOverseasTransfers = Some(PensionSchemeOverseasTransfers(
       overseasSchemeProvider = Seq(OverseasSchemeProvider(
@@ -160,7 +157,10 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     pensionContributions = Some(PensionContributions(
       pensionSchemeTaxReference = Seq("00123456RA", "00123456RB"),
       inExcessOfTheAnnualAllowance = 150.67,
-      annualAllowanceTaxPaid = 178.65)),
+      annualAllowanceTaxPaid = 178.65,
+      isAnnualAllowanceReduced = Some(false),
+      taperedAnnualAllowance = Some(false),
+      moneyPurchasedAllowance = Some(false))),
     overseasPensionContributions = Some(OverseasPensionContributions(
       overseasSchemeProvider = Seq(OverseasSchemeProvider(
         providerName = "overseas providerName 1 tax ref",

@@ -38,10 +38,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |		"benefitInExcessOfLifetimeAllowance": {
       |			"amount": 800.02,
       |			"taxPaid": 200.02
-      |		},
-      |		"isAnnualAllowanceReduced": false,
-      |		"taperedAnnualAllowance": false,
-      |		"moneyPurchasedAllowance": false
+      |		}
       |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
@@ -72,7 +69,10 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	"pensionContributions": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
       |		"inExcessOfTheAnnualAllowance": 150.67,
-      |		"annualAllowanceTaxPaid": 178.65
+      |		"annualAllowanceTaxPaid": 178.65,
+      |   "isAnnualAllowanceReduced":false,
+      |   "taperedAnnualAllowance":false,
+      |   "moneyPurchasedAllowance":false
       |	},
       |	"overseasPensionContributions": {
       |		"overseasSchemeProvider": [{
@@ -103,10 +103,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |		"benefitInExcessOfLifetimeAllowance": {
       |			"amount": 800.02,
       |			"taxPaid": 200.02
-      |		},
-      |		"isAnnualAllowanceReduced": false,
-      |		"taperedAnnualAllowance": false,
-      |		"moneyPurchasedAllowance": false
+      |		}
       |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
@@ -137,7 +134,10 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	"pensionContributions": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
       |		"inExcessOfTheAnnualAllowance": 150.67,
-      |		"annualAllowanceTaxPaid": 178.65
+      |		"annualAllowanceTaxPaid": 178.65,
+      |   "isAnnualAllowanceReduced":false,
+      |   "taperedAnnualAllowance":false,
+      |   "moneyPurchasedAllowance":false
       |	},
       |	"overseasPensionContributions": {
       |		"overseasSchemeProvider": [{
@@ -168,10 +168,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |		"benefitInExcessOfLifetimeAllowance": {
       |			"amount": 800.02,
       |			"taxPaid": 200.02
-      |		},
-      |		"isAnnualAllowanceReduced": false,
-      |		"taperedAnnualAllowance": false,
-      |		"moneyPurchasedAllowance": false
+      |		}
       |	}
       |}""".stripMargin)
 
@@ -217,7 +214,10 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	"pensionContributions": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
       |		"inExcessOfTheAnnualAllowance": 150.67,
-      |		"annualAllowanceTaxPaid": 178.65
+      |		"annualAllowanceTaxPaid": 178.65,
+      |   "isAnnualAllowanceReduced":false,
+      |   "taperedAnnualAllowance":false,
+      |   "moneyPurchasedAllowance":false
       |	}
       |}""".stripMargin)
 
@@ -257,7 +257,8 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
   val qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]] = Some(Seq("Q100000", "Q100002"))
 
   val pensionContributions: PensionContributions = PensionContributions(
-    pensionSchemeTaxRef.get, inExcessOfTheAnnualAllowance, annualAllowanceTaxPaid)
+    pensionSchemeTaxRef.get, inExcessOfTheAnnualAllowance, annualAllowanceTaxPaid, isAnnualAllowanceReduced = Some(false), taperedAnnualAllowance = Some(false),
+    moneyPurchasedAllowance = Some(false))
 
   val overseasSchemeProviderWithQualifyingScheme1: OverseasSchemeProvider = OverseasSchemeProvider(
     providerName = "overseas providerName 1 qualifying scheme", providerAddress = "overseas address 1", providerCountryCode = "ESP",
@@ -291,9 +292,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
 
   val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(pensionSchemeTaxRef,
     lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
-    benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
-    isAnnualAllowanceReduced = Some(false), taperedAnnualAllowance = Some(false),
-    moneyPurchasedAllowance = Some(false)
+    benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid))
   )
 
   val pensionSchemeOverseasTransfersWithTaxRef: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
