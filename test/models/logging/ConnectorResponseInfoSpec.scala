@@ -16,6 +16,7 @@
 
 package models.logging
 
+import models.logging.ConnectorResponseInfo.LevelLogging._
 import org.scalatest.wordspec.AnyWordSpecLike
 import uk.gov.hmrc.http.HttpResponse
 
