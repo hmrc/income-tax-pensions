@@ -17,6 +17,7 @@
 package connectors.httpParsers
 
 import models.DesErrorModel
+import models.logging.ConnectorResponseInfo
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
@@ -30,6 +31,8 @@ object DeletePensionReliefsHttpParser extends DESParser {
   implicit object DeletePensionReliefsHttpReads extends HttpReads[DeletePensionReliefsResponse] {
 
     override def read(method: String, url: String, response: HttpResponse): DeletePensionReliefsResponse = {
+      ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
       response.status match {
 
         case NO_CONTENT => Right(())

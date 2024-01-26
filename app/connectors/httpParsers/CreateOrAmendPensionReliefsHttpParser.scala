@@ -17,6 +17,7 @@
 package connectors.httpParsers
 
 import models.DesErrorModel
+import models.logging.ConnectorResponseInfo
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
@@ -29,6 +30,8 @@ object CreateOrAmendPensionReliefsHttpParser extends DESParser {
 
   implicit object CreateOrAmendPensionReliefsHttpReads extends HttpReads[CreateOrAmendPensionReliefsResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendPensionReliefsResponse = {
+      ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
       response.status match {
         case NO_CONTENT => Right(())
         case INTERNAL_SERVER_ERROR =>

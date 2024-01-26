@@ -16,6 +16,7 @@
 
 package connectors.httpParsers
 
+import models.logging.ConnectorResponseInfo
 import models.{DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
@@ -28,7 +29,10 @@ object GetPensionReliefsHttpParser extends DESParser {
   override val parserName: String = "GetPensionReliefsHttpParser"
 
   implicit object GetPensionReliefsHttpReads extends HttpReads[GetPensionReliefsResponse] {
+
     override def read(method: String, url: String, response: HttpResponse): GetPensionReliefsResponse = {
+      ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
       response.status match {
         case OK => response.json.validate[GetPensionReliefsModel].fold[GetPensionReliefsResponse](
           jsonErrors => {

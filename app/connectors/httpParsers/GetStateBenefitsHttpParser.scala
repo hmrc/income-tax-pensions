@@ -16,6 +16,7 @@
 
 package connectors.httpParsers
 
+import models.logging.ConnectorResponseInfo
 import models.{AllStateBenefitsData, DesErrorModel}
 import play.api.Logging
 import play.api.http.Status._
@@ -30,6 +31,8 @@ object GetStateBenefitsHttpParser extends DESParser with Logging {
 
   implicit object GetStateBenefitsHttpReads extends HttpReads[GetStateBenefitsResponse] {
     override def read(method: String, url: String, response: HttpResponse): GetStateBenefitsResponse = {
+      ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
       response.status match {
         case OK =>
           response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
