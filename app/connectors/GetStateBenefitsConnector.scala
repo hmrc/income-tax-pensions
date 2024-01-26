@@ -18,6 +18,7 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.GetStateBenefitsHttpParser.{GetStateBenefitsHttpReads, GetStateBenefitsResponse}
+import models.logging.ConnectorRequestInfo
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import javax.inject.Inject
@@ -30,6 +31,7 @@ class GetStateBenefitsConnector @Inject()(val http: HttpClient,
     val incomeSourceUri: String = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
 
     def call(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] = {
+      ConnectorRequestInfo("GET", incomeSourceUri, "income-tax-state-benefits").logRequest(logger)
       http.GET[GetStateBenefitsResponse](incomeSourceUri)(GetStateBenefitsHttpReads, hc, ec)
     }
 

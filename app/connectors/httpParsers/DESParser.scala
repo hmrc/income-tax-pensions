@@ -16,13 +16,15 @@
 
 package connectors.httpParsers
 
+import akka.event.Logging
 import models.{DesErrorBodyModel, DesErrorModel, DesErrorsBodyModel}
+import play.api.Logging
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HttpResponse
 import utils.PagerDutyHelper.PagerDutyKeys.{BAD_SUCCESS_JSON_FROM_DES, UNEXPECTED_RESPONSE_FROM_DES}
 import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
 
-trait DESParser {
+trait DESParser extends Logging {
 
   val parserName : String
 
