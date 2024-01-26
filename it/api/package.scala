@@ -136,10 +136,7 @@ package object api {
           taxPaid = 12.45)),
         benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
           amount = 123.45,
-          taxPaid = 12.34)),
-        isAnnualAllowanceReduced =Some(true),
-        taperedAnnualAllowance = Some(true),
-        moneyPurchasedAllowance = Some(false))),
+          taxPaid = 12.34)))),
       pensionSchemeOverseasTransfers = Some(PensionSchemeOverseasTransfers(
         overseasSchemeProvider = Seq(OverseasSchemeProvider(
           providerName = "Overseas Pensions Plc",
@@ -165,7 +162,10 @@ package object api {
       pensionContributions = Some(PensionContributions(
         pensionSchemeTaxReference = Seq("00123456RA"),
         inExcessOfTheAnnualAllowance = 123.45,
-        annualAllowanceTaxPaid = 123.45
+        annualAllowanceTaxPaid = 123.45,
+        isAnnualAllowanceReduced = Some(true),
+        taperedAnnualAllowance = Some(true),
+        moneyPurchasedAllowance = Some(false)
       )),
       overseasPensionContributions = Some(OverseasPensionContributions(
         overseasSchemeProvider = Seq(OverseasSchemeProvider(
@@ -193,10 +193,7 @@ package object api {
       |		"benefitInExcessOfLifetimeAllowance": {
       |			"amount": 123.45,
       |			"taxPaid": 12.34
-      |		},
-      |		"isAnnualAllowanceReduced": true,
-      |		"taperedAnnualAllowance": true,
-      |		"moneyPurchasedAllowance": false
+      |		}
       |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
@@ -228,7 +225,10 @@ package object api {
       |			"00123456RA"
       |		],
       |		"inExcessOfTheAnnualAllowance": 123.45,
-      |		"annualAllowanceTaxPaid": 123.45
+      |		"annualAllowanceTaxPaid": 123.45,
+      |   "isAnnualAllowanceReduced": true,
+      |		"taperedAnnualAllowance": true,
+      |		"moneyPurchasedAllowance": false
       |	},
       |	"overseasPensionContributions": {
       |		"overseasSchemeProvider": [{
@@ -249,7 +249,9 @@ package object api {
   val minimumRequestPayload: JsObject =
     Json.toJsObject(CreateUpdatePensionChargesRequestModel(
       pensionSavingsTaxCharges = None,
-      pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0)),
+      pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0, isAnnualAllowanceReduced = Some(true),
+        taperedAnnualAllowance = Some(true),
+        moneyPurchasedAllowance = Some(false))),
       pensionSchemeOverseasTransfers = None, pensionSchemeUnauthorisedPayments = None, overseasPensionContributions = None
     ))
   }
