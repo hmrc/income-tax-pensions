@@ -35,7 +35,8 @@ class CustomerAddedStateBenefitsDataSpec extends TestUtils {
     .copy(incapacityBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c941")))))
     .copy(statePensions = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c943")))))
     .copy(statePensionLumpSums = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c956")))))
-    .copy(employmentSupportAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
+    .copy(employmentSupportAllowances =
+      Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
     .copy(jobSeekersAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c990")))))
     .copy(bereavementAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c997")))))
     .copy(otherStateBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c957")))))
@@ -46,8 +47,7 @@ class CustomerAddedStateBenefitsDataSpec extends TestUtils {
     }
 
     "convert CustomerAddedStateBenefitsData to correct JsValue when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |}
           |""".stripMargin)
@@ -62,8 +62,7 @@ class CustomerAddedStateBenefitsDataSpec extends TestUtils {
     }
 
     "convert JsValue to CustomerAddedStateBenefitsData when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |}
           |""".stripMargin)

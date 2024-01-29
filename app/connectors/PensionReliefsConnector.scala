@@ -31,23 +31,22 @@ import utils.TaxYearHelper
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionReliefsConnector @Inject()(val http: HttpClient,
-                                        val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesIFConnector with Logging {
+class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext)
+    extends DesIFConnector
+    with Logging {
   private def pensionReliefsIfIncomeSourceUri(nino: String, taxYear: Int, apiNum: String): String =
     appConfig.ifBaseUrl + s"/income-tax/reliefs/pensions/${TaxYearHelper.apiPath(nino, taxYear, apiNum)}"
 
   private def pensionReliefsDesIncomeSourceUri(nino: String, taxYear: Int): String =
     appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
-    
-  
+
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
-    def desIfCall(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
+    def desIfCall(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
       http.GET[GetPensionReliefsResponse](incomeSourceUri)
-    }
-    
+
     if (TaxYearHelper.isTysApi(taxYear, PensionReliefsBaseApi.Get)) {
       val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, PensionReliefsBaseApi.Get)
-      val apiNumber = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Get)
+      val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Get)
       ConnectorRequestInfo("GET", incomeSourceUri, apiNumber).logRequest(logger)
       desIfCall(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
     } else {
@@ -57,18 +56,21 @@ class PensionReliefsConnector @Inject()(val http: HttpClient,
     }
   }
 
-  def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)
-                                 (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
-    
+  def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
+      hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+
     def desIfCall(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
       ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, pensionReliefs)
       http.PUT[CreateOrUpdatePensionReliefsModel, CreateOrAmendPensionReliefsResponse](incomeSourceUri, pensionReliefs)(
-                       CreateOrUpdatePensionReliefsModel.format.writes, CreateOrAmendPensionReliefsHttpReads, hc, ec)
+        CreateOrUpdatePensionReliefsModel.format.writes,
+        CreateOrAmendPensionReliefsHttpReads,
+        hc,
+        ec)
     }
-    
+
     if (TaxYearHelper.isTysApi(taxYear, PensionReliefsBaseApi.Update)) {
       val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, PensionReliefsBaseApi.Update)
-      val apiNumber = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Update)
+      val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Update)
       desIfCall(incomeSourceUri, apiNumber)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
     } else {
       val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
@@ -81,10 +83,10 @@ class PensionReliefsConnector @Inject()(val http: HttpClient,
       ConnectorRequestInfo("DELETE", incomeSourceUri, apiNumber).logRequest(logger)
       http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)(DeletePensionReliefsHttpReads, hc, ec)
     }
-    
+
     if (TaxYearHelper.isTysApi(taxYear, PensionReliefsBaseApi.Delete)) {
       val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, PensionReliefsBaseApi.Delete)
-      val apiNumber = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Delete)
+      val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Delete)
       desIfCall(incomeSourceUri, apiNumber)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
     } else {
       val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
@@ -95,7 +97,7 @@ class PensionReliefsConnector @Inject()(val http: HttpClient,
 
 object PensionReliefsConnector {
   object PensionReliefsBaseApi {
-    val Get = "1656"
+    val Get    = "1656"
     val Update = "1655"
     val Delete = "1657"
   }

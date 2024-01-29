@@ -26,11 +26,10 @@ import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
 
 trait DESParser extends Logging {
 
-  val parserName : String
+  val parserName: String
 
-  def logMessage(response:HttpResponse): String ={
+  def logMessage(response: HttpResponse): String =
     s"[$parserName][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response)
-  }
 
   def badSuccessJsonFromDES[Response]: Either[DesErrorModel, Response] = {
     pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[$parserName][read] Invalid Json from DES.")
@@ -44,11 +43,11 @@ trait DESParser extends Logging {
     try {
       val json = response.json
 
-      lazy val desError = json.asOpt[DesErrorBodyModel]
+      lazy val desError  = json.asOpt[DesErrorBodyModel]
       lazy val desErrors = json.asOpt[DesErrorsBodyModel]
 
       (desError, desErrors) match {
-        case (Some(desError), _) => Left(DesErrorModel(status, desError))
+        case (Some(desError), _)  => Left(DesErrorModel(status, desError))
         case (_, Some(desErrors)) => Left(DesErrorModel(status, desErrors))
         case _ =>
           pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, s"[$parserName][read] Unexpected Json from DES.")

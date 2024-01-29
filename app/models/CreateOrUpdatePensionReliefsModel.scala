@@ -18,10 +18,9 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-
 case class CreateOrUpdatePensionReliefsModel(
-                                              pensionReliefs: PensionReliefs
-                                            )
+    pensionReliefs: PensionReliefs
+)
 
 object CreateOrUpdatePensionReliefsModel {
   implicit val format: OFormat[CreateOrUpdatePensionReliefsModel] = Json.format[CreateOrUpdatePensionReliefsModel]

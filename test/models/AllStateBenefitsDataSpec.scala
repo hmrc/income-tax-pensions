@@ -53,7 +53,8 @@ class AllStateBenefitsDataSpec extends TestUtils {
     .copy(incapacityBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c941")))))
     .copy(statePensions = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c943")))))
     .copy(statePensionLumpSums = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c956")))))
-    .copy(employmentSupportAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
+    .copy(employmentSupportAllowances =
+      Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
     .copy(jobSeekersAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c990")))))
     .copy(bereavementAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c997")))))
     .copy(otherStateBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c957")))))
@@ -63,10 +64,11 @@ class AllStateBenefitsDataSpec extends TestUtils {
     customerAddedStateBenefitsData = Some(customerAddedStateBenefitsData)
   )
 
-  private val allStateBenefitsDataJsValue = JsObject(Seq(
-    "stateBenefits" -> aStateBenefitsDataJsValue,
-    "customerAddedStateBenefits" -> aCustomerAddedStateBenefitsDataJsValue
-  ))
+  private val allStateBenefitsDataJsValue = JsObject(
+    Seq(
+      "stateBenefits"              -> aStateBenefitsDataJsValue,
+      "customerAddedStateBenefits" -> aCustomerAddedStateBenefitsDataJsValue
+    ))
 
   "allStateBenefitsDataWrites" should {
     "convert AllStateBenefitsData to correct JsValue when full object" in {
@@ -74,8 +76,7 @@ class AllStateBenefitsDataSpec extends TestUtils {
     }
 
     "convert AllStateBenefitsData to correct JsValue when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |}
           |""".stripMargin)
@@ -95,8 +96,7 @@ class AllStateBenefitsDataSpec extends TestUtils {
     }
 
     "convert JsValue to AllStateBenefitsData when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |   "stateBenefits": {}
           |}

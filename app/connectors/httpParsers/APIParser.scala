@@ -41,12 +41,11 @@ import utils.PagerDutyHelper.pagerDutyLog
 
 trait APIParser extends Logging {
 
-  val parserName : String
-  val service : String
+  val parserName: String
+  val service: String
 
-  def logMessage(response:HttpResponse): String ={
+  def logMessage(response: HttpResponse): String =
     s"[$parserName][read] Received ${response.status} from $service API. Body:${response.body}"
-  }
 
   def badSuccessJsonFromAPI[Response]: Either[APIErrorModel, Response] = {
     pagerDutyLog(BAD_SUCCESS_JSON_FROM_API, s"[$parserName][read] Invalid Json from $service API.")
@@ -60,11 +59,11 @@ trait APIParser extends Logging {
     try {
       val json = response.json
 
-      lazy val apiError = json.asOpt[APIErrorBodyModel]
+      lazy val apiError  = json.asOpt[APIErrorBodyModel]
       lazy val apiErrors = json.asOpt[APIErrorsBodyModel]
 
       (apiError, apiErrors) match {
-        case (Some(apiError), _) => Left(APIErrorModel(status, apiError))
+        case (Some(apiError), _)  => Left(APIErrorModel(status, apiError))
         case (_, Some(apiErrors)) => Left(APIErrorModel(status, apiErrors))
         case _ =>
           pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, s"[$parserName][read] Unexpected Json from $service API.")

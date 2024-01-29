@@ -18,13 +18,9 @@ import models._
 import play.api.libs.json.{JsObject, JsValue, Json}
 
 package object api {
-  
-  object SubmissionsTestData {
-    
-        
-    
-  }
-  
+
+  object SubmissionsTestData {}
+
   object PensionsReliefsTestData {
     val GetPensionReliefDesResponseBody: String =
       """
@@ -40,18 +36,18 @@ package object api {
         |    }
         |}
         |""".stripMargin
-        
-    val createOrUpdatePensionReliefs: CreateOrUpdatePensionReliefsModel =
-      CreateOrUpdatePensionReliefsModel( PensionReliefs(
-        regularPensionContributions = Some(10.22),
-        oneOffPensionContributionsPaid = Some(11.33),
-        retirementAnnuityPayments = Some(12.44),
-        paymentToEmployersSchemeNoTaxRelief = Some(13.55),
-        overseasPensionSchemeContributions = Some(14.66)
-      ))
 
-    val pensionsReliefPayload: JsValue = Json.parse(
-      """{
+    val createOrUpdatePensionReliefs: CreateOrUpdatePensionReliefsModel =
+      CreateOrUpdatePensionReliefsModel(
+        PensionReliefs(
+          regularPensionContributions = Some(10.22),
+          oneOffPensionContributionsPaid = Some(11.33),
+          retirementAnnuityPayments = Some(12.44),
+          paymentToEmployersSchemeNoTaxRelief = Some(13.55),
+          overseasPensionSchemeContributions = Some(14.66)
+        ))
+
+    val pensionsReliefPayload: JsValue = Json.parse("""{
         |	"pensionReliefs": {
         |		"regularPensionContributions": 10.22,
         |		"oneOffPensionContributionsPaid": 11.33,
@@ -127,60 +123,64 @@ package object api {
         |		"shortServiceRefundTaxPaid": 0
         |	}
         |}""".stripMargin
-        
+
     val createUpdatePensionChargesRequest = CreateUpdatePensionChargesRequestModel(
-      pensionSavingsTaxCharges = Some(PensionSavingsTaxCharges(
-        pensionSchemeTaxReference = Some(Seq("00123456RA")),
-        lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
-          amount = 123.45,
-          taxPaid = 12.45)),
-        benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
-          amount = 123.45,
-          taxPaid = 12.34)))),
-      pensionSchemeOverseasTransfers = Some(PensionSchemeOverseasTransfers(
-        overseasSchemeProvider = Seq(OverseasSchemeProvider(
-          providerName = "Overseas Pensions Plc",
-          providerAddress = "111 Some Street, Some Town, Some Place",
-          providerCountryCode = "ESP",
-          qualifyingRecognisedOverseasPensionScheme = Some(Seq("Q123456")),
-          pensionSchemeTaxReference = None)
-        ),
-        transferCharge = 123.45,
-        transferChargeTaxPaid = 0
-      )),
-      pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Some(Seq("00123456RA")),
-        surcharge = Some(Charge(
-          amount = 123.45,
-          foreignTaxPaid = 123.45
+      pensionSavingsTaxCharges = Some(
+        PensionSavingsTaxCharges(
+          pensionSchemeTaxReference = Some(Seq("00123456RA")),
+          lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount = 123.45, taxPaid = 12.45)),
+          benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount = 123.45, taxPaid = 12.34))
         )),
-        noSurcharge = Some(Charge(
-          amount = 123.45,
-          foreignTaxPaid = 123.45
-        )))
-      ),
-      pensionContributions = Some(PensionContributions(
-        pensionSchemeTaxReference = Seq("00123456RA"),
-        inExcessOfTheAnnualAllowance = 123.45,
-        annualAllowanceTaxPaid = 123.45,
-        isAnnualAllowanceReduced = Some(true),
-        taperedAnnualAllowance = Some(true),
-        moneyPurchasedAllowance = Some(false)
-      )),
-      overseasPensionContributions = Some(OverseasPensionContributions(
-        overseasSchemeProvider = Seq(OverseasSchemeProvider(
-          providerName = "Overseas Pensions Plc",
-          providerAddress = "112 Some Street, Some Town, Some Place",
-          providerCountryCode = "ESP",
-          qualifyingRecognisedOverseasPensionScheme = None,
-          pensionSchemeTaxReference = Some(Seq("00123456RA")))
-        ),
-        shortServiceRefund = 123.45,
-        shortServiceRefundTaxPaid = 0
-      ))
+      pensionSchemeOverseasTransfers = Some(
+        PensionSchemeOverseasTransfers(
+          overseasSchemeProvider = Seq(OverseasSchemeProvider(
+            providerName = "Overseas Pensions Plc",
+            providerAddress = "111 Some Street, Some Town, Some Place",
+            providerCountryCode = "ESP",
+            qualifyingRecognisedOverseasPensionScheme = Some(Seq("Q123456")),
+            pensionSchemeTaxReference = None
+          )),
+          transferCharge = 123.45,
+          transferChargeTaxPaid = 0
+        )),
+      pensionSchemeUnauthorisedPayments = Some(
+        PensionSchemeUnauthorisedPayments(
+          pensionSchemeTaxReference = Some(Seq("00123456RA")),
+          surcharge = Some(
+            Charge(
+              amount = 123.45,
+              foreignTaxPaid = 123.45
+            )),
+          noSurcharge = Some(
+            Charge(
+              amount = 123.45,
+              foreignTaxPaid = 123.45
+            ))
+        )),
+      pensionContributions = Some(
+        PensionContributions(
+          pensionSchemeTaxReference = Seq("00123456RA"),
+          inExcessOfTheAnnualAllowance = 123.45,
+          annualAllowanceTaxPaid = 123.45,
+          isAnnualAllowanceReduced = Some(true),
+          taperedAnnualAllowance = Some(true),
+          moneyPurchasedAllowance = Some(false)
+        )),
+      overseasPensionContributions = Some(
+        OverseasPensionContributions(
+          overseasSchemeProvider = Seq(OverseasSchemeProvider(
+            providerName = "Overseas Pensions Plc",
+            providerAddress = "112 Some Street, Some Town, Some Place",
+            providerCountryCode = "ESP",
+            qualifyingRecognisedOverseasPensionScheme = None,
+            pensionSchemeTaxReference = Some(Seq("00123456RA"))
+          )),
+          shortServiceRefund = 123.45,
+          shortServiceRefundTaxPaid = 0
+        ))
     )
     val createUpdatePensionChargesJsonStr: String =
-    """
+      """
       {
       |	"pensionSavingsTaxCharges": {
       |		"pensionSchemeTaxReference": [
@@ -244,15 +244,23 @@ package object api {
       |	}
       |}""".stripMargin
 
-  val createUpdatePensionChargesPayload: JsValue = Json.parse(createUpdatePensionChargesJsonStr)
+    val createUpdatePensionChargesPayload: JsValue = Json.parse(createUpdatePensionChargesJsonStr)
 
-  val minimumRequestPayload: JsObject =
-    Json.toJsObject(CreateUpdatePensionChargesRequestModel(
-      pensionSavingsTaxCharges = None,
-      pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0, isAnnualAllowanceReduced = Some(true),
-        taperedAnnualAllowance = Some(true),
-        moneyPurchasedAllowance = Some(false))),
-      pensionSchemeOverseasTransfers = None, pensionSchemeUnauthorisedPayments = None, overseasPensionContributions = None
-    ))
+    val minimumRequestPayload: JsObject =
+      Json.toJsObject(
+        CreateUpdatePensionChargesRequestModel(
+          pensionSavingsTaxCharges = None,
+          pensionContributions = Some(
+            PensionContributions(
+              Seq("00123456RA"),
+              10.0,
+              20.0,
+              isAnnualAllowanceReduced = Some(true),
+              taperedAnnualAllowance = Some(true),
+              moneyPurchasedAllowance = Some(false))),
+          pensionSchemeOverseasTransfers = None,
+          pensionSchemeUnauthorisedPayments = None,
+          overseasPensionContributions = None
+        ))
   }
 }

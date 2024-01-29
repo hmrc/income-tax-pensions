@@ -33,39 +33,42 @@ import scala.concurrent.Future
 class PensionsServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
-  val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
-  val chargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
+  val reliefsConnector: PensionReliefsConnector         = mock[PensionReliefsConnector]
+  val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
-  val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
+  val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
   val service: PensionsService = new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, pensionIncomeConnector)
 
   val taxYear = 2022
-  val nino = "AA123456A"
+  val nino    = "AA123456A"
   val mtditid = "1234567890"
 
-  val expectedReliefsResult: GetPensionReliefsResponse = Right(Some(fullPensionReliefsModel))
-  val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
+  val expectedReliefsResult: GetPensionReliefsResponse      = Right(Some(fullPensionReliefsModel))
+  val expectedChargesResult: GetPensionChargesResponse      = Right(Some(fullPensionChargesModel))
   val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
-
 
   "getAllPensionsData" should {
 
     "get all pension reliefs, charges and income data and return a full AllPensionsData model" in {
 
-      (reliefsConnector.getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      (reliefsConnector
+        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      (chargesConnector
+        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
 
-      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+      (stateBenefitsConnector
+        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
 
-      (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedPensionIncomeResult))
 
@@ -75,19 +78,23 @@ class PensionsServiceSpec extends TestUtils {
     }
 
     "return a Right if all connectors return None" in {
-      (reliefsConnector.getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      (reliefsConnector
+        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      (chargesConnector
+        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (stateBenefitsConnector.getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
+      (stateBenefitsConnector
+        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (pensionIncomeConnector.getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
@@ -99,11 +106,13 @@ class PensionsServiceSpec extends TestUtils {
     "return an error if a connector call fails" in {
       val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (reliefsConnector.getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      (reliefsConnector
+        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (chargesConnector.getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      (chargesConnector
+        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 

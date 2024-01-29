@@ -21,15 +21,12 @@ import play.api.libs.json.{Json, OFormat}
 case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
                            pensionCharges: Option[GetPensionChargesRequestModel],
                            stateBenefits: Option[AllStateBenefitsData],
-                           pensionIncome: Option[GetPensionIncomeModel]
-                          ) {
-  def isEmpty: Boolean = {
+                           pensionIncome: Option[GetPensionIncomeModel]) {
+  def isEmpty: Boolean =
     pensionReliefs.isEmpty && pensionCharges.isEmpty && stateBenefits.isEmpty && pensionIncome.isEmpty
-  }
 }
 
 object AllPensionsData {
   implicit val formats: OFormat[AllPensionsData] = Json.format[AllPensionsData]
 
 }
-

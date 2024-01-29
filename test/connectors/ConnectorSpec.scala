@@ -21,7 +21,7 @@ import uk.gov.hmrc.http.HeaderNames.{xRequestChain, xSessionId}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 import utils.TestUtils
 
-class ConnectorSpec extends TestUtils{
+class ConnectorSpec extends TestUtils {
 
   class FakeConnector(override val appConfig: AppConfig) extends Connector {
     def headerCarrierTest(url: String)(hc: HeaderCarrier): HeaderCarrier = headerCarrier(url)(hc)
@@ -34,7 +34,7 @@ class ConnectorSpec extends TestUtils{
       val internalHost = "http://localhost"
 
       "extraHeaders is empty when the host is external and no extraHeaders were added" in {
-        val hc = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
+        val hc     = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
         val result = connector.headerCarrierTest(internalHost)(hc)
 
         result.extraHeaders.isEmpty mustBe true
@@ -45,7 +45,7 @@ class ConnectorSpec extends TestUtils{
       val externalHost = "http://127.0.0.1"
 
       "include all HeaderCarrier headers in the extraHeaders when the host is external" in {
-        val hc = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
+        val hc     = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
         val result = connector.headerCarrierTest(externalHost)(hc)
 
         result.extraHeaders.size mustBe 2

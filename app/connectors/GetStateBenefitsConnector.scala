@@ -24,8 +24,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetStateBenefitsConnector @Inject()(val http: HttpClient,
-                                          val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
+class GetStateBenefitsConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
   def getStateBenefits(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] = {
     val incomeSourceUri: String = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"

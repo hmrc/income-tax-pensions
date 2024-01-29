@@ -29,29 +29,30 @@ import scala.concurrent.Future
 
 class PensionReliefsServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
-  
-  val submissionConnector: SubmissionConnector = mock[SubmissionConnector]
+
+  val submissionConnector: SubmissionConnector  = mock[SubmissionConnector]
   val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
-  val service: PensionReliefsService = new PensionReliefsService(reliefsConnector,submissionConnector)
+  val service: PensionReliefsService            = new PensionReliefsService(reliefsConnector, submissionConnector)
 
   val taxYear = 2022
-  val nino = "AA123456A"
+  val nino    = "AA123456A"
   val mtditid = "1234567890"
-  
-  
+
   "saveUserPensionReliefsData" should {
-    
+
     val pensionRelief = PensionReliefs(Some(100.01), Some(100.01), Some(100.01), Some(100.01), Some(100.01))
-    val userData = CreateOrUpdatePensionReliefsModel(pensionRelief)
-    
+    val userData      = CreateOrUpdatePensionReliefsModel(pensionRelief)
+
     "return Right(unit) " should {
-      
+
       "successfully merge changes if update contains pensions Reliefs" in {
-        (reliefsConnector.createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
+        (reliefsConnector
+          .createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
           .expects(nino, taxYear, userData, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -59,11 +60,12 @@ class PensionReliefsServiceSpec extends TestUtils {
         result mustBe ()
       }
     }
-    
+
     "return error when Create Pension Reliefs fails" in {
       val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (reliefsConnector.createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
+      (reliefsConnector
+        .createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
         .expects(nino, taxYear, userData, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -74,11 +76,13 @@ class PensionReliefsServiceSpec extends TestUtils {
     "return error when Refresh submission tax fails" in {
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
-      (reliefsConnector.createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
+      (reliefsConnector
+        .createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
         .expects(nino, taxYear, userData, *)
         .returning(Future.successful(Right(())))
 
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -92,11 +96,13 @@ class PensionReliefsServiceSpec extends TestUtils {
     "return Right(unit) " should {
 
       "successfully delete pension reliefs" in {
-        (reliefsConnector.deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+        (reliefsConnector
+          .deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -108,7 +114,8 @@ class PensionReliefsServiceSpec extends TestUtils {
     "return error when Delete Pension Reliefs fails" in {
       val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (reliefsConnector.deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      (reliefsConnector
+        .deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -119,11 +126,13 @@ class PensionReliefsServiceSpec extends TestUtils {
     "return error when Refresh submission tax fails" in {
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
-      (reliefsConnector.deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      (reliefsConnector
+        .deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(())))
 
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 

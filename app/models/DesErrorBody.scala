@@ -30,12 +30,11 @@ trait ServiceErrorModel {
 sealed trait DesErrorBody extends ServiceErrorBody
 
 case class DesErrorModel(status: Int, body: DesErrorBody) extends ServiceErrorModel {
-  def toJson: JsValue = {
+  def toJson: JsValue =
     body match {
-      case error: DesErrorBodyModel => Json.toJson(error)
+      case error: DesErrorBodyModel   => Json.toJson(error)
       case errors: DesErrorsBodyModel => Json.toJson(errors)
     }
-  }
 }
 
 /** Single DES Error * */
@@ -43,21 +42,20 @@ case class DesErrorBodyModel(code: String, reason: String) extends DesErrorBody
 
 object DesErrorBodyModel {
   implicit val formats: OFormat[DesErrorBodyModel] = Json.format[DesErrorBodyModel]
-  val parsingError: DesErrorBodyModel = DesErrorBodyModel("PARSING_ERROR", "Error parsing response from DES")
-  val invalidTaxYear: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")
-  val invalidTaxableEntityId: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")
-  val invalidCorrelationId: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
-  val invalidPayload: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_PAYLOAD", "Submission has not passed validation. Invalid payload.")
-  val noDataFound: DesErrorBodyModel = DesErrorBodyModel(
-    "NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found.")
-  val invalidBenefitId: DesErrorBodyModel = DesErrorBodyModel(
-    "INVALID_BENEFIT_ID", "Submission has not passed validation. Invalid parameter benefitId.")
+  val parsingError: DesErrorBodyModel              = DesErrorBodyModel("PARSING_ERROR", "Error parsing response from DES")
+  val invalidTaxYear: DesErrorBodyModel = DesErrorBodyModel("INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")
+  val invalidTaxableEntityId: DesErrorBodyModel =
+    DesErrorBodyModel("INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")
+  val invalidCorrelationId: DesErrorBodyModel =
+    DesErrorBodyModel("INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")
+  val invalidPayload: DesErrorBodyModel = DesErrorBodyModel("INVALID_PAYLOAD", "Submission has not passed validation. Invalid payload.")
+  val noDataFound: DesErrorBodyModel =
+    DesErrorBodyModel("NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found.")
+  val invalidBenefitId: DesErrorBodyModel =
+    DesErrorBodyModel("INVALID_BENEFIT_ID", "Submission has not passed validation. Invalid parameter benefitId.")
   val serviceUnavailable: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
-  val serverError: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
+  val serverError: DesErrorBodyModel =
+    DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
 
 }
 

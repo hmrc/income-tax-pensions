@@ -36,21 +36,18 @@ class SubmissionConnectorISpec extends WiremockSpec {
     override val submissionBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 
-  val nino: String = "123456789"
-  val taxYear: Int = 1999
+  val nino: String    = "123456789"
+  val taxYear: Int    = 1999
   val taxYearEOY: Int = 2000
-  val desUrl: String = s"/income-tax-submission-service/income-tax/nino/$nino/sources/session\\?taxYear=$taxYear"
-  val mtditid = "1234567"
-
+  val desUrl: String  = s"/income-tax-submission-service/income-tax/nino/$nino/sources/session\\?taxYear=$taxYear"
+  val mtditid         = "1234567"
 
   ".refreshStateBenefits" should {
 
-
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val headersSentToDes = Seq(
-      new HttpHeader("mtditid", mtditid),
+      new HttpHeader("mtditid", mtditid)
     )
-
 
     "succeed when correct parameters are passed" in {
       val jsValue = Json.toJson(RefreshIncomeSourceRequest("pensions"))
@@ -63,14 +60,14 @@ class SubmissionConnectorISpec extends WiremockSpec {
     "return a Left error" when {
 
       Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST, UNPROCESSABLE_ENTITY).foreach { errorStatus =>
-
-        val desResponseBody = Json.obj(
-          "code" -> "SOME_DES_ERROR_CODE",
-          "reason" -> "SOME_DES_ERROR_REASON"
-        ).toString
+        val desResponseBody = Json
+          .obj(
+            "code"   -> "SOME_DES_ERROR_CODE",
+            "reason" -> "SOME_DES_ERROR_REASON"
+          )
+          .toString
 
         val jsValue = Json.toJson(RefreshIncomeSourceRequest("pensions"))
-
 
         s"API returns $errorStatus" in {
           val expectedResult =
@@ -89,7 +86,7 @@ class SubmissionConnectorISpec extends WiremockSpec {
           val expectedResult =
             APIErrorModel(
               status = if (errorStatus == UNPROCESSABLE_ENTITY) INTERNAL_SERVER_ERROR else errorStatus,
-            APIErrorBodyModel("PARSING_ERROR", "Error parsing response from API"))
+              APIErrorBodyModel("PARSING_ERROR", "Error parsing response from API"))
 
           stubPutWithResponseBody(desUrl, jsValue.toString(), "UNEXPECTED RESPONSE BODY", errorStatus)
 

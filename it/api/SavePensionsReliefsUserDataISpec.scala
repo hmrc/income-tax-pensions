@@ -26,24 +26,24 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import utils.TaxYearHelper.desIfTaxYearConverter
 
-class SavePensionsReliefsUserDataISpec extends WiremockSpec with ScalaFutures { //scalastyle:off magic.number
-  
+class SavePensionsReliefsUserDataISpec extends WiremockSpec with ScalaFutures { // scalastyle:off magic.number
+
   trait Setup {
-   
+
     implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(10L, Seconds))
-    
+
     val nino: String = "AA123123A"
     val taxYear: Int = 2021
-    
-    val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val headersSentToDes = Seq(new HttpHeader(mtditidHeader._1, mtditidHeader._2))
+
+    val mtditidHeader: (String, String)       = ("mtditid", "555555555")
+    val headersSentToDes                      = Seq(new HttpHeader(mtditidHeader._1, mtditidHeader._2))
     val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, ("Authorization", "Bearer:XYZ"))
-    
-    val desUrl = s"/income-tax/reliefs/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/session-data/nino/$nino/taxYear/$taxYear"
+
+    val desUrl                = s"/income-tax/reliefs/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
+    val serviceUrl: String    = s"/income-tax-pensions/pension-reliefs/session-data/nino/$nino/taxYear/$taxYear"
     val submissionUri: String = s"/income-tax-submission-service/income-tax/nino/$nino/sources/session\\?taxYear=$taxYear"
-    
-    def stubReliefsGET():Unit = stubGetWithResponseBody(desUrl, OK, GetPensionReliefDesResponseBody)
+
+    def stubReliefsGET(): Unit = stubGetWithResponseBody(desUrl, OK, GetPensionReliefDesResponseBody)
 
     auditStubs()
   }
@@ -57,12 +57,12 @@ class SavePensionsReliefsUserDataISpec extends WiremockSpec with ScalaFutures { 
         stubPutWithoutResponseBody(desUrl, Json.toJson(createOrUpdatePensionReliefs).toString(), NO_CONTENT)
         stubPutWithoutResponseBody(submissionUri, Json.toJson(RefreshIncomeSourceRequest("pensions")).toString(), NO_CONTENT, headersSentToDes)
         authorised()
-        whenReady(buildClient(serviceUrl).withHttpHeaders(requestHeaders: _*).put(pensionsReliefPayload)) { _.status mustBe NO_CONTENT}
+        whenReady(buildClient(serviceUrl).withHttpHeaders(requestHeaders: _*).put(pensionsReliefPayload))(_.status mustBe NO_CONTENT)
       }
-      
+
       "return a status error when" should {
-        for ( errorStatus <- Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST)) {
-          val errorResponseBody: String  = Json.obj("code" -> errorStatus.toString,"reason" -> "SOME_DES_ERROR_REASON").toString
+        for (errorStatus <- Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST)) {
+          val errorResponseBody: String = Json.obj("code" -> errorStatus.toString, "reason" -> "SOME_DES_ERROR_REASON").toString
 
           s"a downstream $errorStatus error occurs on a pensions relief PUT" in new Setup {
             stubReliefsGET()

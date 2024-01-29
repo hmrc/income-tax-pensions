@@ -29,15 +29,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PensionReliefsController @Inject()(pensionReliefsService: PensionReliefsService,
-                                         auth: AuthorisedAction,
-                                         cc: ControllerComponents
-                                        )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class PensionReliefsController @Inject() (pensionReliefsService: PensionReliefsService, auth: AuthorisedAction, cc: ControllerComponents)(implicit
+    ec: ExecutionContext)
+    extends BackendController(cc)
+    with Logging {
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     pensionReliefsService.getPensionReliefs(nino, taxYear).map {
-      case Right(None) => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
-      case Right(model) => Ok(Json.toJson(model))
+      case Right(None)      => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
+      case Right(model)     => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
@@ -45,7 +45,7 @@ class PensionReliefsController @Inject()(pensionReliefsService: PensionReliefsSe
   def createOrAmendPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateOrUpdatePensionReliefsModel]) match {
       case Some(JsSuccess(model, _)) => responseHandler(pensionReliefsService.createOrAmendPensionReliefs(nino, taxYear, model))
-      case _ => Future.successful(BadRequest)
+      case _                         => Future.successful(BadRequest)
     }
   }
 
@@ -62,27 +62,26 @@ class PensionReliefsController @Inject()(pensionReliefsService: PensionReliefsSe
 
   def deletePensionReliefsUserData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     pensionReliefsService.deleteUserPensionReliefsData(nino, user.mtditid, taxYear).map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
     }
   }
 
   private def saveUserDataHandler(saveResponsee: Future[Either[ServiceErrorModel, Unit]]): Future[Result] =
     saveResponsee.map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
     }
 
-  def responseHandler(serviceResponse: Future[CreateOrAmendPensionReliefsResponse]): Future[Result] = {
+  def responseHandler(serviceResponse: Future[CreateOrAmendPensionReliefsResponse]): Future[Result] =
     serviceResponse.map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
     }
-  }
 
   def deletePensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     pensionReliefsService.deletePensionReliefs(nino, taxYear).map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
