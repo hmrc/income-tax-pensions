@@ -18,13 +18,14 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
+import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import utils.HeaderCarrierSyntax.HeaderCarrierOps
 
 import java.net.URL
 
-trait Connector {
+trait Connector extends Logging {
 
   val appConfig: AppConfig
 

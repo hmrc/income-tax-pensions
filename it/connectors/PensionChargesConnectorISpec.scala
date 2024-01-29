@@ -277,7 +277,9 @@ class PensionChargesConnectorISpec extends WiremockSpec {
     val createUpdatePensionChargesRequestModel =
       CreateUpdatePensionChargesRequestModel(
         pensionSavingsTaxCharges = None,
-        pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0)),
+        pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0, isAnnualAllowanceReduced = Some(true),
+          taperedAnnualAllowance = Some(true),
+          moneyPurchasedAllowance = Some(false))),
         pensionSchemeOverseasTransfers = None, pensionSchemeUnauthorisedPayments = None, overseasPensionContributions = None
       )
 

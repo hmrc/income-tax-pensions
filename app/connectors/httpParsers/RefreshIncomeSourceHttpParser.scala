@@ -17,6 +17,7 @@
 package connectors.httpParsers
 
 import models.ServiceErrorModel
+import models.logging.ConnectorResponseInfo
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_API, INTERNAL_SERVER_ERROR_FROM_API, SERVICE_UNAVAILABLE_FROM_API, UNEXPECTED_RESPONSE_FROM_API}
@@ -30,6 +31,8 @@ object RefreshIncomeSourceHttpParser extends APIParser {
 
   implicit object RefreshIncomeSourcesHttpReads extends HttpReads[RefreshIncomeSourceResponse] {
     override def read(method: String, url: String, response: HttpResponse): RefreshIncomeSourceResponse = {
+      ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
       response.status match {
         case NO_CONTENT | NOT_FOUND => Right(())
         case INTERNAL_SERVER_ERROR =>
