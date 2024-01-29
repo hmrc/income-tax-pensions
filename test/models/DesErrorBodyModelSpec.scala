@@ -26,26 +26,28 @@ class DesErrorBodyModelSpec extends TestUtils {
 
   val model: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Service is unavailable")
   val jsonModel: JsObject = Json.obj(
-    "code" -> "SERVER_ERROR",
+    "code"   -> "SERVER_ERROR",
     "reason" -> "Service is unavailable"
   )
 
   val errorsJsModel: JsObject = Json.obj(
     "failures" -> Json.arr(
-      Json.obj("code" -> "SERVICE_UNAVAILABLE",
-        "reason" -> "The service is currently unavailable"),
-      Json.obj("code" -> "INTERNAL_SERVER_ERROR",
-        "reason" -> "The service is currently facing issues.")
+      Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason"   -> "The service is currently unavailable"),
+      Json.obj("code" -> "INTERNAL_SERVER_ERROR", "reason" -> "The service is currently facing issues.")
     )
   )
 
   "The DesErrorModel" should {
 
-    val model = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVER_ERROR","Service is unavailable"))
-    val errorsModel = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorsBodyModel(Seq(
-      DesErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
-      DesErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
-    )))
+    val model = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVER_ERROR", "Service is unavailable"))
+    val errorsModel = DesErrorModel(
+      SERVICE_UNAVAILABLE,
+      DesErrorsBodyModel(
+        Seq(
+          DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"),
+          DesErrorBodyModel("INTERNAL_SERVER_ERROR", "The service is currently facing issues.")
+        ))
+    )
 
     "parse to Json" in {
       model.toJson mustBe jsonModel

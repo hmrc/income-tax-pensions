@@ -32,8 +32,7 @@ object CustomerAddedStateBenefitsDataBuilder {
     otherStateBenefits = Some(Set(aCustomerAddedStateBenefit))
   )
 
-  val aCustomerAddedStateBenefitsDataJsValue: JsValue = Json.parse(
-    """
+  val aCustomerAddedStateBenefitsDataJsValue: JsValue = Json.parse("""
       |{
       |  "incapacityBenefit": [
       |    {

@@ -28,31 +28,28 @@ import utils.FutureEitherOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
-                                chargesConnector: PensionChargesConnector,
-                                stateBenefitsConnector: GetStateBenefitsConnector,
-                                pensionIncomeConnector: PensionIncomeConnector
-                               ) {
+class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
+                                 chargesConnector: PensionChargesConnector,
+                                 stateBenefitsConnector: GetStateBenefitsConnector,
+                                 pensionIncomeConnector: PensionIncomeConnector) {
 
   val mtditidHeader = "mtditid"
 
-  def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)
-                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[DesErrorModel, AllPensionsData]] = {
+  def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[DesErrorModel, AllPensionsData]] =
     (for {
-      reliefsData <- FutureEitherOps[DesErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
-      pensionData <- FutureEitherOps[DesErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
+      reliefsData       <- FutureEitherOps[DesErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
+      pensionData       <- FutureEitherOps[DesErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
       stateBenefitsData <- FutureEitherOps[DesErrorModel, Option[AllStateBenefitsData]](getStateBenefits(nino, taxYear, mtditid)(hc))
       pensionIncomeData <- FutureEitherOps[DesErrorModel, Option[GetPensionIncomeModel]](getPensionIncome(nino, taxYear, mtditid)(hc))
 
-    } yield {
-      AllPensionsData(
-        pensionReliefs = reliefsData,
-        pensionCharges = pensionData,
-        stateBenefits = stateBenefitsData,
-        pensionIncome = pensionIncomeData
-      )
-    }).value
-  }
+    } yield AllPensionsData(
+      pensionReliefs = reliefsData,
+      pensionCharges = pensionData,
+      stateBenefits = stateBenefitsData,
+      pensionIncome = pensionIncomeData
+    )).value
 
   private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
@@ -66,5 +63,4 @@ class PensionsService @Inject()(reliefsConnector: PensionReliefsConnector,
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
 
-  
 }

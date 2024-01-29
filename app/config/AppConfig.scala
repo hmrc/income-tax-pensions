@@ -22,28 +22,28 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 
-
-class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
+  val authBaseUrl: String      = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 
-  val desBaseUrl: String = servicesConfig.baseUrl("des")
+  val desBaseUrl: String           = servicesConfig.baseUrl("des")
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
-  val ifBaseUrl: String = servicesConfig.baseUrl("integration-framework")
+  val ifBaseUrl: String            = servicesConfig.baseUrl("integration-framework")
 
-  val environment: String = config.get[String]("microservice.services.des.environment")
-  val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
+  val environment: String                     = config.get[String]("microservice.services.des.environment")
+  val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
 
   val submissionBaseUrl: String = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
 
-  def integrationFrameworkAuthorisationToken(api:String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+  def integrationFrameworkAuthorisationToken(api: String): String =
+    config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 
 }
 
 @ImplementedBy(classOf[BackendAppConfig])
-trait AppConfig  {
+trait AppConfig {
   val authBaseUrl: String
   val auditingEnabled: Boolean
   val graphiteHost: String

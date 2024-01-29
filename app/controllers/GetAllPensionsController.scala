@@ -27,16 +27,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class GetAllPensionsController @Inject()(service: PensionsService,
-                                         auth: AuthorisedAction,
-                                         cc: ControllerComponents
-                                        )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class GetAllPensionsController @Inject() (service: PensionsService, auth: AuthorisedAction, cc: ControllerComponents)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
+    with Logging {
 
   def getAllPensions(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.getAllPensionsData(nino, taxYear, user.mtditid).map {
       case Right(pensions) if pensions.isEmpty => NoContent
-      case Right(model) => Ok(Json.toJson(model))
-      case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+      case Right(model)                        => Ok(Json.toJson(model))
+      case Left(errorModel)                    => Status(errorModel.status)(errorModel.toJson)
     }
   }
 }

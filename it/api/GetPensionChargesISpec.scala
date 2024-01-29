@@ -27,15 +27,15 @@ import utils.TaxYearHelper.desIfTaxYearConverter
 class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
   trait Setup {
-    val timeSpan: Long = 5
+    val timeSpan: Long                          = 5
     implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(timeSpan, Seconds))
-    val nino: String = "AA123123A"
-    val taxYear: Int = 2021
-    val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
-    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
-    val desUrl: String = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-charges/nino/$nino/taxYear/$taxYear"
+    val nino: String                            = "AA123123A"
+    val taxYear: Int                            = 2021
+    val mtditidHeader: (String, String)         = ("mtditid", "555555555")
+    val mtdBearerToken: (String, String)        = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)]   = Seq(mtditidHeader, mtdBearerToken)
+    val desUrl: String                          = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
+    val serviceUrl: String                      = s"/income-tax-pensions/pension-charges/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
 
@@ -118,19 +118,19 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe OK
-            Json.parse(result.body) mustBe Json.parse(GetPensionChargesDesResponseBody)
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe OK
+          Json.parse(result.body) mustBe Json.parse(GetPensionChargesDesResponseBody)
         }
       }
 
       "return 400 if a there is an invalid tax year" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear.")).toString()
         stubGetWithResponseBody(
           url = desUrl,
           status = BAD_REQUEST,
@@ -139,20 +139,22 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe BAD_REQUEST
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "INVALID_TAX_YEAR", "reason" -> "Submission has not passed validation. Invalid parameter taxYear.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe BAD_REQUEST
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "INVALID_TAX_YEAR",
+            "reason" -> "Submission has not passed validation. Invalid parameter taxYear.")
         }
       }
 
       "return 400 if a there is an invalid taxable entity id (nino)" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
+        val errorResponseBody: String = Json
+          .toJson(DesErrorBodyModel("INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId."))
+          .toString()
         stubGetWithResponseBody(
           url = desUrl,
           status = BAD_REQUEST,
@@ -161,20 +163,22 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe BAD_REQUEST
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "INVALID_TAXABLE_ENTITY_ID", "reason" -> "Submission has not passed validation. Invalid parameter taxableEntityId.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe BAD_REQUEST
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "INVALID_TAXABLE_ENTITY_ID",
+            "reason" -> "Submission has not passed validation. Invalid parameter taxableEntityId.")
         }
       }
 
       "return 400 if a there is an invalid header correlation id" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId.")).toString()
+        val errorResponseBody: String = Json
+          .toJson(DesErrorBodyModel("INVALID_CORRELATIONID", "Submission has not passed validation. Invalid Header parameter CorrelationId."))
+          .toString()
         stubGetWithResponseBody(
           url = desUrl,
           status = BAD_REQUEST,
@@ -183,13 +187,14 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe BAD_REQUEST
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "INVALID_CORRELATIONID", "reason" -> "Submission has not passed validation. Invalid Header parameter CorrelationId.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe BAD_REQUEST
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "INVALID_CORRELATIONID",
+            "reason" -> "Submission has not passed validation. Invalid Header parameter CorrelationId.")
         }
       }
 
@@ -205,19 +210,19 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe NOT_FOUND
-            result.body mustBe errorResponseBody
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe NOT_FOUND
+          result.body mustBe errorResponseBody
         }
       }
 
       "return 503 if a downstream error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
         stubGetWithResponseBody(
           url = desUrl,
@@ -227,19 +232,19 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe SERVICE_UNAVAILABLE
-            Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe SERVICE_UNAVAILABLE
+          Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
         }
       }
 
       "return 500 if a downstream error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
         stubGetWithResponseBody(
           url = desUrl,
@@ -249,34 +254,35 @@ class GetPensionChargesISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe INTERNAL_SERVER_ERROR
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "SERVER_ERROR", "reason" -> "DES is currently experiencing problems that require live service intervention.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe INTERNAL_SERVER_ERROR
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "SERVER_ERROR",
+            "reason" -> "DES is currently experiencing problems that require live service intervention.")
         }
       }
 
       "return 401 if the user has no HMRC-MTD-IT enrolment" in new Setup {
         unauthorisedOtherEnrolment()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .get()) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .get()) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
 
       "return 401 if the request has no MTDITID header present" in new Setup {
-        whenReady(buildClient(serviceUrl)
-          .get()) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .get()) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
     }

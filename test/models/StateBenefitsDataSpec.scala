@@ -48,8 +48,7 @@ class StateBenefitsDataSpec extends TestUtils {
     }
 
     "convert StateBenefitsData to correct JsValue when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |}
           |""".stripMargin)
@@ -64,8 +63,7 @@ class StateBenefitsDataSpec extends TestUtils {
     }
 
     "convert JsValue to StateBenefitsData when empty object" in {
-      val jsValue: JsValue = Json.parse(
-        """
+      val jsValue: JsValue = Json.parse("""
           |{
           |}
           |""".stripMargin)

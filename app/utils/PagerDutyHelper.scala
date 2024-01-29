@@ -22,28 +22,25 @@ import uk.gov.hmrc.http.HttpResponse
 object PagerDutyHelper extends Logging {
 
   object PagerDutyKeys extends Enumeration {
-    val BAD_SUCCESS_JSON_FROM_DES: PagerDutyKeys.Value = Value
-    val SERVICE_UNAVAILABLE_FROM_DES: PagerDutyKeys.Value = Value
+    val BAD_SUCCESS_JSON_FROM_DES: PagerDutyKeys.Value      = Value
+    val SERVICE_UNAVAILABLE_FROM_DES: PagerDutyKeys.Value   = Value
     val INTERNAL_SERVER_ERROR_FROM_DES: PagerDutyKeys.Value = Value
-    val UNEXPECTED_RESPONSE_FROM_DES: PagerDutyKeys.Value = Value
-    val FOURXX_RESPONSE_FROM_DES: PagerDutyKeys.Value = Value
+    val UNEXPECTED_RESPONSE_FROM_DES: PagerDutyKeys.Value   = Value
+    val FOURXX_RESPONSE_FROM_DES: PagerDutyKeys.Value       = Value
 
-
-    val BAD_SUCCESS_JSON_FROM_API: PagerDutyKeys.Value = Value
-    val SERVICE_UNAVAILABLE_FROM_API: PagerDutyKeys.Value = Value
+    val BAD_SUCCESS_JSON_FROM_API: PagerDutyKeys.Value      = Value
+    val SERVICE_UNAVAILABLE_FROM_API: PagerDutyKeys.Value   = Value
     val INTERNAL_SERVER_ERROR_FROM_API: PagerDutyKeys.Value = Value
-    val UNEXPECTED_RESPONSE_FROM_API: PagerDutyKeys.Value = Value
-    val FOURXX_RESPONSE_FROM_API: PagerDutyKeys.Value = Value
+    val UNEXPECTED_RESPONSE_FROM_API: PagerDutyKeys.Value   = Value
+    val FOURXX_RESPONSE_FROM_API: PagerDutyKeys.Value       = Value
   }
 
-  def pagerDutyLog(pagerDutyKey: PagerDutyKeys.Value, otherDetail: String = ""): Unit = {
+  def pagerDutyLog(pagerDutyKey: PagerDutyKeys.Value, otherDetail: String = ""): Unit =
     logger.error(s"$pagerDutyKey $otherDetail")
-  }
 
-  def getCorrelationId(response:HttpResponse): String ={
+  def getCorrelationId(response: HttpResponse): String =
     response.header("CorrelationId") match {
       case Some(id) => s" CorrelationId: $id"
-      case _ => ""
+      case _        => ""
     }
-  }
 }

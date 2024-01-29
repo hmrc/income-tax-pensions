@@ -27,38 +27,31 @@ import utils.FutureEitherOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionReliefsService @Inject()(reliefsConnector: PensionReliefsConnector, submissionConnector: SubmissionConnector) {
+class PensionReliefsService @Inject() (reliefsConnector: PensionReliefsConnector, submissionConnector: SubmissionConnector) {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
 
-  def createOrAmendPensionReliefs(nino: String, taxYear: Int,
-                                  pensionReliefs: CreateOrUpdatePensionReliefsModel)
-                                 (implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
-
+  def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
+      hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] =
     reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, pensionReliefs)
-  }
 
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] =
     reliefsConnector.deletePensionReliefs(nino, taxYear)
 
-  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)
-                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
     (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
+      _      <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
       result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
+    } yield result).value
 
-  def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+  def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
     (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.deletePensionReliefs(nino, taxYear))
+      _      <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.deletePensionReliefs(nino, taxYear))
       result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
+    } yield result).value
 }

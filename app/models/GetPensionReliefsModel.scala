@@ -22,17 +22,13 @@ case class PensionReliefs(regularPensionContributions: Option[BigDecimal],
                           oneOffPensionContributionsPaid: Option[BigDecimal],
                           retirementAnnuityPayments: Option[BigDecimal],
                           paymentToEmployersSchemeNoTaxRelief: Option[BigDecimal],
-                          overseasPensionSchemeContributions: Option[BigDecimal]
-                         )
+                          overseasPensionSchemeContributions: Option[BigDecimal])
 
 object PensionReliefs {
   implicit val format: OFormat[PensionReliefs] = Json.format[PensionReliefs]
 }
 
-case class GetPensionReliefsModel(submittedOn: String,
-                                  deletedOn: Option[String],
-                                  pensionReliefs: PensionReliefs
-                                 )
+case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs)
 
 object GetPensionReliefsModel {
   implicit val format: OFormat[GetPensionReliefsModel] = Json.format[GetPensionReliefsModel]

@@ -47,8 +47,7 @@ case class OverseasSchemeProvider(providerName: String,
                                   providerAddress: String,
                                   providerCountryCode: String,
                                   qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]],
-                                  pensionSchemeTaxReference: Option[Seq[String]]
-                                 )
+                                  pensionSchemeTaxReference: Option[Seq[String]])
 
 object OverseasSchemeProvider {
   implicit val format: OFormat[OverseasSchemeProvider] = Json.format[OverseasSchemeProvider]
@@ -75,23 +74,18 @@ object PensionSavingsTaxCharges {
   implicit val format: OFormat[PensionSavingsTaxCharges] = Json.format[PensionSavingsTaxCharges]
 }
 
-case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]],
-                                             surcharge: Option[Charge],
-                                             noSurcharge: Option[Charge])
+case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]], surcharge: Option[Charge], noSurcharge: Option[Charge])
 
 object PensionSchemeUnauthorisedPayments {
   implicit val format: OFormat[PensionSchemeUnauthorisedPayments] = Json.format[PensionSchemeUnauthorisedPayments]
 }
 
-case class GetPensionChargesRequestModel(
-                                          submittedOn: String,
-                                          pensionSavingsTaxCharges: Option[PensionSavingsTaxCharges],
-                                          pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
-                                          pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
-                                          pensionContributions: Option[PensionContributions],
-                                          overseasPensionContributions: Option[OverseasPensionContributions]) {
-
-}
+case class GetPensionChargesRequestModel(submittedOn: String,
+                                         pensionSavingsTaxCharges: Option[PensionSavingsTaxCharges],
+                                         pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
+                                         pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
+                                         pensionContributions: Option[PensionContributions],
+                                         overseasPensionContributions: Option[OverseasPensionContributions]) {}
 
 object GetPensionChargesRequestModel {
   implicit val format: OFormat[GetPensionChargesRequestModel] = Json.format[GetPensionChargesRequestModel]

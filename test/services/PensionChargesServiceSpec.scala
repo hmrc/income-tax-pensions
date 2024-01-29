@@ -30,32 +30,34 @@ import scala.concurrent.Future
 
 class PensionChargesServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
-  
+
   val chargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
-  val submissionConnector: SubmissionConnector = mock[SubmissionConnector]
-  
-  val service: PensionChargesService = new PensionChargesService( chargesConnector, submissionConnector)
+  val submissionConnector: SubmissionConnector  = mock[SubmissionConnector]
+
+  val service: PensionChargesService = new PensionChargesService(chargesConnector, submissionConnector)
 
   val taxYear = 2022
-  val nino = "AA123456A"
+  val nino    = "AA123456A"
   val mtditid = "1234567890"
-  
+
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
 
   "saveUserPensionChargesData" should {
 
     val (userData, pensionSchemeUnauthorisedPayments) = createUserData()
-    
+
     "return Right(unit) " should {
-      
+
       "successfully merge changes if update contains pensionSchemeUnauthorisedPayments" in {
         fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
 
-        (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
+        (chargesConnector
+          .createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
           .expects(nino, taxYear, userData, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -65,13 +67,13 @@ class PensionChargesServiceSpec extends TestUtils {
       }
     }
 
-
     "return error when Create Pension Charges fails" in {
       val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
       fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
 
-      (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
+      (chargesConnector
+        .createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
         .expects(nino, taxYear, userData, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -83,13 +85,14 @@ class PensionChargesServiceSpec extends TestUtils {
     "return error when Refresh submission tax fails" in {
       fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
-      
 
-      (chargesConnector.createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
+      (chargesConnector
+        .createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
         .expects(nino, taxYear, userData, *)
         .returning(Future.successful(Right(())))
 
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -105,11 +108,13 @@ class PensionChargesServiceSpec extends TestUtils {
 
       "successfully delete pension charges" in {
 
-        (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+        (chargesConnector
+          .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -119,12 +124,11 @@ class PensionChargesServiceSpec extends TestUtils {
       }
     }
 
-
     "return error when Create Pension Charges fails" in {
       val expectedErrorResult: CreateUpdatePensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-
-      (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      (chargesConnector
+        .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -136,12 +140,13 @@ class PensionChargesServiceSpec extends TestUtils {
     "return error when Refresh submission tax fails" in {
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
-
-      (chargesConnector.deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      (chargesConnector
+        .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(())))
 
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -152,17 +157,20 @@ class PensionChargesServiceSpec extends TestUtils {
   }
 
   private def createUserData() = {
-    val pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-      pensionSchemeTaxReference = Some(Seq("00543216RA", "00123456RB")),
-      surcharge = Some(Charge(
-        amount = 124.44,
-        foreignTaxPaid = 123.33
-      )),
-      noSurcharge = Some(Charge(
-        amount = 222.44,
-        foreignTaxPaid = 223.33
+    val pensionSchemeUnauthorisedPayments = Some(
+      PensionSchemeUnauthorisedPayments(
+        pensionSchemeTaxReference = Some(Seq("00543216RA", "00123456RB")),
+        surcharge = Some(
+          Charge(
+            amount = 124.44,
+            foreignTaxPaid = 123.33
+          )),
+        noSurcharge = Some(
+          Charge(
+            amount = 222.44,
+            foreignTaxPaid = 223.33
+          ))
       ))
-    ))
 
     val userData = CreateUpdatePensionChargesRequestModel(
       None,
