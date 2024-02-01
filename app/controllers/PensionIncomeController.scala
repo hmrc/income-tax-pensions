@@ -29,16 +29,18 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PensionIncomeController @Inject()(
-                                         service: PensionIncomeService,
-                                         auth: AuthorisedAction,
-                                         cc: ControllerComponents
-                                       )(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class PensionIncomeController @Inject() (
+    service: PensionIncomeService,
+    auth: AuthorisedAction,
+    cc: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
+    with Logging {
 
   def getPensionIncome(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.getPensionIncome(nino, taxYear).map {
-      case Right(None) => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
-      case Right(model) => Ok(Json.toJson(model))
+      case Right(None)      => NotFound(Json.toJson(DesErrorBodyModel.noDataFound))
+      case Right(model)     => Ok(Json.toJson(model))
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
@@ -46,39 +48,37 @@ class PensionIncomeController @Inject()(
   def createOrAmendPensionIncome(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionIncomeModel]) match {
       case Some(JsSuccess(model, _)) => responseHandler(service.createOrAmendPensionIncome(nino, taxYear, model))
-      case _ => Future.successful(BadRequest)
+      case _                         => Future.successful(BadRequest)
     }
   }
 
-  def responseHandler(serviceResponse: Future[CreateOrAmendPensionIncomeResponse]): Future[Result] = {
+  def responseHandler(serviceResponse: Future[CreateOrAmendPensionIncomeResponse]): Future[Result] =
     serviceResponse.map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
     }
-  }
 
   def deletePensionIncome(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.deletePensionIncome(nino, taxYear).map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
-
 
   def deletePensionIncomeSessionData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     service.deletePensionIncomeSessionData(nino, taxYear, user.mtditid).map {
-      case Right(_) => NoContent
+      case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
   }
 
-
   def savePensionIncomeSessionData(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionIncomeModel]) match {
-      case Some(JsSuccess(model, _)) => service.savePensionIncomeSessionData(nino, taxYear, user.mtditid, model).map {
-        case Left(_) => InternalServerError
-        case Right(_) => NoContent
-      }
+      case Some(JsSuccess(model, _)) =>
+        service.savePensionIncomeSessionData(nino, taxYear, user.mtditid, model).map {
+          case Left(_)  => InternalServerError
+          case Right(_) => NoContent
+        }
       case _ => Future.successful(BadRequest)
     }
   }

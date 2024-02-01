@@ -35,12 +35,12 @@ object GetStateBenefitsHttpParser extends DESParser with Logging {
 
       response.status match {
         case OK =>
-          response.json.validate[AllStateBenefitsData].fold[GetStateBenefitsResponse](
-          _ => {
-            badSuccessJsonFromDES
-          },
-          parsedModel => Right(Some(parsedModel))
-        )
+          response.json
+            .validate[AllStateBenefitsData]
+            .fold[GetStateBenefitsResponse](
+              _ => badSuccessJsonFromDES,
+              parsedModel => Right(Some(parsedModel))
+            )
         case NO_CONTENT =>
           logger.info(logMessage(response))
           Right(None)

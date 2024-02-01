@@ -49,23 +49,22 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     SharedMetricRegistries.clear()
   }
 
-  implicit val actorSystem: ActorSystem = ActorSystem()
+  implicit val actorSystem: ActorSystem         = ActorSystem()
   implicit val materializer: SystemMaterializer = SystemMaterializer(actorSystem)
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
 
-  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders("mtditid" -> "1234567890")
+  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type]   = FakeRequest().withHeaders("mtditid" -> "1234567890")
   val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession("MTDITID" -> "1234567890")
-  implicit val emptyHeaderCarrier: HeaderCarrier = HeaderCarrier()
+  implicit val emptyHeaderCarrier: HeaderCarrier                  = HeaderCarrier()
 
-  val mockAppConfig: AppConfig = app.injector.instanceOf[AppConfig]
+  val mockAppConfig: AppConfig                                = app.injector.instanceOf[AppConfig]
   implicit val mockControllerComponents: ControllerComponents = Helpers.stubControllerComponents()
-  implicit val mockExecutionContext: ExecutionContext = ExecutionContext.Implicits.global
-  implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  implicit val mockAuthService: AuthService = new AuthService(mockAuthConnector)
-  val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
+  implicit val mockExecutionContext: ExecutionContext         = ExecutionContext.Implicits.global
+  implicit val mockAuthConnector: AuthConnector               = mock[AuthConnector]
+  implicit val mockAuthService: AuthService                   = new AuthService(mockAuthConnector)
+  val defaultActionBuilder: DefaultActionBuilder              = DefaultActionBuilder(mockControllerComponents.parsers.default)
   val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
-
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
 
@@ -74,134 +73,158 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     await(awaited.body.consumeData.map(_.utf8String))
   }
 
-  val individualEnrolments: Enrolments = Enrolments(Set(
-    Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-    Enrolment(EnrolmentKeys.nino, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.nino, "1234567890")), "Activated")))
+  val individualEnrolments: Enrolments = Enrolments(
+    Set(
+      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+      Enrolment(EnrolmentKeys.nino, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.nino, "1234567890")), "Activated")
+    ))
 
-  //noinspection ScalaStyle
+  // noinspection ScalaStyle
   def mockAuth(enrolments: Enrolments = individualEnrolments) = {
 
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
       .returning(Future.successful(Some(AffinityGroup.Individual)))
 
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.allEnrolments and Retrievals.confidenceLevel, *, *)
       .returning(Future.successful(enrolments and ConfidenceLevel.L250))
   }
 
-  val agentEnrolments: Enrolments = Enrolments(Set(
-    Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-    Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
-  ))
+  val agentEnrolments: Enrolments = Enrolments(
+    Set(
+      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+    ))
 
-  //noinspection ScalaStyle
+  // noinspection ScalaStyle
   def mockAuthAsAgent(enrolments: Enrolments = agentEnrolments) = {
 
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
       .returning(Future.successful(Some(AffinityGroup.Agent)))
 
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.allEnrolments, *, *)
       .returning(Future.successful(enrolments))
   }
 
-  //noinspection ScalaStyle
-  def mockAuthReturnException(exception: Exception) = {
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+  // noinspection ScalaStyle
+  def mockAuthReturnException(exception: Exception) =
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future.failed(exception))
-  }
 
   val fullPensionReliefsModel = GetPensionReliefsModel(
-    "2020-01-04T05:01:01Z", Some("2020-01-04T05:01:01Z"), PensionReliefs(
-      Some(100.01), Some(100.01), Some(100.01), Some(100.01), Some(100.01)
+    "2020-01-04T05:01:01Z",
+    Some("2020-01-04T05:01:01Z"),
+    PensionReliefs(
+      Some(100.01),
+      Some(100.01),
+      Some(100.01),
+      Some(100.01),
+      Some(100.01)
     )
   )
   val fullPensionChargesModel = GetPensionChargesRequestModel(
     submittedOn = "2020-07-27T17:00:19Z",
-    pensionSavingsTaxCharges = Some(PensionSavingsTaxCharges(
-      pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
-      lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
-        amount = 800.02,
-        taxPaid = 200.02
+    pensionSavingsTaxCharges = Some(
+      PensionSavingsTaxCharges(
+        pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
+        lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(
+          LifetimeAllowance(
+            amount = 800.02,
+            taxPaid = 200.02
+          )),
+        benefitInExcessOfLifetimeAllowance = Some(
+          LifetimeAllowance(
+            amount = 800.02,
+            taxPaid = 200.02
+          ))
       )),
-      benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(
-        amount = 800.02,
-        taxPaid = 200.02
+    pensionSchemeOverseasTransfers = Some(
+      PensionSchemeOverseasTransfers(
+        overseasSchemeProvider = Seq(OverseasSchemeProvider(
+          providerName = "overseas providerName 1 qualifying scheme",
+          providerAddress = "overseas address 1",
+          providerCountryCode = "ESP",
+          qualifyingRecognisedOverseasPensionScheme = Some(Seq("Q100000", "Q100002")),
+          pensionSchemeTaxReference = None
+        )),
+        transferCharge = 22.77,
+        transferChargeTaxPaid = 33.88
+      )),
+    pensionSchemeUnauthorisedPayments = Some(
+      PensionSchemeUnauthorisedPayments(
+        pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
+        surcharge = Some(
+          Charge(
+            amount = 124.44,
+            foreignTaxPaid = 123.33
+          )),
+        noSurcharge = Some(
+          Charge(
+            amount = 222.44,
+            foreignTaxPaid = 223.33
+          ))
+      )),
+    pensionContributions = Some(
+      PensionContributions(
+        pensionSchemeTaxReference = Seq("00123456RA", "00123456RB"),
+        inExcessOfTheAnnualAllowance = 150.67,
+        annualAllowanceTaxPaid = 178.65,
+        isAnnualAllowanceReduced = Some(false),
+        taperedAnnualAllowance = Some(false),
+        moneyPurchasedAllowance = Some(false)
+      )),
+    overseasPensionContributions = Some(
+      OverseasPensionContributions(
+        overseasSchemeProvider = Seq(OverseasSchemeProvider(
+          providerName = "overseas providerName 1 tax ref",
+          providerAddress = "overseas address 1",
+          providerCountryCode = "ESP",
+          qualifyingRecognisedOverseasPensionScheme = None,
+          pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB"))
+        )),
+        shortServiceRefund = 1.11,
+        shortServiceRefundTaxPaid = 2.22
       ))
-    )),
-    pensionSchemeOverseasTransfers = Some(PensionSchemeOverseasTransfers(
-      overseasSchemeProvider = Seq(OverseasSchemeProvider(
-        providerName = "overseas providerName 1 qualifying scheme",
-        providerAddress = "overseas address 1",
-        providerCountryCode = "ESP",
-        qualifyingRecognisedOverseasPensionScheme = Some(Seq("Q100000", "Q100002")),
-        pensionSchemeTaxReference = None
-      )),
-      transferCharge = 22.77,
-      transferChargeTaxPaid = 33.88
-    )),
-    pensionSchemeUnauthorisedPayments = Some(PensionSchemeUnauthorisedPayments(
-      pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
-      surcharge = Some(Charge(
-        amount = 124.44,
-        foreignTaxPaid = 123.33
-      )),
-      noSurcharge = Some(Charge(
-        amount = 222.44,
-        foreignTaxPaid = 223.33
-      ))
-    )),
-    pensionContributions = Some(PensionContributions(
-      pensionSchemeTaxReference = Seq("00123456RA", "00123456RB"),
-      inExcessOfTheAnnualAllowance = 150.67,
-      annualAllowanceTaxPaid = 178.65,
-      isAnnualAllowanceReduced = Some(false),
-      taperedAnnualAllowance = Some(false),
-      moneyPurchasedAllowance = Some(false))),
-    overseasPensionContributions = Some(OverseasPensionContributions(
-      overseasSchemeProvider = Seq(OverseasSchemeProvider(
-        providerName = "overseas providerName 1 tax ref",
-        providerAddress = "overseas address 1",
-        providerCountryCode = "ESP",
-        qualifyingRecognisedOverseasPensionScheme = None,
-        pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB"))
-      )),
-      shortServiceRefund = 1.11,
-      shortServiceRefundTaxPaid = 2.22
-    ))
   )
-
 
   val fullPensionIncomeModel: GetPensionIncomeModel =
     GetPensionIncomeModel(
       submittedOn = "2022-07-28T07:59:39.041Z",
       deletedOn = Some("2022-07-28T07:59:39.041Z"),
-      foreignPension = Some(Seq(
-        ForeignPension(
-          countryCode = "FRA",
-          taxableAmount = 1999.99,
-          amountBeforeTax = Some(1999.99),
-          taxTakenOff = Some(1999.99),
-          specialWithholdingTax = Some(1999.99),
-          foreignTaxCreditRelief = Some(false)
-        )
-      )),
-      overseasPensionContribution = Some(Seq(
-        OverseasPensionContribution(
-          customerReference = Some("PENSIONINCOME245"),
-          exemptEmployersPensionContribs = 1999.99,
-          migrantMemReliefQopsRefNo = Some("QOPS000000"),
-          dblTaxationRelief = Some(1999.99),
-          dblTaxationCountry = Some("FRA"),
-          dblTaxationArticle = Some("AB3211-1"),
-          dblTaxationTreaty = Some("Munich"),
-          sf74Reference = Some("SF74-123456")
-        )
-      )
-      ))
+      foreignPension = Some(
+        Seq(
+          ForeignPension(
+            countryCode = "FRA",
+            taxableAmount = 1999.99,
+            amountBeforeTax = Some(1999.99),
+            taxTakenOff = Some(1999.99),
+            specialWithholdingTax = Some(1999.99),
+            foreignTaxCreditRelief = Some(false)
+          )
+        )),
+      overseasPensionContribution = Some(
+        Seq(
+          OverseasPensionContribution(
+            customerReference = Some("PENSIONINCOME245"),
+            exemptEmployersPensionContribs = 1999.99,
+            migrantMemReliefQopsRefNo = Some("QOPS000000"),
+            dblTaxationRelief = Some(1999.99),
+            dblTaxationCountry = Some("FRA"),
+            dblTaxationArticle = Some("AB3211-1"),
+            dblTaxationTreaty = Some("Munich"),
+            sf74Reference = Some("SF74-123456")
+          )
+        ))
+    )
 
   val fullPensionsModel: AllPensionsData = AllPensionsData(
     pensionReliefs = Some(fullPensionReliefsModel),

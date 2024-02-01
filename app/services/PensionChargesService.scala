@@ -27,7 +27,7 @@ import utils.FutureEitherOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionChargesService @Inject()(chargesConnector: PensionChargesConnector, submissionConnector: SubmissionConnector) {
+class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector, submissionConnector: SubmissionConnector) {
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
     chargesConnector.getPensionCharges(nino, taxYear)
@@ -35,29 +35,24 @@ class PensionChargesService @Inject()(chargesConnector: PensionChargesConnector,
   def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] =
     chargesConnector.deletePensionCharges(nino, taxYear)
 
-  def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)
-                                (implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
+  def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)(implicit
+      hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
     chargesConnector.createUpdatePensionCharges(nino, taxYear, model)
 
-  def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)
-                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
-
+  def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
     (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData))
+      _      <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData))
       result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
+    } yield result).value
 
-  def deleteUserPensionChargesData(nino: String, mtditid: String, taxYear: Int)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
+  def deleteUserPensionChargesData(nino: String, mtditid: String, taxYear: Int)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
     (for {
-      _ <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.deletePensionCharges(nino, taxYear))
+      _      <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.deletePensionCharges(nino, taxYear))
       result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield {
-      result
-    }).value
-  }
+    } yield result).value
 
 }

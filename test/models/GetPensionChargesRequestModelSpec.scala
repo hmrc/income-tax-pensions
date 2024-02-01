@@ -26,8 +26,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
 
   val minimalJson: JsValue = Json.parse("""{"submittedOn": "2020-07-27T17:00:19Z"}""")
 
-  val fullPensionChargesJson: JsValue = Json.parse(
-    """{
+  val fullPensionChargesJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionSavingsTaxCharges": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
@@ -91,8 +90,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val fullJsonWithQualifyingAndTaxRefsSwapped: JsValue = Json.parse(
-    """{
+  val fullJsonWithQualifyingAndTaxRefsSwapped: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionSavingsTaxCharges": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
@@ -156,8 +154,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val pensionSavingsTaxChargesOnlyJson: JsValue = Json.parse(
-    """{
+  val pensionSavingsTaxChargesOnlyJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionSavingsTaxCharges": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
@@ -172,8 +169,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val pensionSchemeOverseasTransfersOnlyJson: JsValue = Json.parse(
-    """{
+  val pensionSchemeOverseasTransfersOnlyJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
@@ -192,8 +188,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val pensionSchemeUnauthorisedPaymentsOnlyJson: JsValue = Json.parse(
-    """{
+  val pensionSchemeUnauthorisedPaymentsOnlyJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionSchemeUnauthorisedPayments": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
@@ -208,8 +203,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val pensionContributionsOnlyJson: JsValue = Json.parse(
-    """{
+  val pensionContributionsOnlyJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"pensionContributions": {
       |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
@@ -221,8 +215,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-  val overseasPensionContributionsOnlyJson: JsValue = Json.parse(
-    """{
+  val overseasPensionContributionsOnlyJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
       |	"overseasPensionContributions": {
       |		"overseasSchemeProvider": [{
@@ -241,94 +234,126 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |	}
       |}""".stripMargin)
 
-
-  val taxPaid: BigDecimal = 200.02
-  val amount: BigDecimal = 800.02
-  val transferCharge: BigDecimal = 22.77
-  val transferChargeTaxPaid: BigDecimal = 33.88
-  val surcharge: Charge = Charge(124.44, 123.33)
-  val noSurcharge: Charge = Charge(222.44, 223.33)
+  val taxPaid: BigDecimal                      = 200.02
+  val amount: BigDecimal                       = 800.02
+  val transferCharge: BigDecimal               = 22.77
+  val transferChargeTaxPaid: BigDecimal        = 33.88
+  val surcharge: Charge                        = Charge(124.44, 123.33)
+  val noSurcharge: Charge                      = Charge(222.44, 223.33)
   val inExcessOfTheAnnualAllowance: BigDecimal = 150.67
-  val annualAllowanceTaxPaid: BigDecimal = 178.65
-  val shortServiceRefund: BigDecimal = 1.11
-  val shortServiceRefundTaxPaid: BigDecimal = 2.22
+  val annualAllowanceTaxPaid: BigDecimal       = 178.65
+  val shortServiceRefund: BigDecimal           = 1.11
+  val shortServiceRefundTaxPaid: BigDecimal    = 2.22
 
-  val pensionSchemeTaxRef: Option[Seq[String]] = Some(Seq("00123456RA", "00123456RB"))
+  val pensionSchemeTaxRef: Option[Seq[String]]                       = Some(Seq("00123456RA", "00123456RB"))
   val qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]] = Some(Seq("Q100000", "Q100002"))
 
   val pensionContributions: PensionContributions = PensionContributions(
-    pensionSchemeTaxRef.get, inExcessOfTheAnnualAllowance, annualAllowanceTaxPaid, isAnnualAllowanceReduced = Some(false), taperedAnnualAllowance = Some(false),
-    moneyPurchasedAllowance = Some(false))
+    pensionSchemeTaxRef.get,
+    inExcessOfTheAnnualAllowance,
+    annualAllowanceTaxPaid,
+    isAnnualAllowanceReduced = Some(false),
+    taperedAnnualAllowance = Some(false),
+    moneyPurchasedAllowance = Some(false)
+  )
 
   val overseasSchemeProviderWithQualifyingScheme1: OverseasSchemeProvider = OverseasSchemeProvider(
-    providerName = "overseas providerName 1 qualifying scheme", providerAddress = "overseas address 1", providerCountryCode = "ESP",
-    qualifyingRecognisedOverseasPensionScheme, pensionSchemeTaxReference = None
+    providerName = "overseas providerName 1 qualifying scheme",
+    providerAddress = "overseas address 1",
+    providerCountryCode = "ESP",
+    qualifyingRecognisedOverseasPensionScheme,
+    pensionSchemeTaxReference = None
   )
   val overseasSchemeProviderWithQualifyingScheme2: OverseasSchemeProvider = OverseasSchemeProvider(
-    providerName = "overseas providerName 2 qualifying scheme", providerAddress = "overseas address 2", providerCountryCode = "ESP",
-    qualifyingRecognisedOverseasPensionScheme, pensionSchemeTaxReference = None
+    providerName = "overseas providerName 2 qualifying scheme",
+    providerAddress = "overseas address 2",
+    providerCountryCode = "ESP",
+    qualifyingRecognisedOverseasPensionScheme,
+    pensionSchemeTaxReference = None
   )
 
   val overseasSchemeProviderWithTaxRef1: OverseasSchemeProvider = OverseasSchemeProvider(
-    providerName = "overseas providerName 1 tax ref", providerAddress = "overseas address 1", providerCountryCode = "ESP",
-    None, pensionSchemeTaxReference = pensionSchemeTaxRef
+    providerName = "overseas providerName 1 tax ref",
+    providerAddress = "overseas address 1",
+    providerCountryCode = "ESP",
+    None,
+    pensionSchemeTaxReference = pensionSchemeTaxRef
   )
 
   val overseasSchemeProviderWithTaxRef2: OverseasSchemeProvider = OverseasSchemeProvider(
-    providerName = "overseas providerName 2 tax ref", providerAddress = "overseas address 2", providerCountryCode = "ESP",
-    None, pensionSchemeTaxReference = pensionSchemeTaxRef
+    providerName = "overseas providerName 2 tax ref",
+    providerAddress = "overseas address 2",
+    providerCountryCode = "ESP",
+    None,
+    pensionSchemeTaxReference = pensionSchemeTaxRef
   )
 
   val overseasPensionContributionsWithTaxRef: OverseasPensionContributions =
-    OverseasPensionContributions(Seq(overseasSchemeProviderWithTaxRef1, overseasSchemeProviderWithTaxRef1),
-      shortServiceRefund, shortServiceRefundTaxPaid)
+    OverseasPensionContributions(
+      Seq(overseasSchemeProviderWithTaxRef1, overseasSchemeProviderWithTaxRef1),
+      shortServiceRefund,
+      shortServiceRefundTaxPaid)
 
   val overseasPensionContributionsWithQualifyingScheme: OverseasPensionContributions =
-    OverseasPensionContributions(Seq(overseasSchemeProviderWithQualifyingScheme1, overseasSchemeProviderWithQualifyingScheme2),
-      shortServiceRefund, shortServiceRefundTaxPaid)
+    OverseasPensionContributions(
+      Seq(overseasSchemeProviderWithQualifyingScheme1, overseasSchemeProviderWithQualifyingScheme2),
+      shortServiceRefund,
+      shortServiceRefundTaxPaid)
 
   val pensionSchemeUnauthorisedPayments: PensionSchemeUnauthorisedPayments =
     PensionSchemeUnauthorisedPayments(pensionSchemeTaxRef, surcharge = Some(surcharge), noSurcharge = Some(noSurcharge))
 
-  val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(pensionSchemeTaxRef,
+  val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(
+    pensionSchemeTaxRef,
     lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
     benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid))
   )
 
   val pensionSchemeOverseasTransfersWithTaxRef: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
-    Seq(overseasSchemeProviderWithTaxRef1, overseasSchemeProviderWithTaxRef2), transferCharge, transferChargeTaxPaid
+    Seq(overseasSchemeProviderWithTaxRef1, overseasSchemeProviderWithTaxRef2),
+    transferCharge,
+    transferChargeTaxPaid
   )
 
   val pensionSchemeOverseasTransfersWithQualifyingScheme: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
-    Seq(overseasSchemeProviderWithQualifyingScheme1, overseasSchemeProviderWithQualifyingScheme2), transferCharge, transferChargeTaxPaid
+    Seq(overseasSchemeProviderWithQualifyingScheme1, overseasSchemeProviderWithQualifyingScheme2),
+    transferCharge,
+    transferChargeTaxPaid
   )
 
   "The GetPensionChargesRequestModel" should {
 
-    val pensionSavingsTaxChargesOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      Some(pensionSavingsTaxCharges), None, None, None, None)
+    val pensionSavingsTaxChargesOnlyModel =
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", Some(pensionSavingsTaxCharges), None, None, None, None)
 
-    val pensionSchemeOverseasTransfersOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      None, Some(pensionSchemeOverseasTransfersWithTaxRef), None, None, None)
+    val pensionSchemeOverseasTransfersOnlyModel =
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, Some(pensionSchemeOverseasTransfersWithTaxRef), None, None, None)
 
-    val pensionSchemeUnauthorisedPaymentsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      None, None, Some(pensionSchemeUnauthorisedPayments), None, None)
+    val pensionSchemeUnauthorisedPaymentsOnlyModel =
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, Some(pensionSchemeUnauthorisedPayments), None, None)
 
-    val pensionContributionsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      None, None, None, Some(pensionContributions), None)
+    val pensionContributionsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, Some(pensionContributions), None)
 
-    val overseasPensionContributionsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      None, None, None, None, Some(overseasPensionContributionsWithQualifyingScheme))
+    val overseasPensionContributionsOnlyModel =
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, None, Some(overseasPensionContributionsWithQualifyingScheme))
 
-    val fullModelWithTaxRefsAndQualifyingSchemesSwapped: GetPensionChargesRequestModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      Some(pensionSavingsTaxCharges), Some(pensionSchemeOverseasTransfersWithTaxRef),
-      Some(pensionSchemeUnauthorisedPayments), Some(pensionContributions),
-      Some(overseasPensionContributionsWithQualifyingScheme))
+    val fullModelWithTaxRefsAndQualifyingSchemesSwapped: GetPensionChargesRequestModel = GetPensionChargesRequestModel(
+      "2020-07-27T17:00:19Z",
+      Some(pensionSavingsTaxCharges),
+      Some(pensionSchemeOverseasTransfersWithTaxRef),
+      Some(pensionSchemeUnauthorisedPayments),
+      Some(pensionContributions),
+      Some(overseasPensionContributionsWithQualifyingScheme)
+    )
 
-    val fullGetPensionChargesRequestModel: GetPensionChargesRequestModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z",
-      Some(pensionSavingsTaxCharges), Some(pensionSchemeOverseasTransfersWithQualifyingScheme),
-      Some(pensionSchemeUnauthorisedPayments), Some(pensionContributions),
-      Some(overseasPensionContributionsWithTaxRef))
+    val fullGetPensionChargesRequestModel: GetPensionChargesRequestModel = GetPensionChargesRequestModel(
+      "2020-07-27T17:00:19Z",
+      Some(pensionSavingsTaxCharges),
+      Some(pensionSchemeOverseasTransfersWithQualifyingScheme),
+      Some(pensionSchemeUnauthorisedPayments),
+      Some(pensionContributions),
+      Some(overseasPensionContributionsWithTaxRef)
+    )
 
     "serialize valid values" when {
       "there is a full model" in {
@@ -386,4 +411,3 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
   }
 
 }
-

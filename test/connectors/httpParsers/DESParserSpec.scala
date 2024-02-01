@@ -22,21 +22,20 @@ import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpResponse
 import utils.TestUtils
 
-class DESParserSpec extends TestUtils{
+class DESParserSpec extends TestUtils {
 
   object FakeParser extends DESParser {
     override val parserName: String = "TestParser"
   }
 
-  def httpResponse(json: JsValue =
-                   Json.parse(
-                     """{"failures":[
+  def httpResponse(json: JsValue = Json.parse("""{"failures":[
                        |{"code":"SERVICE_UNAVAILABLE","reason":"The service is currently unavailable"},
-                       |{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}]}""".stripMargin)): HttpResponse = HttpResponse(
-    INTERNAL_SERVER_ERROR,
-    json,
-    Map("CorrelationId" -> Seq("1234645654645"))
-  )
+                       |{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}]}""".stripMargin)): HttpResponse =
+    HttpResponse(
+      INTERNAL_SERVER_ERROR,
+      json,
+      Map("CorrelationId" -> Seq("1234645654645"))
+    )
 
   "FakeParser" should {
     "log the correct message" in {
@@ -58,14 +57,18 @@ class DESParserSpec extends TestUtils{
     }
     "handle multiple errors" in {
       val result = FakeParser.handleDESError(httpResponse())
-      result mustBe Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorsBodyModel(Seq(
-        DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"),
-        DesErrorBodyModel("INTERNAL_SERVER_ERROR", "The service is currently facing issues.")
-      ))))
+      result mustBe Left(
+        DesErrorModel(
+          INTERNAL_SERVER_ERROR,
+          DesErrorsBodyModel(Seq(
+            DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"),
+            DesErrorBodyModel("INTERNAL_SERVER_ERROR", "The service is currently facing issues.")
+          ))
+        ))
     }
     "handle single errors" in {
-      val result = FakeParser.handleDESError(httpResponse(Json.parse(
-        """{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}""".stripMargin)))
+      val result = FakeParser.handleDESError(
+        httpResponse(Json.parse("""{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}""".stripMargin)))
       result mustBe Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("INTERNAL_SERVER_ERROR", "The service is currently facing issues.")))
     }
 

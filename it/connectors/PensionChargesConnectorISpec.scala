@@ -34,347 +34,356 @@ class PensionChargesConnectorISpec extends WiremockSpec {
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  def appConfig(desIfHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override val desBaseUrl: String = s"http://$desIfHost:$wireMockPort"
-    override val ifBaseUrl: String = s"http://$desIfHost:$wireMockPort"
-  }
+  def appConfig(desIfHost: String): AppConfig =
+    new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+      override val desBaseUrl: String = s"http://$desIfHost:$wireMockPort"
+      override val ifBaseUrl: String  = s"http://$desIfHost:$wireMockPort"
+    }
 
-  val nino: String = "123456789"
+  val nino: String                = "123456789"
   val (nonTysTaxYear, tysTaxYear) = (2023, 2024)
-  val desUrl: String = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(nonTysTaxYear)}"
-  val ifTysUrl = s"/income-tax/charges/pensions/${ifTysTaxYearConverter(tysTaxYear)}/$nino"
+  val desUrl: String              = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(nonTysTaxYear)}"
+  val ifTysUrl                    = s"/income-tax/charges/pensions/${ifTysTaxYearConverter(tysTaxYear)}/$nino"
 
- for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {
-  s".getPensionCharges - $taxYear" should {
+  for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {
+    s".getPensionCharges - $taxYear" should {
 
-    "include internal headers" when {
-      val headersSentToDes = Seq(
-        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
-        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
-      )
+      "include internal headers" when {
+        val headersSentToDes = Seq(
+          new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+          new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+        )
 
-      val internalHost = "localhost"
-      val externalHost = "127.0.0.1"
+        val internalHost = "localhost"
+        val externalHost = "127.0.0.1"
 
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(internalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
+        "the host for DES is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(internalHost))
+          val expectedResult             = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
 
-        stubGetWithResponseBody(desIfUrl,OK, expectedResponseBody, headersSentToDes)
-        val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-        result mustBe Right(Some(expectedResult))
+          stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody, headersSentToDes)
+          val result = await(connector.getPensionCharges(nino, taxYear)(hc))
+          result mustBe Right(Some(expectedResult))
+        }
+
+        "the host for DES is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(externalHost))
+          val expectedResult             = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
+
+          stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody, headersSentToDes)
+          val result = await(connector.getPensionCharges(nino, taxYear)(hc))
+          result mustBe Right(Some(expectedResult))
+        }
       }
 
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(externalHost))
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
+      "return a GetPensionChargesRequestModel" when {
+        "nino and taxYear are present" in {
+          val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
+          stubGetWithResponseBody(desIfUrl, OK, expectedResponseBody)
 
-        stubGetWithResponseBody(desIfUrl,OK, expectedResponseBody, headersSentToDes)
-        val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-        result mustBe Right(Some(expectedResult))
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+          val result                     = await(connector.getPensionCharges(nino, taxYear)(hc)).toOption.get
+
+          result mustBe Some(expectedResult)
+        }
+
       }
-    }
 
-    "return a GetPensionChargesRequestModel" when {
-      "nino and taxYear are present" in {
-        val expectedResult = Json.parse(expectedResponseBody).as[GetPensionChargesRequestModel]
-        stubGetWithResponseBody(desIfUrl,OK, expectedResponseBody)
+      "return a Parsing error INTERNAL_SERVER_ERROR response" in {
+        val invalidJson = Json.obj(
+          "source" -> true
+        )
 
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubGetWithResponseBody(desIfUrl, OK, invalidJson.toString())
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionCharges(nino, taxYear)(hc)).toOption.get
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
 
-        result mustBe Some(expectedResult)
+        result mustBe Left(expectedResult)
       }
 
-    }
+      "return a NO_CONTENT" in {
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
-    "return a Parsing error INTERNAL_SERVER_ERROR response" in {
-      val invalidJson = Json.obj(
-        "source" -> true
-      )
+        stubGetWithResponseBody(desIfUrl, NO_CONTENT, "{}")
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
 
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithResponseBody(desIfUrl,OK, invalidJson.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return a NO_CONTENT" in {
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithResponseBody(desIfUrl,NO_CONTENT, "{}")
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return a general Bad Request" in {
-      val responseBody = Json.obj(
-        "code" -> "INVALID_TAX_YEAR",
-        "reason" -> "Submission has not passed validation. Invalid parameter taxYear."
-      )
-      val expectedResult = DesErrorModel(BAD_REQUEST,
-        DesErrorBodyModel("INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear."))
-
-      stubGetWithResponseBody(desIfUrl,BAD_REQUEST, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return a Not found if there are no pension charges" in {
-      stubGetWithResponseBody(desIfUrl,NOT_FOUND, "")
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Right(None)
-    }
-
-    "return an Internal server error" in {
-      val responseBody = Json.obj(
-        "code" -> "SERVER_ERROR",
-        "reason" -> "DES is currently experiencing problems that require live service intervention."
-      )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR",
-        "DES is currently experiencing problems that require live service intervention."))
-
-      stubGetWithResponseBody(desIfUrl,INTERNAL_SERVER_ERROR, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return a Service Unavailable" in {
-      val responseBody = Json.obj(
-        "code" -> "SERVICE_UNAVAILABLE",
-        "reason" -> "Dependent systems are currently not responding."
-      )
-      val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding."))
-
-      stubGetWithResponseBody(desIfUrl, SERVICE_UNAVAILABLE, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return an Internal Server Error when DES throws an unexpected result" in {
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithoutResponseBody(desIfUrl,NO_CONTENT)
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
-      val responseBody = Json.obj(
-        "code" -> "SERVICE_UNAVAILABLE",
-        "reason" -> "Dependent systems are currently not responding."
-      )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,
-        DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding."))
-
-      stubGetWithResponseBody(desIfUrl,CONFLICT, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
-    "return an Internal Server Error when DES throws an unexpected result that isn't parsable" in {
-      val responseBody = Json.obj(
-        "code" -> "SERVICE_UNAVAILABLE"
-      )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithResponseBody(desIfUrl,CONFLICT, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getPensionCharges(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-  }
-
-  s".deletePensionCharges - $taxYear" should {
-
-    "include internal headers" when {
-      val headersSentToDes = Seq(
-        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
-        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
-      )
-
-      val internalHost = "localhost"
-      val externalHost = "127.0.0.1"
-
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(internalHost))
-
-        stubDeleteWithoutResponseBody(desIfUrl,NO_CONTENT, headersSentToDes)
-
-        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
-
-        result mustBe Right(())
+        result mustBe Left(expectedResult)
       }
 
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(externalHost))
+      "return a general Bad Request" in {
+        val responseBody = Json.obj(
+          "code"   -> "INVALID_TAX_YEAR",
+          "reason" -> "Submission has not passed validation. Invalid parameter taxYear."
+        )
+        val expectedResult =
+          DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_TAX_YEAR", "Submission has not passed validation. Invalid parameter taxYear."))
 
-        stubDeleteWithoutResponseBody(desIfUrl,NO_CONTENT, headersSentToDes)
+        stubGetWithResponseBody(desIfUrl, BAD_REQUEST, responseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
 
-        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+        result mustBe Left(expectedResult)
+      }
 
-        result mustBe Right(())
+      "return a Not found if there are no pension charges" in {
+        stubGetWithResponseBody(desIfUrl, NOT_FOUND, "")
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Right(None)
+      }
+
+      "return an Internal server error" in {
+        val responseBody = Json.obj(
+          "code"   -> "SERVER_ERROR",
+          "reason" -> "DES is currently experiencing problems that require live service intervention."
+        )
+        val expectedResult = DesErrorModel(
+          INTERNAL_SERVER_ERROR,
+          DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention."))
+
+        stubGetWithResponseBody(desIfUrl, INTERNAL_SERVER_ERROR, responseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "return a Service Unavailable" in {
+        val responseBody = Json.obj(
+          "code"   -> "SERVICE_UNAVAILABLE",
+          "reason" -> "Dependent systems are currently not responding."
+        )
+        val expectedResult =
+          DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding."))
+
+        stubGetWithResponseBody(desIfUrl, SERVICE_UNAVAILABLE, responseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "return an Internal Server Error when DES throws an unexpected result" in {
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubGetWithoutResponseBody(desIfUrl, NO_CONTENT)
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
+        val responseBody = Json.obj(
+          "code"   -> "SERVICE_UNAVAILABLE",
+          "reason" -> "Dependent systems are currently not responding."
+        )
+        val expectedResult =
+          DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding."))
+
+        stubGetWithResponseBody(desIfUrl, CONFLICT, responseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "return an Internal Server Error when DES throws an unexpected result that isn't parsable" in {
+        val responseBody = Json.obj(
+          "code" -> "SERVICE_UNAVAILABLE"
+        )
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubGetWithResponseBody(desIfUrl, CONFLICT, responseBody.toString())
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result                     = await(connector.getPensionCharges(nino, taxYear)(hc))
+
+        result mustBe Left(expectedResult)
       }
     }
 
+    s".deletePensionCharges - $taxYear" should {
 
-    "handle error" when {
+      "include internal headers" when {
+        val headersSentToDes = Seq(
+          new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+          new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+        )
 
-      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+        val internalHost = "localhost"
+        val externalHost = "127.0.0.1"
 
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+        "the host for DES is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(internalHost))
 
-        s"Des returns $status" in {
-          val desError = DesErrorModel(status, desErrorBodyModel)
+          stubDeleteWithoutResponseBody(desIfUrl, NO_CONTENT, headersSentToDes)
+
+          val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+          result mustBe Right(())
+        }
+
+        "the host for DES is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(externalHost))
+
+          stubDeleteWithoutResponseBody(desIfUrl, NO_CONTENT, headersSentToDes)
+
+          val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+          result mustBe Right(())
+        }
+      }
+
+      "handle error" when {
+
+        val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+
+        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+          s"Des returns $status" in {
+            val desError                   = DesErrorModel(status, desErrorBodyModel)
+            implicit val hc: HeaderCarrier = HeaderCarrier()
+
+            stubDeleteWithResponseBody(desIfUrl, status, desError.toJson.toString())
+
+            val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
+
+            result mustBe Left(desError)
+          }
+        }
+
+        "DES returns an unexpected error code - 502 BadGateway" in {
+          val desError                   = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
           implicit val hc: HeaderCarrier = HeaderCarrier()
 
-          stubDeleteWithResponseBody(desIfUrl,status, desError.toJson.toString())
+          stubDeleteWithResponseBody(desIfUrl, BAD_GATEWAY, desError.toJson.toString())
 
           val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
 
           result mustBe Left(desError)
         }
-      }
 
-      "DES returns an unexpected error code - 502 BadGateway" in {
-        val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
-        implicit val hc: HeaderCarrier = HeaderCarrier()
-
-        stubDeleteWithResponseBody(desIfUrl,BAD_GATEWAY, desError.toJson.toString())
-
-        val result = await(connector.deletePensionCharges(nino, taxYear)(hc))
-
-        result mustBe Left(desError)
       }
 
     }
 
-  }
-
-  s".createUpdatePensionCharges - $taxYear" should {
-    val createUpdatePensionChargesRequestModel =
-      CreateUpdatePensionChargesRequestModel(
-        pensionSavingsTaxCharges = None,
-        pensionContributions = Some(PensionContributions(Seq("00123456RA"), 10.0, 20.0, isAnnualAllowanceReduced = Some(true),
-          taperedAnnualAllowance = Some(true),
-          moneyPurchasedAllowance = Some(false))),
-        pensionSchemeOverseasTransfers = None, pensionSchemeUnauthorisedPayments = None, overseasPensionContributions = None
-      )
-
-    val createUpdatePensionChargesRequestBody = Json.toJson(createUpdatePensionChargesRequestModel)
-
-    "include internal headers" when {
-      val headersSentToDes = Seq(
-        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
-        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
-      )
-
-      val internalHost = "localhost"
-      val externalHost = "127.0.0.1"
-
-      "the host for DES is 'Internal'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(internalHost))
-
-        stubPutWithoutResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString(), NO_CONTENT, headersSentToDes)
-
-        val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
-
-        result mustBe Right(())
-      }
-
-      "the host for DES is 'External'" in {
-        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new PensionChargesConnector(httpClient, appConfig(externalHost))
-
-        stubPutWithoutResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString(), NO_CONTENT, headersSentToDes)
-
-        val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
-
-        result mustBe Right(())
-      }
-    }
-
-    "return a Right when there is a valid request body" in {
-      stubPutWithoutResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString(), NO_CONTENT)
-
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
-
-      result mustBe Right(())
-    }
-
-    "return a Left error" when {
-
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { errorStatus =>
-
-        val desResponseBody = Json.obj(
-          "code" -> "SOME_DES_ERROR_CODE",
-          "reason" -> "SOME_DES_ERROR_REASON"
-        ).toString
-
-        s"Des returns $errorStatus" in {
-          val expectedResult = DesErrorModel(errorStatus, DesErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
-
-          implicit val hc: HeaderCarrier = HeaderCarrier()
-          stubPutWithResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString(), desResponseBody, errorStatus)
-
-          val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
-
-          result mustBe Left(expectedResult)
-        }
-
-        s"DES returns $errorStatus response that does not have a parsable error body" in {
-          val expectedResult = DesErrorModel(errorStatus, DesErrorBodyModel.parsingError)
-
-          stubPutWithResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString, "UNEXPECTED RESPONSE BODY", errorStatus)
-
-          implicit val hc: HeaderCarrier = HeaderCarrier()
-          val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
-
-          result mustBe Left(expectedResult)
-        }
-      }
-
-      "DES returns an unexpected http response that is parsable" in {
-
-        val responseBody = Json.obj(
-          "code" -> "NOT_FOUND",
-          "reason" -> "not found"
+    s".createUpdatePensionCharges - $taxYear" should {
+      val createUpdatePensionChargesRequestModel =
+        CreateUpdatePensionChargesRequestModel(
+          pensionSavingsTaxCharges = None,
+          pensionContributions = Some(
+            PensionContributions(
+              Seq("00123456RA"),
+              10.0,
+              20.0,
+              isAnnualAllowanceReduced = Some(true),
+              taperedAnnualAllowance = Some(true),
+              moneyPurchasedAllowance = Some(false))),
+          pensionSchemeOverseasTransfers = None,
+          pensionSchemeUnauthorisedPayments = None,
+          overseasPensionContributions = None
         )
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("NOT_FOUND", "not found"))
 
-        stubPutWithResponseBody(desIfUrl,createUpdatePensionChargesRequestBody.toString(), responseBody.toString(), NOT_FOUND)
+      val createUpdatePensionChargesRequestBody = Json.toJson(createUpdatePensionChargesRequestModel)
+
+      "include internal headers" when {
+        val headersSentToDes = Seq(
+          new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+          new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+        )
+
+        val internalHost = "localhost"
+        val externalHost = "127.0.0.1"
+
+        "the host for DES is 'Internal'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(internalHost))
+
+          stubPutWithoutResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString(), NO_CONTENT, headersSentToDes)
+
+          val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+
+          result mustBe Right(())
+        }
+
+        "the host for DES is 'External'" in {
+          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+          val connector                  = new PensionChargesConnector(httpClient, appConfig(externalHost))
+
+          stubPutWithoutResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString(), NO_CONTENT, headersSentToDes)
+
+          val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+
+          result mustBe Right(())
+        }
+      }
+
+      "return a Right when there is a valid request body" in {
+        stubPutWithoutResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString(), NO_CONTENT)
+
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+        val result                     = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
 
-        result mustBe Left(expectedResult)
+        result mustBe Right(())
+      }
+
+      "return a Left error" when {
+
+        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { errorStatus =>
+          val desResponseBody = Json
+            .obj(
+              "code"   -> "SOME_DES_ERROR_CODE",
+              "reason" -> "SOME_DES_ERROR_REASON"
+            )
+            .toString
+
+          s"Des returns $errorStatus" in {
+            val expectedResult = DesErrorModel(errorStatus, DesErrorBodyModel("SOME_DES_ERROR_CODE", "SOME_DES_ERROR_REASON"))
+
+            implicit val hc: HeaderCarrier = HeaderCarrier()
+            stubPutWithResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString(), desResponseBody, errorStatus)
+
+            val result = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+
+            result mustBe Left(expectedResult)
+          }
+
+          s"DES returns $errorStatus response that does not have a parsable error body" in {
+            val expectedResult = DesErrorModel(errorStatus, DesErrorBodyModel.parsingError)
+
+            stubPutWithResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString, "UNEXPECTED RESPONSE BODY", errorStatus)
+
+            implicit val hc: HeaderCarrier = HeaderCarrier()
+            val result                     = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+
+            result mustBe Left(expectedResult)
+          }
+        }
+
+        "DES returns an unexpected http response that is parsable" in {
+
+          val responseBody = Json.obj(
+            "code"   -> "NOT_FOUND",
+            "reason" -> "not found"
+          )
+          val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("NOT_FOUND", "not found"))
+
+          stubPutWithResponseBody(desIfUrl, createUpdatePensionChargesRequestBody.toString(), responseBody.toString(), NOT_FOUND)
+          implicit val hc: HeaderCarrier = HeaderCarrier()
+          val result                     = await(connector.createUpdatePensionCharges(nino, taxYear, createUpdatePensionChargesRequestModel)(hc))
+
+          result mustBe Left(expectedResult)
+        }
       }
     }
   }
- }
 
 }
 

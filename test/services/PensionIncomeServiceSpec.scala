@@ -29,36 +29,34 @@ import scala.concurrent.Future
 
 class PensionIncomeServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
-  
+
   val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
-  val submissionConnector: SubmissionConnector = mock[SubmissionConnector]
-  val service = new PensionIncomeService(pensionIncomeConnector, submissionConnector)
+  val submissionConnector: SubmissionConnector       = mock[SubmissionConnector]
+  val service                                        = new PensionIncomeService(pensionIncomeConnector, submissionConnector)
 
   val taxYear = 2022
-  val nino = "AA123456A"
+  val nino    = "AA123456A"
   val mtditid = "1234567890"
-  
-  val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
+  val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
   "savePensionIncomeSessionData" should {
 
     "return Right(unit) " should {
       "successfully update when only foreign pension is provided" in {
 
-
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
           fullPensionIncomeModel.foreignPension,
           None
         )
 
-
-
-        (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+        (pensionIncomeConnector
+          .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -69,17 +67,18 @@ class PensionIncomeServiceSpec extends TestUtils {
       }
       "successfully update when foreign pension and overseas pension contribution are not provided" in {
 
-
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
           None,
           None
         )
 
-        (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+        (pensionIncomeConnector
+          .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -95,11 +94,13 @@ class PensionIncomeServiceSpec extends TestUtils {
           fullPensionIncomeModel.overseasPensionContribution
         )
 
-        (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+        (pensionIncomeConnector
+          .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -110,17 +111,18 @@ class PensionIncomeServiceSpec extends TestUtils {
       }
       "successfully update when only pension contribution is provided" in {
 
-
         val pensionIncomeModel = CreateUpdatePensionIncomeModel(
           None,
           fullPensionIncomeModel.overseasPensionContribution
         )
 
-        (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+        (pensionIncomeConnector
+          .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -131,7 +133,6 @@ class PensionIncomeServiceSpec extends TestUtils {
       }
     }
 
-
     "return error when Create Pension Input fails" in {
       val pensionIncomeModel = CreateUpdatePensionIncomeModel(
         fullPensionIncomeModel.foreignPension,
@@ -140,7 +141,8 @@ class PensionIncomeServiceSpec extends TestUtils {
 
       val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
         .expects(nino, taxYear, pensionIncomeModel, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -158,12 +160,13 @@ class PensionIncomeServiceSpec extends TestUtils {
         fullPensionIncomeModel.overseasPensionContribution
       )
 
-      (pensionIncomeConnector.createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .createOrAmendPensionIncome(_: String, _: Int, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
         .expects(nino, taxYear, pensionIncomeModel, *)
         .returning(Future.successful(Right(())))
-      
 
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -179,11 +182,13 @@ class PensionIncomeServiceSpec extends TestUtils {
     "return Right(unit) " should {
       "successfully delete pension income data" in {
 
-        (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+        (pensionIncomeConnector
+          .deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
           .returning(Future.successful(Right(())))
 
-        (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+        (submissionConnector
+          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
           .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
@@ -194,11 +199,11 @@ class PensionIncomeServiceSpec extends TestUtils {
       }
     }
 
-
     "return error when Delete Pension Input fails" in {
       val expectedErrorResult = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
@@ -211,12 +216,13 @@ class PensionIncomeServiceSpec extends TestUtils {
     "return error when Refresh submission tax fails fails" in {
       val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
-      (pensionIncomeConnector.deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
+      (pensionIncomeConnector
+        .deletePensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(())))
 
-
-      (submissionConnector.refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
+      (submissionConnector
+        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
         .expects(nino, mtditid, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 

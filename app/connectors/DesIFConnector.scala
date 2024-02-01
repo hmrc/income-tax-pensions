@@ -31,7 +31,7 @@ trait DesIFConnector extends Logging {
 
   val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
-  private[connectors] def desHeaderCarrier(url : String)(implicit hc: HeaderCarrier): HeaderCarrier = {
+  private[connectors] def desHeaderCarrier(url: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
     val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationToken}")))
     desIfheaderCarrier(url, hcWithAuth, "Environment" -> appConfig.environment)
   }
@@ -39,13 +39,13 @@ trait DesIFConnector extends Logging {
     val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.integrationFrameworkAuthorisationToken(apiNumber)}")))
     desIfheaderCarrier(url, hcWithAuth, "Environment" -> appConfig.integrationFrameworkEnvironment)
   }
-  
-  private def desIfheaderCarrier(url: String, hcWithAuth:  HeaderCarrier, headers: (String, String)) = {
+
+  private def desIfheaderCarrier(url: String, hcWithAuth: HeaderCarrier, headers: (String, String)) = {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
     if (isInternalHost) {
       hcWithAuth.withExtraHeaders(headers)
     } else {
-      hcWithAuth.withExtraHeaders((headers) +: hcWithAuth.toExplicitHeaders: _*)
+      hcWithAuth.withExtraHeaders(headers +: hcWithAuth.toExplicitHeaders: _*)
     }
   }
 }

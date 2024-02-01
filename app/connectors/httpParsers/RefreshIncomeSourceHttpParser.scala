@@ -20,14 +20,19 @@ import models.ServiceErrorModel
 import models.logging.ConnectorResponseInfo
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_API, INTERNAL_SERVER_ERROR_FROM_API, SERVICE_UNAVAILABLE_FROM_API, UNEXPECTED_RESPONSE_FROM_API}
+import utils.PagerDutyHelper.PagerDutyKeys.{
+  FOURXX_RESPONSE_FROM_API,
+  INTERNAL_SERVER_ERROR_FROM_API,
+  SERVICE_UNAVAILABLE_FROM_API,
+  UNEXPECTED_RESPONSE_FROM_API
+}
 import utils.PagerDutyHelper.pagerDutyLog
 
 object RefreshIncomeSourceHttpParser extends APIParser {
   type RefreshIncomeSourceResponse = Either[ServiceErrorModel, Unit]
 
   override val parserName: String = "RefreshIncomeHttpParser"
-  override val service: String = "income-tax-submission"
+  override val service: String    = "income-tax-submission"
 
   implicit object RefreshIncomeSourcesHttpReads extends HttpReads[RefreshIncomeSourceResponse] {
     override def read(method: String, url: String, response: HttpResponse): RefreshIncomeSourceResponse = {

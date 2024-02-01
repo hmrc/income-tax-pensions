@@ -25,24 +25,31 @@ class GetPensionReliefsModelSpec extends TestUtils {
 
   val jsonModel: JsObject = Json.obj(
     "submittedOn" -> "2020-01-04T05:01:01Z",
-    "deletedOn" -> "2020-01-04T05:01:01Z",
+    "deletedOn"   -> "2020-01-04T05:01:01Z",
     "pensionReliefs" -> Json.obj(
-      "regularPensionContributions" -> 100.01,
-      "oneOffPensionContributionsPaid" -> 100.01,
-      "retirementAnnuityPayments" -> 100.01,
+      "regularPensionContributions"         -> 100.01,
+      "oneOffPensionContributionsPaid"      -> 100.01,
+      "retirementAnnuityPayments"           -> 100.01,
       "paymentToEmployersSchemeNoTaxRelief" -> 100.01,
-      "overseasPensionSchemeContributions" -> 100.01
+      "overseasPensionSchemeContributions"  -> 100.01
     )
   )
 
   "GetPensionReliefsModel with all values" should {
 
     "parse to Json" in {
-      Json.toJson(GetPensionReliefsModel(
-        "2020-01-04T05:01:01Z", Some("2020-01-04T05:01:01Z"), PensionReliefs(
-          Some(100.01), Some(100.01), Some(100.01), Some(100.01), Some(100.01)
-        )
-      )) mustBe jsonModel
+      Json.toJson(
+        GetPensionReliefsModel(
+          "2020-01-04T05:01:01Z",
+          Some("2020-01-04T05:01:01Z"),
+          PensionReliefs(
+            Some(100.01),
+            Some(100.01),
+            Some(100.01),
+            Some(100.01),
+            Some(100.01)
+          )
+        )) mustBe jsonModel
     }
 
     "parse from Json" in {

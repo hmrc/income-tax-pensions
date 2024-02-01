@@ -34,13 +34,16 @@ object GetPensionReliefsHttpParser extends DESParser {
       ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
 
       response.status match {
-        case OK => response.json.validate[GetPensionReliefsModel].fold[GetPensionReliefsResponse](
-          jsonErrors => {
-            pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[GetPensionReliefsHttParser][read] Invalid Json from DES.")
-            Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-          },
-          parsedModel => Right(Some(parsedModel))
-        )
+        case OK =>
+          response.json
+            .validate[GetPensionReliefsModel]
+            .fold[GetPensionReliefsResponse](
+              jsonErrors => {
+                pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[GetPensionReliefsHttParser][read] Invalid Json from DES.")
+                Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+              },
+              parsedModel => Right(Some(parsedModel))
+            )
         case NOT_FOUND => Right(None)
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))

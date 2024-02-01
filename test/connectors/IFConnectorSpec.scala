@@ -35,13 +35,13 @@ class IFConnectorSpec extends TestUtils {
       val internalHost = "http://localhost"
 
       "add the correct authorization" in {
-        val hc = HeaderCarrier()
+        val hc     = HeaderCarrier()
         val result = connector.headerCarrierTest(internalHost)(hc)
         result.authorization mustBe Some(Authorization(s"Bearer ${mockAppConfig.integrationFrameworkAuthorisationToken("1611")}"))
       }
 
       "add the correct environment" in {
-        val hc = HeaderCarrier()
+        val hc     = HeaderCarrier()
         val result = connector.headerCarrierTest(internalHost)(hc)
         result.extraHeaders mustBe List(
           "Environment" -> mockAppConfig.integrationFrameworkEnvironment
@@ -53,7 +53,7 @@ class IFConnectorSpec extends TestUtils {
       val externalHost = "http://127.0.0.1"
 
       "include all HeaderCarrier headers in the extraHeaders when the host is external" in {
-        val hc = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
+        val hc     = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
         val result = connector.headerCarrierTest(externalHost)(hc)
 
         result.extraHeaders.size mustBe 4

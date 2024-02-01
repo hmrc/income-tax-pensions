@@ -26,19 +26,13 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SubmissionConnector @Inject()(val http: HttpClient,
-                                    val config: AppConfig)(implicit ec: ExecutionContext) extends Logging {
+class SubmissionConnector @Inject() (val http: HttpClient, val config: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
-
-  def refreshPensionsResponse(nino: String, mtditid: String, taxYear: Int)
-                             (implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
+  def refreshPensionsResponse(nino: String, mtditid: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] =
     refreshPensionsResponse(taxYear, nino)(hc.withExtraHeaders(("mtditid", mtditid)))
-  }
 
-
-  private def refreshPensionsResponse(taxYear: Int, nino: String)
-                                          (implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
-    val url = config.submissionBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"
+  private def refreshPensionsResponse(taxYear: Int, nino: String)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
+    val url   = config.submissionBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"
     val model = RefreshIncomeSourceRequest("pensions")
     ConnectorRequestInfo("PUT", url, "income-tax-submission").logRequestWithBody(logger, model)
     http.PUT[RefreshIncomeSourceRequest, RefreshIncomeSourceResponse](url, model)

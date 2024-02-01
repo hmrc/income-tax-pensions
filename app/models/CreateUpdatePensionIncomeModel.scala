@@ -19,13 +19,8 @@ package models
 import play.api.libs.json.{Json, OFormat}
 
 case class CreateUpdatePensionIncomeModel(foreignPension: Option[Seq[ForeignPension]],
-                                          overseasPensionContribution: Option[Seq[OverseasPensionContribution]]
-                                         )
+                                          overseasPensionContribution: Option[Seq[OverseasPensionContribution]])
 
 object CreateUpdatePensionIncomeModel {
   implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
 }
-
-
-
-

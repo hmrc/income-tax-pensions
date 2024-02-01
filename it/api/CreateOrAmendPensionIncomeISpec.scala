@@ -26,56 +26,58 @@ import utils.TaxYearHelper.desIfTaxYearConverter
 
 class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
 
-
   val minimumPensionIncomeModel: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(
-    foreignPension = Some(Seq(
-      ForeignPension(
-        countryCode = "FRA",
-        taxableAmount = 1999.99,
-        amountBeforeTax = None,
-        taxTakenOff = None,
-        specialWithholdingTax = None,
-        foreignTaxCreditRelief = None
-      )
-    )),
-    overseasPensionContribution = Some(Seq(
-      OverseasPensionContribution(
-        customerReference = None,
-        exemptEmployersPensionContribs = 1999.99,
-        migrantMemReliefQopsRefNo = None,
-        dblTaxationRelief = None,
-        dblTaxationCountry = None,
-        dblTaxationArticle = None,
-        dblTaxationTreaty = None,
-        sf74Reference = None
-      )
-    ))
-  )
-  val fullPensionIncomeModel: CreateUpdatePensionIncomeModel =
-    CreateUpdatePensionIncomeModel(
-      foreignPension = Some(Seq(
+    foreignPension = Some(
+      Seq(
         ForeignPension(
           countryCode = "FRA",
           taxableAmount = 1999.99,
-          amountBeforeTax = Some(1999.99),
-          taxTakenOff = Some(1999.99),
-          specialWithholdingTax = Some(1999.99),
-          foreignTaxCreditRelief = Some(false)
+          amountBeforeTax = None,
+          taxTakenOff = None,
+          specialWithholdingTax = None,
+          foreignTaxCreditRelief = None
         )
       )),
-      overseasPensionContribution = Some(Seq(
+    overseasPensionContribution = Some(
+      Seq(
         OverseasPensionContribution(
-          customerReference = Some("PENSIONINCOME245"),
+          customerReference = None,
           exemptEmployersPensionContribs = 1999.99,
-          migrantMemReliefQopsRefNo = Some("QOPS000000"),
-          dblTaxationRelief = Some(1999.99),
-          dblTaxationCountry = Some("FRA"),
-          dblTaxationArticle = Some("AB3211-1"),
-          dblTaxationTreaty = Some("Munich"),
-          sf74Reference = Some("SF74-123456")
+          migrantMemReliefQopsRefNo = None,
+          dblTaxationRelief = None,
+          dblTaxationCountry = None,
+          dblTaxationArticle = None,
+          dblTaxationTreaty = None,
+          sf74Reference = None
         )
-      )
-      )
+      ))
+  )
+  val fullPensionIncomeModel: CreateUpdatePensionIncomeModel =
+    CreateUpdatePensionIncomeModel(
+      foreignPension = Some(
+        Seq(
+          ForeignPension(
+            countryCode = "FRA",
+            taxableAmount = 1999.99,
+            amountBeforeTax = Some(1999.99),
+            taxTakenOff = Some(1999.99),
+            specialWithholdingTax = Some(1999.99),
+            foreignTaxCreditRelief = Some(false)
+          )
+        )),
+      overseasPensionContribution = Some(
+        Seq(
+          OverseasPensionContribution(
+            customerReference = Some("PENSIONINCOME245"),
+            exemptEmployersPensionContribs = 1999.99,
+            migrantMemReliefQopsRefNo = Some("QOPS000000"),
+            dblTaxationRelief = Some(1999.99),
+            dblTaxationCountry = Some("FRA"),
+            dblTaxationArticle = Some("AB3211-1"),
+            dblTaxationTreaty = Some("Munich"),
+            sf74Reference = Some("SF74-123456")
+          )
+        ))
     )
 
   val fullPensionIncomeJson: JsValue = Json.parse(
@@ -107,17 +109,16 @@ class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
       |""".stripMargin
   )
 
-
   trait Setup {
-    val timeSpan: Long = 5
+    val timeSpan: Long                          = 5
     implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(timeSpan, Seconds))
-    val nino: String = "AA123123A"
-    val taxYear: Int = 2021
-    val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val mtdBearerToken: (String, String) = ("Authorization", "Bearer:XYZ")
-    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
-    val iFUrl = s"/income-tax/income/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
+    val nino: String                            = "AA123123A"
+    val taxYear: Int                            = 2021
+    val mtditidHeader: (String, String)         = ("mtditid", "555555555")
+    val mtdBearerToken: (String, String)        = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)]   = Seq(mtditidHeader, mtdBearerToken)
+    val iFUrl                                   = s"/income-tax/income/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
+    val serviceUrl: String                      = s"/income-tax-pensions/pension-income/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
 
@@ -130,11 +131,11 @@ class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe NO_CONTENT
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe NO_CONTENT
 
         }
       }
@@ -171,29 +172,30 @@ class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
 
         Json.toJson(invalidJson)
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(Json.toJson(invalidJson))) {
-          result =>
-            result.status mustBe BAD_REQUEST
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(Json.toJson(invalidJson))) { result =>
+          result.status mustBe BAD_REQUEST
         }
       }
 
       "return 400 if a downstream bad request error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
+        val errorResponseBody: String = Json
+          .toJson(DesErrorBodyModel("INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId."))
+          .toString()
 
         stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, BAD_REQUEST)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe BAD_REQUEST
-            result.body mustBe errorResponseBody
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe BAD_REQUEST
+          result.body mustBe errorResponseBody
         }
       }
 
@@ -206,72 +208,73 @@ class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe INTERNAL_SERVER_ERROR
-            result.body mustBe errorResponseBody
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe INTERNAL_SERVER_ERROR
+          result.body mustBe errorResponseBody
         }
       }
 
       "return 503 if a downstream service unavailable error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
         stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, SERVICE_UNAVAILABLE)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe SERVICE_UNAVAILABLE
-            result.body mustBe errorResponseBody
-            Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe SERVICE_UNAVAILABLE
+          result.body mustBe errorResponseBody
+          Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
         }
       }
 
       "return 500 if a downstream internal server error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
         stubPutWithResponseBody(iFUrl, Json.toJson(fullPensionIncomeModel).toString(), errorResponseBody, INTERNAL_SERVER_ERROR)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe INTERNAL_SERVER_ERROR
-            result.body mustBe errorResponseBody
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "SERVER_ERROR", "reason" -> "DES is currently experiencing problems that require live service intervention.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe INTERNAL_SERVER_ERROR
+          result.body mustBe errorResponseBody
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "SERVER_ERROR",
+            "reason" -> "DES is currently experiencing problems that require live service intervention.")
         }
       }
 
       "return 401 if the user has no HMRC-MTD-IT enrolment" in new Setup {
         unauthorisedOtherEnrolment()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders: _*)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
 
       "return 401 if the request has no MTDITID header present" in new Setup {
-        whenReady(buildClient(serviceUrl)
-          .put(fullPensionIncomeJson)) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .put(fullPensionIncomeJson)) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
     }

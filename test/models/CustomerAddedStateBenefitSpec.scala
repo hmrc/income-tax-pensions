@@ -28,8 +28,7 @@ class CustomerAddedStateBenefitSpec extends TestUtils {
   "writes" when {
     "passed CustomerAddedStateBenefit" should {
       "produce a valid json for fully populated object" in {
-        val json = Json.parse(
-          """
+        val json = Json.parse("""
             |{
             |  "submittedOn": "2020-03-13T19:23:00Z",
             |  "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c941",
@@ -49,8 +48,7 @@ class CustomerAddedStateBenefitSpec extends TestUtils {
       }
 
       "produce a valid json for a minimal object" in {
-        val json = Json.parse(
-          """
+        val json = Json.parse("""
             |{
             |  "benefitId": "fc89ce78-8d5a-4a6c-bd9c-f7db844f6bc4",
             |  "startDate": "2019-04-23"

@@ -26,21 +26,20 @@ import utils.TaxYearHelper.desIfTaxYearConverter
 
 class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
 
-  val minimumPensionReliefs: PensionReliefs = PensionReliefs(
-    regularPensionContributions = Some(10.22), None, None, None, None)
+  val minimumPensionReliefs: PensionReliefs = PensionReliefs(regularPensionContributions = Some(10.22), None, None, None, None)
 
   val fullPensionReliefs: PensionReliefs = PensionReliefs(
     regularPensionContributions = Some(10.22),
     oneOffPensionContributionsPaid = Some(11.33),
     retirementAnnuityPayments = Some(12.44),
     paymentToEmployersSchemeNoTaxRelief = Some(13.55),
-    overseasPensionSchemeContributions = Some(14.66))
+    overseasPensionSchemeContributions = Some(14.66)
+  )
 
   val fullCreateOrUpdatePensionReliefsData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(fullPensionReliefs)
-  val minEmploymentFinancialData: CreateOrUpdatePensionReliefsModel = CreateOrUpdatePensionReliefsModel(minimumPensionReliefs)
+  val minEmploymentFinancialData: CreateOrUpdatePensionReliefsModel           = CreateOrUpdatePensionReliefsModel(minimumPensionReliefs)
 
-  val fullJson: JsValue = Json.parse(
-    """{
+  val fullJson: JsValue = Json.parse("""{
       |	"pensionReliefs": {
       |		"regularPensionContributions": 10.22,
       |		"oneOffPensionContributionsPaid": 11.33,
@@ -51,15 +50,15 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
       |}""".stripMargin)
 
   trait Setup {
-    val timeSpan: Long = 5
+    val timeSpan: Long                          = 5
     implicit val patienceConfig: PatienceConfig = PatienceConfig(Span(timeSpan, Seconds))
-    val nino: String = "AA123123A"
-    val taxYear: Int = 2021
-    val mtditidHeader: (String, String) = ("mtditid", "555555555")
-    val mtdBearerToken : (String, String) = ("Authorization", "Bearer:XYZ")
-    val requestHeaders: Seq[(String, String)] = Seq(mtditidHeader, mtdBearerToken)
-    val desUrl = s"/income-tax/reliefs/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
-    val serviceUrl: String = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
+    val nino: String                            = "AA123123A"
+    val taxYear: Int                            = 2021
+    val mtditidHeader: (String, String)         = ("mtditid", "555555555")
+    val mtdBearerToken: (String, String)        = ("Authorization", "Bearer:XYZ")
+    val requestHeaders: Seq[(String, String)]   = Seq(mtditidHeader, mtdBearerToken)
+    val desUrl                                  = s"/income-tax/reliefs/pensions/$nino/${desIfTaxYearConverter(taxYear)}"
+    val serviceUrl: String                      = s"/income-tax-pensions/pension-reliefs/nino/$nino/taxYear/$taxYear"
     auditStubs()
   }
 
@@ -72,11 +71,11 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe NO_CONTENT
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe NO_CONTENT
 
         }
       }
@@ -85,29 +84,30 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(Json.obj())) {
-          result =>
-            result.status mustBe BAD_REQUEST
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(Json.obj())) { result =>
+          result.status mustBe BAD_REQUEST
         }
       }
 
       "return Bad Request(400) if a downstream bad request error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId.")).toString()
+        val errorResponseBody: String = Json
+          .toJson(DesErrorBodyModel("INVALID_TAXABLE_ENTITY_ID", "Submission has not passed validation. Invalid parameter taxableEntityId."))
+          .toString()
 
         stubPutWithResponseBody(desUrl, Json.toJson(fullCreateOrUpdatePensionReliefsData).toString(), errorResponseBody, BAD_REQUEST)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe BAD_REQUEST
-            result.body mustBe errorResponseBody
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe BAD_REQUEST
+          result.body mustBe errorResponseBody
         }
       }
 
@@ -120,72 +120,73 @@ class CreateOrAmendPensionReliefsISpec extends WiremockSpec with ScalaFutures {
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe INTERNAL_SERVER_ERROR
-            result.body mustBe errorResponseBody
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe INTERNAL_SERVER_ERROR
+          result.body mustBe errorResponseBody
         }
       }
 
       "return Service Unavailable(503) if a downstream service unavailable error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")).toString()
 
         stubPutWithResponseBody(desUrl, Json.toJson(fullCreateOrUpdatePensionReliefsData).toString(), errorResponseBody, SERVICE_UNAVAILABLE)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe SERVICE_UNAVAILABLE
-            result.body mustBe errorResponseBody
-            Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe SERVICE_UNAVAILABLE
+          result.body mustBe errorResponseBody
+          Json.parse(result.body) mustBe Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
         }
       }
 
       "return Internal Server Error(500) if a downstream internal server error occurs" in new Setup {
 
-        val errorResponseBody: String = Json.toJson(DesErrorBodyModel(
-          "SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
+        val errorResponseBody: String =
+          Json.toJson(DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")).toString()
 
         stubPutWithResponseBody(desUrl, Json.toJson(fullCreateOrUpdatePensionReliefsData).toString(), errorResponseBody, INTERNAL_SERVER_ERROR)
 
         authorised()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe INTERNAL_SERVER_ERROR
-            result.body mustBe errorResponseBody
-            Json.parse(result.body) mustBe Json.obj(
-              "code" -> "SERVER_ERROR", "reason" -> "DES is currently experiencing problems that require live service intervention.")
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe INTERNAL_SERVER_ERROR
+          result.body mustBe errorResponseBody
+          Json.parse(result.body) mustBe Json.obj(
+            "code"   -> "SERVER_ERROR",
+            "reason" -> "DES is currently experiencing problems that require live service intervention.")
         }
       }
 
       "return Unauthorised(401) if the user has no HMRC-MTD-IT enrolment" in new Setup {
         unauthorisedOtherEnrolment()
 
-        whenReady(buildClient(serviceUrl)
-          .withHttpHeaders(requestHeaders:_*)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .withHttpHeaders(requestHeaders: _*)
+            .put(fullJson)) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
 
       "return Unauthorised(401) if the request has no MTDITID header present" in new Setup {
-        whenReady(buildClient(serviceUrl)
-          .put(fullJson)) {
-          result =>
-            result.status mustBe UNAUTHORIZED
-            result.body mustBe ""
+        whenReady(
+          buildClient(serviceUrl)
+            .put(fullJson)) { result =>
+          result.status mustBe UNAUTHORIZED
+          result.body mustBe ""
         }
       }
     }
