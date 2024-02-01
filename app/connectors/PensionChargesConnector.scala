@@ -28,7 +28,6 @@ import utils.TaxYearHelper
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import cats.implicits._
 
 class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesIFConnector {
 
@@ -67,7 +66,7 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
     def desIfCall(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
       ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, model)
       http.PUT[CreateUpdatePensionChargesRequestModel, CreateUpdatePensionChargesResponse](incomeSourceUri, model)(
-        CreateUpdatePensionChargesRequestModel.format.writes,
+        charges => CreateUpdatePensionChargesRequestModel.format.writes(charges),
         CreateUpdatePensionChargesHttpReads,
         hc,
         ec)

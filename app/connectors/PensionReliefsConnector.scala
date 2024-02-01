@@ -16,7 +16,6 @@
 
 package connectors
 
-import cats.implicits._
 import config.AppConfig
 import connectors.PensionReliefsConnector.PensionReliefsBaseApi
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
@@ -62,7 +61,7 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
     def desIfCall(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
       ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, pensionReliefs)
       http.PUT[CreateOrUpdatePensionReliefsModel, CreateOrAmendPensionReliefsResponse](incomeSourceUri, pensionReliefs)(
-        CreateOrUpdatePensionReliefsModel.format.writes,
+        reliefs => CreateOrUpdatePensionReliefsModel.format.writes(reliefs),
         CreateOrAmendPensionReliefsHttpReads,
         hc,
         ec)

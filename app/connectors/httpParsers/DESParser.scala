@@ -16,7 +16,6 @@
 
 package connectors.httpParsers
 
-import akka.event.Logging
 import models.{DesErrorBodyModel, DesErrorModel, DesErrorsBodyModel}
 import play.api.Logging
 import play.api.http.Status.INTERNAL_SERVER_ERROR
