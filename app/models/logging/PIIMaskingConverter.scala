@@ -16,9 +16,6 @@
 
 package models.logging
 
-import ch.qos.logback.classic.pattern.ClassicConverter
-import ch.qos.logback.classic.spi.ILoggingEvent
-
 import scala.util.matching.Regex
 
 /** It will programatically remove PII information from logs. Keep it up-to-date depending what PII we may log.
