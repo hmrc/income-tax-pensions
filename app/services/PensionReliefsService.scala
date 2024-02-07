@@ -32,13 +32,6 @@ class PensionReliefsService @Inject() (reliefsConnector: PensionReliefsConnector
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
 
-  def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
-      hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] =
-    reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, pensionReliefs)
-
-  def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] =
-    reliefsConnector.deletePensionReliefs(nino, taxYear)
-
   def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
