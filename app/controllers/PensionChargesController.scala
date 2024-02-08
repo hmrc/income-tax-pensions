@@ -44,7 +44,7 @@ class PensionChargesController @Inject() (pensionChargesService: PensionChargesS
   }
 
   def deletePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    pensionChargesService.deletePensionCharges(nino, taxYear).map {
+    pensionChargesService.deleteUserPensionChargesData(nino, user.mtditid, taxYear).map {
       case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }
@@ -52,7 +52,7 @@ class PensionChargesController @Inject() (pensionChargesService: PensionChargesS
 
   def createUpdatePensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionChargesRequestModel]) match {
-      case Some(JsSuccess(model, _)) => responseHandler(pensionChargesService.createUpdatePensionCharges(nino, taxYear, model))
+      case Some(JsSuccess(model, _)) => saveUserDataHandler(pensionChargesService.saveUserPensionChargesData(nino, user.mtditid, taxYear, model))
       case _                         => Future.successful(BadRequest)
     }
   }

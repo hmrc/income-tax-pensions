@@ -47,7 +47,7 @@ class PensionIncomeController @Inject() (
 
   def createOrAmendPensionIncome(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateUpdatePensionIncomeModel]) match {
-      case Some(JsSuccess(model, _)) => responseHandler(service.createOrAmendPensionIncome(nino, taxYear, model))
+      case Some(JsSuccess(model, _)) => responseHandler(service.savePensionIncomeSessionData(nino, taxYear, user.mtditid, model))
       case _                         => Future.successful(BadRequest)
     }
   }
@@ -59,7 +59,7 @@ class PensionIncomeController @Inject() (
     }
 
   def deletePensionIncome(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    service.deletePensionIncome(nino, taxYear).map {
+    service.deletePensionIncomeSessionData(nino, taxYear, user.mtditid).map {
       case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }

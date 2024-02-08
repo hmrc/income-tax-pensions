@@ -32,13 +32,6 @@ class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
     chargesConnector.getPensionCharges(nino, taxYear)
 
-  def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] =
-    chargesConnector.deletePensionCharges(nino, taxYear)
-
-  def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)(implicit
-      hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
-    chargesConnector.createUpdatePensionCharges(nino, taxYear, model)
-
   def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =

@@ -44,8 +44,9 @@ class PensionReliefsController @Inject() (pensionReliefsService: PensionReliefsS
 
   def createOrAmendPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     user.body.asJson.map(_.validate[CreateOrUpdatePensionReliefsModel]) match {
-      case Some(JsSuccess(model, _)) => responseHandler(pensionReliefsService.createOrAmendPensionReliefs(nino, taxYear, model))
-      case _                         => Future.successful(BadRequest)
+      case Some(JsSuccess(model, _)) =>
+        saveUserDataHandler(pensionReliefsService.saveUserPensionReliefsData(nino, user.mtditid, taxYear, model))
+      case _ => Future.successful(BadRequest)
     }
   }
 
@@ -80,7 +81,7 @@ class PensionReliefsController @Inject() (pensionReliefsService: PensionReliefsS
     }
 
   def deletePensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    pensionReliefsService.deletePensionReliefs(nino, taxYear).map {
+    pensionReliefsService.deleteUserPensionReliefsData(nino, user.mtditid, taxYear).map {
       case Right(_)         => NoContent
       case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
     }

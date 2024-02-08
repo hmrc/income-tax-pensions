@@ -33,13 +33,6 @@ class PensionIncomeService @Inject() (connector: PensionIncomeConnector, submiss
   def getPensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     connector.getPensionIncome(nino, taxYear)
 
-  def createOrAmendPensionIncome(nino: String, taxYear: Int, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
-      hc: HeaderCarrier): Future[CreateOrAmendPensionIncomeResponse] =
-    connector.createOrAmendPensionIncome(nino, taxYear, pensionIncome)
-
-  def deletePensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionIncomeResponse] =
-    connector.deletePensionIncome(nino, taxYear)
-
   def savePensionIncomeSessionData(nino: String, taxYear: Int, mtditid: String, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] =
     (for {
