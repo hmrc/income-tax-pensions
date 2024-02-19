@@ -28,7 +28,7 @@ object CorrelationId {
   implicit class RequestHeaderOps(val value: RequestHeader) extends AnyVal {
 
     /** Use X-RequestId as CorrelationId (36 length required)
-     */
+      */
     def withCorrelationId(): (RequestHeader, String) = {
       val correlationId = value.headers
         .get(CorrelationIdHeaderKey)
