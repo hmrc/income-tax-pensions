@@ -18,10 +18,10 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
+import models.logging.HeaderCarrierExtensions.{CorrelationIdHeaderKey, HeaderCarrierOps}
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
-import utils.HeaderCarrierSyntax.HeaderCarrierOps
 
 import java.net.URL
 
@@ -40,12 +40,21 @@ trait DesIFConnector extends Logging {
     desIfheaderCarrier(url, hcWithAuth, "Environment" -> appConfig.integrationFrameworkEnvironment)
   }
 
-  private def desIfheaderCarrier(url: String, hcWithAuth: HeaderCarrier, headers: (String, String)) = {
+  private def desIfheaderCarrier(url: String, hcWithAuth: HeaderCarrier, envHeader: (String, String)) = {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
+
     if (isInternalHost) {
-      hcWithAuth.withExtraHeaders(headers)
+      val newHeaders =
+        List(
+          Some(envHeader),
+          hcWithAuth.maybeCorrelationId.map(CorrelationIdHeaderKey -> _)
+        ).flatten
+
+      hcWithAuth.withExtraHeaders(
+        newHeaders: _*
+      )
     } else {
-      hcWithAuth.withExtraHeaders(headers +: hcWithAuth.toExplicitHeaders: _*)
+      hcWithAuth.withExtraHeaders(envHeader +: hcWithAuth.toExplicitHeaders: _*)
     }
   }
 }
