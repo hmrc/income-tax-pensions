@@ -18,10 +18,10 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
+import models.logging.HeaderCarrierExtensions.HeaderCarrierOps
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HeaderCarrier.Config
-import utils.HeaderCarrierSyntax.HeaderCarrierOps
 
 import java.net.URL
 
@@ -37,7 +37,8 @@ trait Connector extends Logging {
     if (isInternalHost) {
       hc
     } else {
-      hc.withExtraHeaders(hc.toExplicitHeaders: _*)
+      val explicitHeaders = hc.toExplicitHeaders
+      hc.withExtraHeaders(explicitHeaders: _*)
     }
   }
 }
