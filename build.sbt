@@ -15,7 +15,6 @@
  */
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
-
 val appName = "income-tax-pensions"
 
 lazy val coverageSettings: Seq[Setting[_]] = {
@@ -33,14 +32,14 @@ lazy val coverageSettings: Seq[Setting[_]] = {
     "config.*",
     "testOnly.*",
     "testOnlyDoNotUseInAppConf.*",
-    "controllers.testOnly.*",
+    "controllers.testOnly.*"
   )
 
   Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 80,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
+    ScoverageKeys.coverageFailOnMinimum    := true,
+    ScoverageKeys.coverageHighlighting     := true
   )
 }
 
@@ -50,12 +49,12 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 9322)
   .settings(
-    majorVersion                     := 0,
-    scalaVersion                     := "2.13.10",
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-    libraryDependencySchemes         += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
-    scalacOptions                    += "-Wconf:cat=unused-imports&src=html/.*:s",  //suppress warnings
-    scalacOptions                    += "-Wconf:src=routes/.*:s"
+    majorVersion := 0,
+    scalaVersion := "2.13.10",
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
+    scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s", // suppress warnings
+    scalacOptions += "-Wconf:src=routes/.*:s"
   )
   .configs(IntegrationTest extend Test)
   .settings(integrationTestSettings(): _*)
