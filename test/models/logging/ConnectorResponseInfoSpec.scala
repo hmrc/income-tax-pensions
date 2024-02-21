@@ -32,8 +32,9 @@ class ConnectorResponseInfoSpec extends AnyWordSpecLike {
 
     "return info on success with correlationId" in {
       assert(
-        connectorInfo.copy(response = HttpResponse(200, "", Map(ResponseCorrelationIdHeaderKey -> List("just-for-test")))).logResponseWarnOn4xx === Info(
-          "Connector [X-CorrelationId=just-for-test]: Response Received for GET /someurl. Response status: 200"))
+        connectorInfo
+          .copy(response = HttpResponse(200, "", Map(ResponseCorrelationIdHeaderKey -> List("just-for-test"))))
+          .logResponseWarnOn4xx === Info("Connector [X-CorrelationId=just-for-test]: Response Received for GET /someurl. Response status: 200"))
     }
 
     "return warn on 4xx error with body" in {
