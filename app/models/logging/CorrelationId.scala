@@ -16,7 +16,7 @@
 
 package models.logging
 
-import models.logging.HeaderCarrierExtensions.{CorrelationIdHeaderKey, ResponseCorrelationIdHeaderKey}
+import models.logging.HeaderCarrierExtensions.CorrelationIdHeaderKey
 import play.api.mvc.{RequestHeader, Result}
 import uk.gov.hmrc.http.HttpResponse
 
@@ -47,7 +47,7 @@ object CorrelationId {
 
   implicit class HttpResponseOps(val value: HttpResponse) extends AnyVal {
     def correlationId: String =
-      value.header(ResponseCorrelationIdHeaderKey).getOrElse("unknown")
+      value.header(CorrelationIdHeaderKey).getOrElse("unknown")
 
   }
 
