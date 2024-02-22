@@ -18,7 +18,6 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
-import models.logging.HeaderCarrierExtensions.{CorrelationIdHeaderKey, HeaderCarrierOps}
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
