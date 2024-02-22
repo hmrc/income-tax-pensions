@@ -42,19 +42,6 @@ trait DesIFConnector extends Logging {
 
   private def desIfheaderCarrier(url: String, hcWithAuth: HeaderCarrier, envHeader: (String, String)) = {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
-
-    if (isInternalHost) {
-      val newHeaders =
-        List(
-          Some(envHeader),
-          hcWithAuth.maybeCorrelationId.map(CorrelationIdHeaderKey -> _)
-        ).flatten
-
-      hcWithAuth.withExtraHeaders(
-        newHeaders: _*
-      )
-    } else {
-      hcWithAuth.withExtraHeaders(envHeader +: hcWithAuth.toExplicitHeaders: _*)
-    }
+    Connector.headerCarrier(isInternalHost, envHeader)(hcWithAuth)
   }
 }

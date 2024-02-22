@@ -17,6 +17,7 @@
 package controllers.predicates
 
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
+import filters.CorrelationIdFilter.{addCorrelationIdToMdc, clearCorrelationIdMdc}
 import models.User
 import play.api.Logger
 import play.api.mvc.Results.Unauthorized
@@ -41,10 +42,12 @@ class AuthorisedAction @Inject() ()(implicit
 
   val unauthorized: Future[Result] = Future(Unauthorized)
 
-  def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
+  def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { original =>
+    implicit val request: Request[AnyContent] = addCorrelationIdToMdc(original)
+
     implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
-    request.headers
+    val result = request.headers
       .get("mtditid")
       .fold {
         logger.warn("[AuthorisedAction][async] - No MTDITID in the header. Returning unauthorised.")
@@ -61,6 +64,12 @@ class AuthorisedAction @Inject() ()(implicit
             logger.info(s"[AuthorisedAction][async] - User failed to authenticate")
             Unauthorized
         })
+
+    result.onComplete { _ =>
+      clearCorrelationIdMdc()
+    }
+
+    result
   }
 
   val minimumConfidenceLevel: Int = ConfidenceLevel.L250.level

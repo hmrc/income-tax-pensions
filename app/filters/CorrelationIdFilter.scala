@@ -17,26 +17,49 @@
 package filters
 
 import akka.stream.Materializer
-import models.logging.CorrelationId.{RequestHeaderOps, ResultOps}
+import filters.CorrelationIdFilter.{addCorrelationIdToMdc, clearCorrelationIdMdc}
+import models.logging.CorrelationId.{RequestHeaderOps, RequestOps, ResultOps}
 import models.logging.HeaderCarrierExtensions.CorrelationIdHeaderKey
+import org.slf4j.MDC
+import play.api.Logging
 import play.api.mvc._
-import uk.gov.hmrc.play.http.logging.Mdc
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
-class CorrelationIdFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
+class CorrelationIdFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter with Logging {
 
   def apply(nextFilter: RequestHeader => Future[Result])(originalRequestHeader: RequestHeader): Future[Result] = {
     val (updatedRequestHeader, correlationId) = originalRequestHeader.withCorrelationId()
+    addCorrelationIdToMdc(correlationId)
 
-    Mdc
-      .withMdc(
-        block = nextFilter(updatedRequestHeader).map { result =>
-          result.withCorrelationId(correlationId)
-        },
-        mdcData = Map(CorrelationIdHeaderKey -> correlationId)
-      )(ec)
+    logger.debug(
+      s"CorrelationId saved into MDC ${MDC.get(CorrelationIdHeaderKey)} and RequestHeader: ${updatedRequestHeader.headers.get(CorrelationIdHeaderKey)}")
+
+    val futureResult = nextFilter(updatedRequestHeader).map { result =>
+      result.withCorrelationId(correlationId)
+    }
+
+    futureResult.onComplete { _ =>
+      clearCorrelationIdMdc()
+    }
+
+    futureResult
+  }
+
+}
+
+object CorrelationIdFilter {
+  def clearCorrelationIdMdc(): Unit =
+    MDC.remove(CorrelationIdHeaderKey)
+
+  def addCorrelationIdToMdc(correlationId: String): Unit =
+    MDC.put(CorrelationIdHeaderKey, correlationId)
+
+  def addCorrelationIdToMdc(request: Request[AnyContent]): Request[AnyContent] = {
+    val (updatedRequestHeader, correlationId) = RequestOps.withCorrelationId(request)
+    MDC.put(CorrelationIdHeaderKey, correlationId)
+    updatedRequestHeader
   }
 
 }
