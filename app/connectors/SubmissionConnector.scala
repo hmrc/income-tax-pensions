@@ -29,7 +29,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class SubmissionConnector @Inject() (val http: HttpClient, val config: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
   def refreshPensionsResponse(nino: String, mtditid: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] =
-    refreshPensionsResponse(taxYear, nino)(hc.withExtraHeaders(("mtditid", mtditid)))
+    refreshPensionsResponse(taxYear, nino)(
+      Connector.headerCarrier(isInternalHost = true, ("mtditid", mtditid))
+    )
 
   private def refreshPensionsResponse(taxYear: Int, nino: String)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
     val url   = config.submissionBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"

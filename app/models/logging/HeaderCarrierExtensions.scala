@@ -31,6 +31,11 @@ object HeaderCarrierExtensions {
 
     def correlationId: String = maybeCorrelationId.getOrElse("unknown")
 
+    def toInternalHeaders: List[(String, String)] =
+      List(
+        CorrelationIdHeaderKey -> maybeCorrelationId
+      ).collect { case (k, Some(v)) => (k, v) }
+
     def toExplicitHeaders: Seq[(String, String)] =
       Seq(
         HeaderNames.xRequestId            -> headerCarrier.requestId.map(_.value),
