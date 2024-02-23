@@ -17,7 +17,7 @@
 package models.logging
 
 import models.logging.HeaderCarrierExtensions.CorrelationIdHeaderKey
-import play.api.mvc.{AnyContent, Request, RequestHeader, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import uk.gov.hmrc.http.HttpResponse
 
 import java.util.UUID
@@ -43,7 +43,7 @@ object CorrelationId {
   }
 
   object RequestOps {
-    def withCorrelationId(value: Request[AnyContent]): (Request[AnyContent], String) = {
+    def withCorrelationId[A](value: Request[A]): (Request[A], String) = {
       val correlationId = getOrGenerateCorrelationId(value)
 
       val updatedRequest =
