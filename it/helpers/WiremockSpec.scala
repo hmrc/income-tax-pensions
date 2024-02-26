@@ -28,6 +28,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import play.libs.pekko.PekkoGuiceSupport
 
 import scala.concurrent.ExecutionContext
 
@@ -39,6 +40,7 @@ trait WiremockSpec
     with FutureAwaits
     with DefaultAwaitTimeout
     with WiremockStubHelpers
+    with PekkoGuiceSupport
     with AuthStub {
   self: PlaySpec =>
 
