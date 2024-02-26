@@ -17,18 +17,34 @@
 package models.logging
 
 import models.logging.HeaderCarrierExtensions.CorrelationIdHeaderKey
-import play.api.mvc.{RequestHeader, Result}
+import play.api.mvc.{Request, RequestHeader, Result}
 import uk.gov.hmrc.http.HttpResponse
 
 import java.util.UUID
 
 object CorrelationId {
+
+  private def getOrGenerateCorrelationId(requestHeader: RequestHeader): String = requestHeader.headers
+    .get(CorrelationIdHeaderKey)
+    .getOrElse(CorrelationId.generate())
+
   implicit class RequestHeaderOps(val value: RequestHeader) extends AnyVal {
 
     def withCorrelationId(): (RequestHeader, String) = {
-      val correlationId = value.headers
-        .get(CorrelationIdHeaderKey)
-        .getOrElse(CorrelationId.generate())
+      val correlationId = getOrGenerateCorrelationId(value)
+
+      val updatedRequest =
+        if (value.headers.hasHeader(CorrelationIdHeaderKey)) value
+        else value.withHeaders(value.headers.add(CorrelationIdHeaderKey -> correlationId))
+
+      (updatedRequest, correlationId)
+    }
+
+  }
+
+  object RequestOps {
+    def withCorrelationId[A](value: Request[A]): (Request[A], String) = {
+      val correlationId = getOrGenerateCorrelationId(value)
 
       val updatedRequest =
         if (value.headers.hasHeader(CorrelationIdHeaderKey)) value
