@@ -15,7 +15,10 @@
  */
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
-val appName = "income-tax-pensions"
+lazy val appName = "income-tax-pensions"
+
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
 
 lazy val coverageSettings: Seq[Setting[_]] = {
   import scoverage.ScoverageKeys
@@ -49,8 +52,6 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 9322)
   .settings(
-    majorVersion := 0,
-    scalaVersion := "2.13.10",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s", // suppress warnings
