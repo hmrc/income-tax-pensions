@@ -19,16 +19,11 @@ package models.logging
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 
 object HeaderCarrierExtensions {
-  val CorrelationIdHeaderKey         = "X-CorrelationId" // Notice it is not  X-Correlation-Id - we keep exactly the same format as downstream IF/DES
-  val ResponseCorrelationIdHeaderKey = "CorrelationId"   // IFS/DES uses different header for response correlation id
-  val MtditIdHeaderKey               = "mtditid"
+  val CorrelationIdHeaderKey = "CorrelationId"
 
   implicit class HeaderCarrierOps(val headerCarrier: HeaderCarrier) extends AnyVal {
     def withCorrelationId(correlationId: String): HeaderCarrier =
       addIfMissing(CorrelationIdHeaderKey, correlationId)
-
-    def correlationIdHeader: Seq[(String, String)] =
-      maybeCorrelationId.map((CorrelationIdHeaderKey, _)).toSeq
 
     def maybeCorrelationId: Option[String] = headerCarrier.otherHeaders.collectFirst {
       case (key, value) if key == CorrelationIdHeaderKey => value
@@ -36,8 +31,10 @@ object HeaderCarrierExtensions {
 
     def correlationId: String = maybeCorrelationId.getOrElse("unknown")
 
-    def withMtditId(mtditid: String): HeaderCarrier =
-      addIfMissing(MtditIdHeaderKey, mtditid)
+    def toInternalHeaders: List[(String, String)] =
+      List(
+        CorrelationIdHeaderKey -> maybeCorrelationId
+      ).collect { case (k, Some(v)) => (k, v) }
 
     def toExplicitHeaders: Seq[(String, String)] =
       Seq(

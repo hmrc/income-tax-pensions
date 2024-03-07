@@ -33,12 +33,20 @@ trait Connector extends Logging {
 
   private[connectors] def headerCarrier(url: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
+    Connector.headerCarrier(isInternalHost)
+  }
+}
 
-    if (isInternalHost) {
-      hc
+object Connector {
+  def headerCarrier(isInternalHost: Boolean, extraHeaders: (String, String)*)(implicit hc: HeaderCarrier): HeaderCarrier = {
+    val explicitHeaders = if (isInternalHost) {
+      hc.toInternalHeaders
     } else {
-      val explicitHeaders = hc.toExplicitHeaders
-      hc.withExtraHeaders(explicitHeaders: _*)
+      hc.toExplicitHeaders
     }
+
+    val allHeaders = extraHeaders.toList ++ explicitHeaders
+
+    hc.withExtraHeaders(allHeaders: _*)
   }
 }

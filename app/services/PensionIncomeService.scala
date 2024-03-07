@@ -18,8 +18,6 @@ package services
 
 import cats.data.EitherT
 import connectors.{PensionIncomeConnector, SubmissionConnector}
-import connectors.httpParsers.CreateOrAmendPensionIncomeHttpParser.CreateOrAmendPensionIncomeResponse
-import connectors.httpParsers.DeletePensionIncomeHttpParser.DeletePensionIncomeResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import models.{CreateUpdatePensionIncomeModel, ServiceErrorModel}
 import uk.gov.hmrc.http.HeaderCarrier
