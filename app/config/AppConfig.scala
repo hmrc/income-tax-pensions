@@ -22,6 +22,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 
+// TODO: Refactor this like I did for employment BE.
 class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
   val authBaseUrl: String      = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
@@ -29,6 +30,7 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
 
   val desBaseUrl: String           = servicesConfig.baseUrl("des")
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
+  val employmentBaseUrl: String    = servicesConfig.baseUrl("income-tax-employment") + "/income-tax-employment"
   val ifBaseUrl: String            = servicesConfig.baseUrl("integration-framework")
 
   val environment: String                     = config.get[String]("microservice.services.des.environment")
@@ -51,6 +53,7 @@ trait AppConfig {
   val desBaseUrl: String
   val ifBaseUrl: String
   val stateBenefitsBaseUrl: String
+  val employmentBaseUrl: String
 
   val environment: String
   val authorisationToken: String

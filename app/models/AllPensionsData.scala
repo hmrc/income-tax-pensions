@@ -16,14 +16,20 @@
 
 package models
 
+import models.submission.EmploymentPensions
 import play.api.libs.json.{Json, OFormat}
 
 case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
                            pensionCharges: Option[GetPensionChargesRequestModel],
                            stateBenefits: Option[AllStateBenefitsData],
+                           employmentPensions: Option[EmploymentPensions],
                            pensionIncome: Option[GetPensionIncomeModel]) {
   def isEmpty: Boolean =
-    pensionReliefs.isEmpty && pensionCharges.isEmpty && stateBenefits.isEmpty && pensionIncome.isEmpty
+    pensionReliefs.isEmpty &&
+      pensionCharges.isEmpty &&
+      stateBenefits.isEmpty &&
+      employmentPensions.isEmpty &&
+      pensionIncome.isEmpty
 }
 
 object AllPensionsData {

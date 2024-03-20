@@ -16,14 +16,18 @@
 
 package services
 
+import cats.data.EitherT
+import cats.implicits.{catsSyntaxOptionId, none}
+import connectors._
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import connectors._
 import models._
+import models.employment.AllEmploymentData
+import models.submission.EmploymentPensions
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.FutureEitherOps
+import utils.HeaderCarrierUtils.HeaderCarrierOps
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,23 +35,29 @@ import scala.concurrent.{ExecutionContext, Future}
 class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
-                                 pensionIncomeConnector: PensionIncomeConnector) {
+                                 pensionIncomeConnector: PensionIncomeConnector,
+                                 employmentsConnector: EmploymentsConnector) {
 
-  val mtditidHeader = "mtditid"
-
+  // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
+  //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
+  //       duplicates the data in the cache.
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[DesErrorModel, AllPensionsData]] =
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, AllPensionsData]] =
     (for {
-      reliefsData       <- FutureEitherOps[DesErrorModel, Option[GetPensionReliefsModel]](getReliefs(nino, taxYear)(hc))
-      pensionData       <- FutureEitherOps[DesErrorModel, Option[GetPensionChargesRequestModel]](getCharges(nino, taxYear)(hc))
-      stateBenefitsData <- FutureEitherOps[DesErrorModel, Option[AllStateBenefitsData]](getStateBenefits(nino, taxYear, mtditid)(hc))
-      pensionIncomeData <- FutureEitherOps[DesErrorModel, Option[GetPensionIncomeModel]](getPensionIncome(nino, taxYear, mtditid)(hc))
-
+      reliefsData       <- EitherT(getReliefs(nino, taxYear))
+      chargesData       <- EitherT(getCharges(nino, taxYear))
+      stateBenefitsData <- EitherT(getStateBenefits(nino, taxYear, mtditid))
+      pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
+      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
+      _ = println()
+      _ = println("employment data: " + employmentData)
+      _ = println()
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
-      pensionCharges = pensionData,
+      pensionCharges = chargesData,
       stateBenefits = stateBenefitsData,
+      employmentPensions = employmentData.fold(none[EmploymentPensions])(EmploymentPensions.fromEmploymentResponse(_).some),
       pensionIncome = pensionIncomeData
     )).value
 
@@ -58,9 +68,12 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     chargesConnector.getPensionCharges(nino, taxYear)
 
   private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
-    stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
+    stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
-    pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withExtraHeaders(mtditidHeader -> mtditid))
+    pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
+
+  private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =
+    employmentsConnector.getEmployments(nino, taxYear)(hc.withInternalId(mtditid))
 
 }
