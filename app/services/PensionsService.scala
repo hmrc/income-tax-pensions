@@ -50,9 +50,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       stateBenefitsData <- EitherT(getStateBenefits(nino, taxYear, mtditid))
       pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
       employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
-      _ = println()
-      _ = println("employment data: " + employmentData)
-      _ = println()
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
