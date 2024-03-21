@@ -18,7 +18,7 @@ package models.employment
 
 import play.api.libs.json.{Json, OFormat}
 
-case class RedundancyCompensationPaymentsOverExemption(amount: BigDecimal,
+final case class RedundancyCompensationPaymentsOverExemption(amount: BigDecimal,
                                                        taxPaid: Option[BigDecimal] = None,
                                                        taxTakenOffInEmployment: Option[Boolean] = None)
 

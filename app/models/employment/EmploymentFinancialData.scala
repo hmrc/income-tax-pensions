@@ -18,7 +18,7 @@ package models.employment
 
 import play.api.libs.json.{Json, OFormat}
 
-case class EmploymentFinancialData(employmentData: Option[EmploymentData], employmentBenefits: Option[EmploymentBenefits])
+final case class EmploymentFinancialData(employmentData: Option[EmploymentData], employmentBenefits: Option[EmploymentBenefits])
 
 object EmploymentFinancialData {
   implicit val format: OFormat[EmploymentFinancialData] = Json.format[EmploymentFinancialData]

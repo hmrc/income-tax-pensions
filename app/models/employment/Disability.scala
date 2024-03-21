@@ -18,7 +18,7 @@ package models.employment
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Disability(customerReference: Option[String] = None, amountDeducted: BigDecimal)
+final case class Disability(customerReference: Option[String] = None, amountDeducted: BigDecimal)
 
 object Disability {
   implicit val format: OFormat[Disability] = Json.format[Disability]
