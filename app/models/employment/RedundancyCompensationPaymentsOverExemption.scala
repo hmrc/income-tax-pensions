@@ -19,8 +19,8 @@ package models.employment
 import play.api.libs.json.{Json, OFormat}
 
 final case class RedundancyCompensationPaymentsOverExemption(amount: BigDecimal,
-                                                       taxPaid: Option[BigDecimal] = None,
-                                                       taxTakenOffInEmployment: Option[Boolean] = None)
+                                                             taxPaid: Option[BigDecimal] = None,
+                                                             taxTakenOffInEmployment: Option[Boolean] = None)
 
 object RedundancyCompensationPaymentsOverExemption {
   implicit val format: OFormat[RedundancyCompensationPaymentsOverExemption] = Json.format[RedundancyCompensationPaymentsOverExemption]

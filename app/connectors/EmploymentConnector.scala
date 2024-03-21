@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class EmploymentConnector @Inject()(val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
+class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
   def getEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
     val incomeSourceUri: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"

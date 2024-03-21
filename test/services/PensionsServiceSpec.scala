@@ -39,7 +39,7 @@ class PensionsServiceSpec extends TestUtils {
   val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
-  val mockEmploymentConnector: EmploymentConnector     = mock[EmploymentConnector]
+  val mockEmploymentConnector: EmploymentConnector      = mock[EmploymentConnector]
   val service: PensionsService =
     new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, pensionIncomeConnector, mockEmploymentConnector)
 
