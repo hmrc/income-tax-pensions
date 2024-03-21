@@ -26,9 +26,8 @@ object EmploymentPensions {
   implicit val format: OFormat[EmploymentPensions] = Json.format[EmploymentPensions]
 
   /** Case class for converting the raw employment data response we retrieve from income-tax-employments into a model containing data only relevant
-    * for pensions. This is what will be sent over the wire to income-tax-submission
+    * to pensions. This model is what will be serialized and sent over the wire to income-tax-submission.
     */
-  // TODO: Check that the mapping of these fields is correct
   def fromEmploymentResponse(resp: AllEmploymentData): EmploymentPensions =
     EmploymentPensions(
       employmentData = resp.customerEmploymentData.map { e =>

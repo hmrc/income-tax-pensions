@@ -29,7 +29,7 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
 
   val desBaseUrl: String           = servicesConfig.baseUrl("des")
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
-  val employmentBaseUrl: String    = servicesConfig.baseUrl("income-tax-employment") + "/income-tax-employment"
+  val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
   val ifBaseUrl: String            = servicesConfig.baseUrl("integration-framework")
 
   val environment: String                     = config.get[String]("microservice.services.des.environment")

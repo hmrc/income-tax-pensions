@@ -32,7 +32,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentsConnector) {
+                                 employmentsConnector: EmploymentConnector) {
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
