@@ -19,10 +19,6 @@ package services
 import cats.data.EitherT
 import cats.implicits.{catsSyntaxOptionId, none}
 import connectors._
-import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
-import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
-import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import models._
 import models.employment.AllEmploymentData
 import models.submission.EmploymentPensions
@@ -58,16 +54,18 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       pensionIncome = pensionIncomeData
     )).value
 
-  private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
+  private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionReliefsModel]] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
 
-  private def getCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
+  private def getCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionChargesRequestModel]] =
     chargesConnector.getPensionCharges(nino, taxYear)
 
-  private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetStateBenefitsResponse] =
+  private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit
+      hc: HeaderCarrier): DownstreamOutcome[Option[AllStateBenefitsData]] =
     stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withInternalId(mtditid))
 
-  private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
+  private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit
+      hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =

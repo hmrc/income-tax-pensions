@@ -22,7 +22,6 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 
-// TODO: Refactor this like I did for employment BE.
 class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
   val authBaseUrl: String      = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")

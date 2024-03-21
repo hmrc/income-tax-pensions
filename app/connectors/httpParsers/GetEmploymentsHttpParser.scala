@@ -17,7 +17,6 @@
 package connectors.httpParsers
 
 import connectors.DownstreamErrorOr
-import models.DesErrorModel
 import models.employment.AllEmploymentData
 import models.logging.ConnectorResponseInfo
 import play.api.Logging
@@ -26,7 +25,6 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-// TODO: Use a common type
 object GetEmploymentsHttpParser extends DESParser with Logging {
   override val parserName: String = "GetEmploymentsHttpParser"
 

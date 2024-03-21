@@ -23,8 +23,10 @@ import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeRespons
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import models._
+import models.employment.AllEmploymentData
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.TestUtils
 
@@ -37,20 +39,23 @@ class PensionsServiceSpec extends TestUtils {
   val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
-  val service: PensionsService = new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, pensionIncomeConnector)
+  val mockEmploymentConnector: EmploymentsConnector     = mock[EmploymentsConnector]
+  val service: PensionsService =
+    new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, pensionIncomeConnector, mockEmploymentConnector)
 
   val taxYear = 2022
   val nino    = "AA123456A"
   val mtditid = "1234567890"
 
-  val expectedReliefsResult: GetPensionReliefsResponse      = Right(Some(fullPensionReliefsModel))
-  val expectedChargesResult: GetPensionChargesResponse      = Right(Some(fullPensionChargesModel))
-  val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
-  val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
+  val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
+  val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
+  val expectedStateBenefitsResult: GetStateBenefitsResponse                   = Right(Some(anAllStateBenefitsData))
+  val expectedEmploymentsResult: DownstreamErrorOr[Option[AllEmploymentData]] = Right(Some(allEmploymentsData))
+  val expectedPensionIncomeResult: GetPensionIncomeResponse                   = Right(Some(fullPensionIncomeModel))
 
   "getAllPensionsData" should {
 
-    "get all pension reliefs, charges and income data and return a full AllPensionsData model" in {
+    "get all data and return a full AllPensionsData model" in {
 
       (reliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
@@ -66,6 +71,11 @@ class PensionsServiceSpec extends TestUtils {
         .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
+
+      (mockEmploymentConnector
+        .getEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(expectedEmploymentsResult))
 
       (pensionIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -93,6 +103,11 @@ class PensionsServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
+      (mockEmploymentConnector
+        .getEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(None)))
+
       (pensionIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -100,7 +115,7 @@ class PensionsServiceSpec extends TestUtils {
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
-      result mustBe Right(AllPensionsData(None, None, None, None))
+      result mustBe Right(AllPensionsData(None, None, None, None, None))
     }
 
     "return an error if a connector call fails" in {
