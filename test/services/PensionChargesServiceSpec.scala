@@ -20,7 +20,6 @@ import com.codahale.metrics.SharedMetricRegistries
 import connectors._
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceResponse
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
@@ -84,7 +83,7 @@ class PensionChargesServiceSpec extends TestUtils {
 
     "return error when Refresh submission tax fails" in {
       fullPensionChargesModel.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
-      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+      val expectedErrorResult: DownstreamErrorOr[Unit] = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
       (chargesConnector
         .createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
@@ -138,7 +137,7 @@ class PensionChargesServiceSpec extends TestUtils {
     }
 
     "return error when Refresh submission tax fails" in {
-      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+      val expectedErrorResult: DownstreamErrorOr[Unit] = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
       (chargesConnector
         .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))

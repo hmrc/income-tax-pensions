@@ -39,6 +39,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
+import utils.EmploymentPensionsBuilder.employmentPensionsData
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
@@ -231,13 +232,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     pensionReliefs = Some(fullPensionReliefsModel),
     pensionCharges = Some(fullPensionChargesModel),
     stateBenefits = Some(anAllStateBenefitsData),
+    employmentPensions = Some(employmentPensionsData),
     pensionIncome = Some(fullPensionIncomeModel)
   )
-
-//  val tempFullPensionsModel: AllPensionsData = AllPensionsData(
-//    pensionReliefs = Some(fullPensionReliefsModel),
-//    pensionCharges = Some(fullPensionChargesModel),
-//    stateBenefits = None,
-//    pensionIncome = Some(fullPensionIncomeModel)
-//  )
 }

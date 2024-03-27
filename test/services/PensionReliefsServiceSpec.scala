@@ -19,7 +19,6 @@ package services
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourceResponse
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
@@ -74,7 +73,7 @@ class PensionReliefsServiceSpec extends TestUtils {
     }
 
     "return error when Refresh submission tax fails" in {
-      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+      val expectedErrorResult: DownstreamErrorOr[Unit] = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
       (reliefsConnector
         .createOrAmendPensionReliefs(_: String, _: Int, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
@@ -124,7 +123,7 @@ class PensionReliefsServiceSpec extends TestUtils {
     }
 
     "return error when Refresh submission tax fails" in {
-      val expectedErrorResult: RefreshIncomeSourceResponse = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
+      val expectedErrorResult: DownstreamErrorOr[Unit] = Left(APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError))
 
       (reliefsConnector
         .deletePensionReliefs(_: String, _: Int)(_: HeaderCarrier))
