@@ -17,26 +17,26 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.{RefreshIncomeSourceResponse, RefreshIncomeSourcesHttpReads}
+import connectors.httpParsers.RefreshIncomeSourceHttpParser.RefreshIncomeSourcesHttpReads
 import models.RefreshIncomeSourceRequest
 import models.logging.ConnectorRequestInfo
 import play.api.Logging
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SubmissionConnector @Inject() (val http: HttpClient, val config: AppConfig)(implicit ec: ExecutionContext) extends Logging {
 
-  def refreshPensionsResponse(nino: String, mtditid: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] =
+  def refreshPensionsResponse(nino: String, mtditid: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Unit] =
     refreshPensionsResponse(taxYear, nino)(
       Connector.headerCarrier(isInternalHost = true, ("mtditid", mtditid))
     )
 
-  private def refreshPensionsResponse(taxYear: Int, nino: String)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
+  private def refreshPensionsResponse(taxYear: Int, nino: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Unit] = {
     val url   = config.submissionBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"
     val model = RefreshIncomeSourceRequest("pensions")
     ConnectorRequestInfo("PUT", url, "income-tax-submission").logRequestWithBody(logger, model)
-    http.PUT[RefreshIncomeSourceRequest, RefreshIncomeSourceResponse](url, model)
+    http.PUT[RefreshIncomeSourceRequest, DownstreamErrorOr[Unit]](url, model)
   }
 }
