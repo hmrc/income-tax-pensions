@@ -56,7 +56,6 @@ object DesErrorBodyModel {
   val serviceUnavailable: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
   val serverError: DesErrorBodyModel =
     DesErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention.")
-
 }
 
 /** Multiple DES Errors * */
