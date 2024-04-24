@@ -17,7 +17,8 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
+import connectors.GetStateBenefitsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
 import models.{AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
 import play.api.Configuration
@@ -25,7 +26,6 @@ import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import connectors.GetStateBenefitsConnectorISpec.expectedResponseBody
 import utils.CustomerAddedStateBenefitsDataBuilder.aCustomerAddedStateBenefitsDataJsValue
 import utils.StateBenefitsDataBuilder.aStateBenefitsDataJsValue
 
@@ -36,7 +36,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
   def appConfig(benefitsHost: String): AppConfig =
-    new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
       override val stateBenefitsBaseUrl: String = s"http://$benefitsHost:$wireMockPort"
     }
 

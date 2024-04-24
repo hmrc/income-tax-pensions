@@ -16,14 +16,8 @@
 
 package models.common
 
-/** @param businessId
-  *   also called incomeSourceId
-  */
 case class JourneyContextWithNino(taxYear: TaxYear, mtditid: Mtditid, nino: Nino) {
-  def toJourneyContext(journeyName: Journey): JourneyContext = JourneyContext(taxYear, mtditid, journeyName)
+  def toJourneyContext(Journey: Journey): JourneyContext = JourneyContext(taxYear, mtditid, Journey)
 }
 
-/** @param businessId
-  *   also called incomeSourceId
-  */
 case class JourneyContext(taxYear: TaxYear, mtditid: Mtditid, journey: Journey)

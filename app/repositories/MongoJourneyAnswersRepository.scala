@@ -95,7 +95,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
   }
 
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
-    logger.info(s"Repository: ${this.mongo.database.name} ctx=${ctx.toString} persisting answers:\n===\n${Json.prettyPrint(newData)}\n===")
+    logger.info(s"Repository ctx=${ctx.toString} persisting answers:\n===\n${Json.prettyPrint(newData)}\n===")
 
     val filter  = filterJourney(ctx)
     val bson    = BsonDocument(Json.stringify(newData))

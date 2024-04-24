@@ -22,20 +22,16 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import javax.inject.Inject
 
 class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
-  val authBaseUrl: String      = servicesConfig.baseUrl("auth")
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+  val desBaseUrl: String = servicesConfig.baseUrl("des")
+  val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
 
-  val desBaseUrl: String           = servicesConfig.baseUrl("des")
+  val submissionBaseUrl: String    = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
-  val ifBaseUrl: String            = servicesConfig.baseUrl("integration-framework")
 
   val environment: String                     = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
-
-  val submissionBaseUrl: String = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
 
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")

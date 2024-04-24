@@ -27,7 +27,7 @@ import utils.TestUtils
 
 import scala.concurrent.Future
 
-class PensionReliefsServiceSpec extends TestUtils {
+class PensionReliefsServiceImplSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val submissionConnector: SubmissionConnector  = mock[SubmissionConnector]

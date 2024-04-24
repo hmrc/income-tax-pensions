@@ -19,9 +19,7 @@ package services
 import cats.data.EitherT
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.{PensionReliefsConnector, SubmissionConnector}
-import models.common.{Journey, JourneyContext, Mtditid, Nino, TaxYear}
 import models.{CreateOrUpdatePensionReliefsModel, ServiceErrorModel}
-import play.api.libs.json.{JsValue, Json}
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureEitherOps
@@ -50,14 +48,13 @@ class PensionReliefsServiceImpl @Inject() (reliefsConnector: PensionReliefsConne
 
   def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)(implicit
       hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] = {
-    val ctx = JourneyContext(TaxYear(taxYear), Mtditid(mtditid), Journey.PaymentsIntoPensions) // TODO Change me
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
+//    val ctx = JourneyContext(TaxYear(taxYear), Mtditid(mtditid), Journey.PaymentsIntoPensions) // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
     (for {
       _      <- EitherT(reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
       result <- EitherT(submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-      _      <- repository.upsertAnswers(ctx, Json.obj())
+//      _      <- repository.upsertAnswers(ctx, Json.obj()) // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
     } yield result).value
-  }
 
   def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)(implicit
       hc: HeaderCarrier,
