@@ -16,13 +16,12 @@
 
 package config
 
-import com.google.inject.ImplementedBy
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
 
-class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
+class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
   val authBaseUrl: String      = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
@@ -41,23 +40,4 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 
-}
-
-@ImplementedBy(classOf[BackendAppConfig])
-trait AppConfig {
-  val authBaseUrl: String
-  val auditingEnabled: Boolean
-  val graphiteHost: String
-
-  val desBaseUrl: String
-  val ifBaseUrl: String
-  val stateBenefitsBaseUrl: String
-  val employmentBaseUrl: String
-
-  val environment: String
-  val authorisationToken: String
-  val integrationFrameworkEnvironment: String
-  val submissionBaseUrl: String
-
-  def integrationFrameworkAuthorisationToken(api: String): String
 }

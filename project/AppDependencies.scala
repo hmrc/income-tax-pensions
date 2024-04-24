@@ -20,15 +20,28 @@ object AppDependencies {
 
   private val bootstrapVersion = "8.4.0"
   private val flexmarkVersion  = "0.64.6"
+  private val hmrcMongoVersion = "1.8.0"
+
+  val jacksonAndPlayExclusions = Seq(
+    ExclusionRule(organization = "com.fasterxml.jackson.core"),
+    ExclusionRule(organization = "com.fasterxml.jackson.datatype"),
+    ExclusionRule(organization = "com.fasterxml.jackson.module"),
+    ExclusionRule(organization = "com.fasterxml.jackson.core:jackson-annotations"),
+    ExclusionRule(organization = "com.typesafe.play")
+  )
 
   val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
+    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.14.2",
-    "org.typelevel"                %% "cats-core"                 % "2.9.0"
+    "org.typelevel"                %% "cats-core"                 % "2.9.0",
+    "com.beachape"                 %% "enumeratum"                % "1.7.3",
+    "com.beachape"                 %% "enumeratum-play-json"      % "1.7.3" excludeAll (jacksonAndPlayExclusions *),
   )
 
   val test = Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"   % bootstrapVersion % Test,
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30"  % hmrcMongoVersion % "test, it",
     "org.playframework"      %% "play-test"                % "3.0.1"          % Test,
     "org.scalatest"          %% "scalatest"                % "3.2.15"         % Test,
     "com.vladsch.flexmark"    % "flexmark-all"             % flexmarkVersion  % "test, it",

@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package config
+package models.common
 
-import com.google.inject.AbstractModule
+import play.api.mvc.PathBindable
 
-class Modules extends AbstractModule {
+final case class Nino(value: String) extends AnyVal {
+  override def toString: String = value
+}
 
-  override def configure(): Unit =
-    bind(classOf[AppConfig]).to(classOf[AppConfig]).asEagerSingleton()
+object Nino {
+
+  implicit def pathBindable(implicit strBinder: PathBindable[String]): PathBindable[Nino] = new PathBindable[Nino] {
+
+    override def bind(key: String, value: String): Either[String, Nino] =
+      strBinder.bind(key, value).map(Nino.apply)
+
+    override def unbind(key: String, nino: Nino): String =
+      strBinder.unbind(key, nino.value)
+
+  }
 }
