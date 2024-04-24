@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
+import cats.Functor
 import cats.data.EitherT
-import models.error.ServiceError
 
-import scala.concurrent.Future
+object EitherTOps {
 
-package object domain {
-  type ApiResultT[A] = EitherT[Future, ServiceError, A]
+  implicit class EitherTExtensions[F[_]: Functor, A, B](val eitherT: EitherT[F, A, B]) {
+
+    /** Allow to use eitherT.leftAs[ServiceError] notation */
+    def leftAs[T >: A]: EitherT[F, T, B] =
+      eitherT.leftMap(a => a: T)
+  }
 }

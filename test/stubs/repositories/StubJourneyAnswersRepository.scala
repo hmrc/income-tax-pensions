@@ -18,10 +18,10 @@ package stubs.repositories
 
 import cats.data.EitherT
 import cats.implicits._
-import models.ServiceErrorModel
 import models.common._
 import models.database.JourneyAnswers
 import models.domain.ApiResultT
+import models.error.ServiceError
 import play.api.libs.json.JsValue
 import repositories.JourneyAnswersRepository
 
@@ -29,8 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
-    upsertDateField: Either[ServiceErrorModel, Unit] = Right(()),
-    upsertStatusField: Either[ServiceErrorModel, Unit] = Right(())
+    upsertDateField: Either[ServiceError, Unit] = Right(()),
+    upsertStatusField: Either[ServiceError, Unit] = Right(())
 ) extends JourneyAnswersRepository {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -43,5 +43,5 @@ case class StubJourneyAnswersRepository(
   def testOnlyClearAllData(): ApiResultT[Unit] = ???
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
-    EitherT.rightT[Future, ServiceErrorModel](getAnswer)
+    EitherT.rightT[Future, ServiceError](getAnswer)
 }

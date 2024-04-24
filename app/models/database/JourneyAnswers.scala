@@ -17,10 +17,13 @@
 package models.database
 
 import models.common.{Journey, JourneyStatus, Mtditid, TaxYear}
+import models.error.ServiceError.InvalidJsonFormatError
+import models.jsonAs
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time._
+import scala.reflect.ClassTag
 
 case class JourneyAnswers(mtditid: Mtditid,
                           taxYear: TaxYear,
@@ -29,7 +32,9 @@ case class JourneyAnswers(mtditid: Mtditid,
                           data: JsObject,
                           expireAt: Instant,
                           createdAt: Instant,
-                          updatedAt: Instant)
+                          updatedAt: Instant) {
+  def validatedAs[A: Reads](implicit ct: ClassTag[A]): Either[InvalidJsonFormatError, A] = jsonAs[A](data)
+}
 
 object JourneyAnswers extends MongoJavatimeFormats.Implicits {
   private val reads: Reads[JourneyAnswers] = Json

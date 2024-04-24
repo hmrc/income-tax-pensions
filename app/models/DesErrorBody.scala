@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.libs.json.{JsPath, JsValue, Json, JsonValidationError, OFormat}
 
 trait ServiceErrorBody
 

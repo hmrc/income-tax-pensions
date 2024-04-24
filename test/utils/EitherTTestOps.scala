@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
 import cats.data.EitherT
-import models.error.ServiceError
+import org.scalatest.EitherValues._
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import scala.concurrent.Future
 
-package object domain {
-  type ApiResultT[A] = EitherT[Future, ServiceError, A]
+object EitherTTestOps extends ScalaFutures with IntegrationPatience {
+
+  implicit class EitherTExtensions[A, B](val eitherT: EitherT[Future, A, B]) {
+    def rightValue: B = eitherT.value.futureValue.value
+    def leftValue: A  = eitherT.value.futureValue.left.value
+  }
 }

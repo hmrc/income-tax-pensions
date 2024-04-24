@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package models
+package repositories
 
-import cats.data.EitherT
-import models.error.ServiceError
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{BeforeAndAfterEach, OptionValues}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import uk.gov.hmrc.mongo.test.MongoSupport
 
-import scala.concurrent.Future
+trait MongoSpec extends AnyWordSpec with Matchers with MongoSupport with BeforeAndAfterEach with GuiceOneAppPerSuite with OptionValues {
 
-package object domain {
-  type ApiResultT[A] = EitherT[Future, ServiceError, A]
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(
+    timeout = Span(5, Seconds),
+    interval = Span(500, Millis)
+  )
+
 }

@@ -18,10 +18,10 @@ package repositories
 
 import cats.data.EitherT
 import cats.implicits._
-import models.ServiceErrorModel
 import models.common._
 import models.database.JourneyAnswers
 import models.domain.ApiResultT
+import models.error.ServiceError
 import org.mongodb.scala._
 import org.mongodb.scala.bson._
 import org.mongodb.scala.model._
@@ -73,7 +73,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     with Logging {
 
   def testOnlyClearAllData(): ApiResultT[Unit] =
-    EitherT.right[ServiceErrorModel](
+    EitherT.right[ServiceError](
       collection
         .deleteMany(new org.bson.Document())
         .toFuture()
@@ -87,7 +87,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] = {
     val filter = filterJourney(ctx)
-    EitherT.right[ServiceErrorModel](
+    EitherT.right[ServiceError](
       collection
         .withReadPreference(ReadPreference.primaryPreferred()) // TODO Why? Cannot we just use standard?
         .find(filter)
@@ -158,7 +158,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
       result.getModifiedCount == 0 && result.getMatchedCount == 0 && Option(result.getUpsertedId).nonEmpty
     def updatedSuccessfully(result: UpdateResult) = result.getModifiedCount == 1
 
-    val futResult: Future[Either[ServiceErrorModel, UpdateResult]] = result.map { r =>
+    val futResult: Future[Either[ServiceError, UpdateResult]] = result.map { r =>
       val notInsertedOne = !insertedSuccessfully(r)
       val notUpdatedOne  = !updatedSuccessfully(r)
 

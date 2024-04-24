@@ -36,7 +36,7 @@ object AppDependencies {
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.14.2",
     "org.typelevel"                %% "cats-core"                 % "2.9.0",
     "com.beachape"                 %% "enumeratum"                % "1.7.3",
-    "com.beachape"                 %% "enumeratum-play-json"      % "1.7.3" excludeAll (jacksonAndPlayExclusions *),
+    "com.beachape"                 %% "enumeratum-play-json"      % "1.7.3" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test = Seq(
@@ -44,6 +44,7 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30"  % hmrcMongoVersion % "test, it",
     "org.playframework"      %% "play-test"                % "3.0.1"          % Test,
     "org.scalatest"          %% "scalatest"                % "3.2.15"         % Test,
+    "org.scalatestplus"      %% "scalacheck-1-15"          % "3.2.10.0"       % "test, it",
     "com.vladsch.flexmark"    % "flexmark-all"             % flexmarkVersion  % "test, it",
     "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"          % "test, it",
     "com.github.tomakehurst"  % "wiremock-jre8-standalone" % "2.35.1"         % "test, it",

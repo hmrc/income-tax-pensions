@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package models
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.model.Filters
 
-import cats.data.EitherT
-import models.error.ServiceError
+import scala.concurrent.{ExecutionContext, Future}
 
-import scala.concurrent.Future
+package object repositories {
 
-package object domain {
-  type ApiResultT[A] = EitherT[Future, ServiceError, A]
+  def removeAll(collection: MongoCollection[_])(implicit ec: ExecutionContext): Future[Unit] =
+    collection
+      .deleteMany(Filters.empty())
+      .toFuture()
+      .map(_ => ())
 }
