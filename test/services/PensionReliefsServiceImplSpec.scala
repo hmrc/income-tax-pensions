@@ -21,17 +21,18 @@ import connectors._
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import models._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
+import stubs.repositories.StubJourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
 import scala.concurrent.Future
 
-class PensionReliefsServiceSpec extends TestUtils {
+class PensionReliefsServiceImplSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val submissionConnector: SubmissionConnector  = mock[SubmissionConnector]
   val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
-  val service: PensionReliefsService            = new PensionReliefsService(reliefsConnector, submissionConnector)
+  val service: PensionReliefsService            = new PensionReliefsServiceImpl(reliefsConnector, submissionConnector, StubJourneyAnswersRepository())
 
   val taxYear = 2022
   val nino    = "AA123456A"

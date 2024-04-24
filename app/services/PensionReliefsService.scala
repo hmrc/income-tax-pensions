@@ -16,16 +16,32 @@
 
 package services
 
-import connectors.{PensionReliefsConnector, SubmissionConnector}
+import cats.data.EitherT
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
+import connectors.{PensionReliefsConnector, SubmissionConnector}
 import models.{CreateOrUpdatePensionReliefsModel, ServiceErrorModel}
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureEitherOps
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionReliefsService @Inject() (reliefsConnector: PensionReliefsConnector, submissionConnector: SubmissionConnector) {
+trait PensionReliefsService {
+  def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse]
+  def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]]
+  def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]]
+}
+
+@Singleton
+class PensionReliefsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
+                                           submissionConnector: SubmissionConnector,
+                                           repository: JourneyAnswersRepository)
+    extends PensionReliefsService {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
@@ -33,9 +49,11 @@ class PensionReliefsService @Inject() (reliefsConnector: PensionReliefsConnector
   def saveUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int, userData: CreateOrUpdatePensionReliefsModel)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
+//    val ctx = JourneyContext(TaxYear(taxYear), Mtditid(mtditid), Journey.PaymentsIntoPensions) // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
     (for {
-      _      <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+      _      <- EitherT(reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
+      result <- EitherT(submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+//      _      <- repository.upsertAnswers(ctx, Json.obj()) // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
     } yield result).value
 
   def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)(implicit

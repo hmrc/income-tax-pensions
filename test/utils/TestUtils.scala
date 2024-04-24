@@ -21,6 +21,8 @@ import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import controllers.predicates.AuthorisedAction
 import models._
+import models.common._
+import models.database.JourneyAnswers
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.SystemMaterializer
 import org.scalamock.scalatest.MockFactory
@@ -28,6 +30,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.JsObject
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
 import play.api.test.{FakeRequest, Helpers}
 import play.libs.pekko.PekkoGuiceSupport
@@ -41,6 +44,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EmploymentPensionsBuilder.employmentPensionsData
 
+import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
@@ -234,5 +239,39 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     stateBenefits = Some(anAllStateBenefitsData),
     employmentPensions = Some(employmentPensionsData),
     pensionIncome = Some(fullPensionIncomeModel)
+  )
+}
+
+object TestUtils {
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  // static data
+  val taxYear: TaxYear         = TaxYear(2024)
+  val taxYearStart: String     = TaxYear.startDate(taxYear)
+  val taxYearEnd: String       = TaxYear.endDate(taxYear)
+  val nino: models.common.Nino = models.common.Nino("nino")
+  val mtditid: Mtditid         = Mtditid("1234567890")
+
+  // dynamic & generated data
+  val currTaxYear: TaxYear     = TaxYear(LocalDate.now().getYear)
+  val currTaxYearStart: String = TaxYear.startDate(currTaxYear)
+  val currTaxYearEnd: String   = TaxYear.endDate(currTaxYear)
+
+  // more complex data
+  val journeyCtxWithNino: JourneyContextWithNino = JourneyContextWithNino(currTaxYear, mtditid, nino)
+  val paymentsIntoPensionsCtx: JourneyContext    = journeyCtxWithNino.toJourneyContext(Journey.PaymentsIntoPensions)
+
+  // operations
+  def mkNow(): Instant                 = Instant.now().truncatedTo(ChronoUnit.SECONDS)
+  def mkClock(now: Instant): TestClock = TestClock(now, ZoneOffset.UTC)
+  def mkJourneyAnswers(journey: Journey, status: JourneyStatus, data: JsObject): JourneyAnswers = JourneyAnswers(
+    mtditid,
+    currTaxYear,
+    journey,
+    status,
+    data,
+    Instant.now(),
+    Instant.now(),
+    Instant.now()
   )
 }

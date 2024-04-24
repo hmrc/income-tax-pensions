@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import helpers.WiremockSpec
 import models._
 import play.api.Configuration
@@ -32,7 +32,7 @@ class SubmissionConnectorISpec extends WiremockSpec {
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  def appConfig(desHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
     override val submissionBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 

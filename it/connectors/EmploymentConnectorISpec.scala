@@ -17,7 +17,7 @@
 package connectors
 
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
-import config.BackendAppConfig
+import config.AppConfig
 import helpers.WiremockSpec
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -34,7 +34,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
   val configuration  = app.injector.instanceOf[Configuration]
   val servicesConfig = app.injector.instanceOf[ServicesConfig]
 
-  val appConfig = new BackendAppConfig(configuration, servicesConfig) {
+  val appConfig = new AppConfig(configuration, servicesConfig) {
     override val employmentBaseUrl: String = s"http://localhost:$wireMockPort"
   }
 
