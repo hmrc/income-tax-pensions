@@ -24,6 +24,7 @@ import models.domain.ApiResultT
 import models.error.ServiceError
 import org.mongodb.scala._
 import org.mongodb.scala.bson._
+import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
@@ -41,6 +42,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait JourneyAnswersRepository {
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]]
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit]
+  def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]]
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit]
   def testOnlyClearAllData(): ApiResultT[Unit]
 }
@@ -104,6 +106,22 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
     handleUpdateExactlyOne(ctx, collection.updateOne(filter, update, options).toFuture())
   }
+
+  def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] = {
+    val filter     = filterAllJourneys(taxYear, mtditid)
+    val projection = exclude("data")
+    EitherT.right[ServiceError](
+      collection
+        .find(filter)
+        .projection(projection)
+        .toFuture()
+        .map(_.toList.map(a => JourneyNameAndStatus(a.journey, a.status))))
+  }
+
+  private def filterAllJourneys(taxYear: TaxYear, mtditid: Mtditid) = Filters.and(
+    Filters.eq("mtditid", mtditid.value),
+    Filters.eq("taxYear", taxYear.endYear)
+  )
 
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit] = {
     logger.info(s"Repository: ctx=${ctx.toString} persisting new status=$status")
