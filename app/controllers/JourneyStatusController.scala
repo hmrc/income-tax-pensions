@@ -32,8 +32,8 @@ class JourneyStatusController @Inject() (journeyStatusService: JourneyStatusServ
     extends BackendController(cc)
     with Logging {
 
-  def getAllStatuses(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit request =>
-    val result = journeyStatusService.getAllStatuses(TaxYear(taxYear), Mtditid(request.mtditid), Nino(nino))
+  def getAllStatuses(taxYear: Int): Action[AnyContent] = auth.async { implicit request =>
+    val result = journeyStatusService.getAllStatuses(TaxYear(taxYear), Mtditid(request.mtditid))
     handleApiResultT(result)
   }
 }

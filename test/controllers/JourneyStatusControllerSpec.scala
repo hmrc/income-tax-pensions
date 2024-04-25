@@ -20,14 +20,14 @@ import cats.data.EitherT
 import cats.implicits.catsSyntaxEitherId
 import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
 import models.common.JourneyStatus.{Completed, InProgress}
-import models.common.{JourneyNameAndStatus, Mtditid, Nino, TaxYear}
+import models.common.{JourneyNameAndStatus, Mtditid, TaxYear}
 import models.error.ServiceError
 import play.api.http.Status.OK
 import play.api.libs.json.Json
 import services.JourneyStatusService
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
-import utils.TestUtils.{nino, taxYear}
+import utils.TestUtils.taxYear
 
 import scala.concurrent.Future
 
@@ -43,10 +43,10 @@ class JourneyStatusControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         (journeyStatusService
-          .getAllStatuses(_: TaxYear, _: Mtditid, _: Nino)(_: HeaderCarrier))
-          .expects(*, *, *, *)
+          .getAllStatuses(_: TaxYear, _: Mtditid)(_: HeaderCarrier))
+          .expects(*, *, *)
           .returning(EitherT.fromEither[Future](journeyNamesAndStatusList.asRight[ServiceError]))
-        underTest.getAllStatuses(nino.value, taxYear.endYear)(fakeRequest)
+        underTest.getAllStatuses(taxYear.endYear)(fakeRequest)
       }
 
       status(result) mustBe OK

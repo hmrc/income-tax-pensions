@@ -24,12 +24,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import javax.inject.{Inject, Singleton}
 
 trait JourneyStatusService {
-  def getAllStatuses(taxYear: TaxYear, mtditid: Mtditid, nino: Nino)(implicit hc: HeaderCarrier): ApiResultT[List[JourneyNameAndStatus]]
+  def getAllStatuses(taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[List[JourneyNameAndStatus]]
 }
 
 @Singleton
 class JourneyStatusServiceImpl @Inject() (repository: JourneyAnswersRepository) extends JourneyStatusService {
 
-  def getAllStatuses(taxYear: TaxYear, mtditid: Mtditid, nino: Nino)(implicit hc: HeaderCarrier): ApiResultT[List[JourneyNameAndStatus]] =
+  def getAllStatuses(taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[List[JourneyNameAndStatus]] =
     repository.getAllJourneyStatuses(taxYear, mtditid)
 }

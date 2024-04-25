@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.repositories.StubJourneyAnswersRepository
 import utils.EitherTTestOps.convertScalaFuture
-import utils.TestUtils.{hc, mtditid, nino, taxYear}
+import utils.TestUtils.{hc, mtditid, taxYear}
 
 import java.time.Instant
 
@@ -35,7 +35,7 @@ class JourneyStatusServiceImplSpec extends AnyWordSpecLike with Matchers {
 
   "getAllStatuses" should {
     "return an empty list if no answers exist" in {
-      val result = underTest.getAllStatuses(taxYear, mtditid, nino)
+      val result = underTest.getAllStatuses(taxYear, mtditid)
       result.value.futureValue shouldBe List.empty.asRight
     }
 
@@ -46,7 +46,7 @@ class JourneyStatusServiceImplSpec extends AnyWordSpecLike with Matchers {
       )
       val underTest = new JourneyStatusServiceImpl(repository.copy(getAllJourneyStatuses = statusList))
 
-      val result = underTest.getAllStatuses(taxYear, mtditid, nino)
+      val result = underTest.getAllStatuses(taxYear, mtditid)
       result.value.futureValue shouldBe statusList.asRight
     }
   }
