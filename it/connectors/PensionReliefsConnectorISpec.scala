@@ -17,10 +17,10 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import connectors.PensionReliefsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
-import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, DesErrorModel, GetPensionReliefsModel, PensionReliefs}
+import models._
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -34,7 +34,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
   lazy val httpClient: HttpClient             = app.injector.instanceOf[HttpClient]
 
   def appConfig(desIfHost: String): AppConfig =
-    new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
       override val desBaseUrl: String = s"http://$desIfHost:$wireMockPort"
       override val ifBaseUrl: String  = s"http://$desIfHost:$wireMockPort"
     }
