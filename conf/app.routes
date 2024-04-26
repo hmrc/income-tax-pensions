@@ -1,13 +1,9 @@
 GET           /income-tax/nino/:nino/sources                                   controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
-<<<<<<< HEAD
-# Pension Charges
-=======
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 
-#Pension Charges
->>>>>>> origin/main
+# Pension Charges
 GET           /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
 DELETE        /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
