@@ -25,6 +25,7 @@ import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsRespons
 import models._
 import models.employment.AllEmploymentData
 import play.api.http.Status.INTERNAL_SERVER_ERROR
+import stubs.repositories.StubJourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
@@ -41,7 +42,13 @@ class PensionsServiceSpec extends TestUtils {
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
   val mockEmploymentConnector: EmploymentConnector      = mock[EmploymentConnector]
   val service: PensionsService =
-    new PensionsService(reliefsConnector, chargesConnector, stateBenefitsConnector, pensionIncomeConnector, mockEmploymentConnector)
+    new PensionsService(
+      reliefsConnector,
+      chargesConnector,
+      stateBenefitsConnector,
+      pensionIncomeConnector,
+      mockEmploymentConnector,
+      StubJourneyAnswersRepository())
 
   val taxYear = 2022
   val nino    = "AA123456A"
