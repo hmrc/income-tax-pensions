@@ -16,7 +16,9 @@
 
 package models.frontend
 
+import models.{PensionReliefs, Zero}
 import play.api.libs.json.{Json, OFormat}
+import cats.implicits._
 
 final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Option[Boolean] = None,
                                              totalRASPaymentsAndTaxRelief: Option[BigDecimal] = None,
@@ -26,7 +28,15 @@ final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Option[B
                                              retirementAnnuityContractPaymentsQuestion: Option[Boolean] = None,
                                              totalRetirementAnnuityContractPayments: Option[BigDecimal] = None,
                                              workplacePensionPaymentsQuestion: Option[Boolean] = None,
-                                             totalWorkplacePensionPayments: Option[BigDecimal] = None)
+                                             totalWorkplacePensionPayments: Option[BigDecimal] = None) {
+  def toPensionReliefs(overseasPensionSchemeContributions: Option[BigDecimal]): PensionReliefs = PensionReliefs(
+    regularPensionContributions = totalRASPaymentsAndTaxRelief.getOrElse(Zero).some,
+    oneOffPensionContributionsPaid = totalOneOffRasPaymentPlusTaxRelief.getOrElse(Zero).some,
+    retirementAnnuityPayments = totalRetirementAnnuityContractPayments.getOrElse(Zero).some,
+    paymentToEmployersSchemeNoTaxRelief = totalWorkplacePensionPayments.getOrElse(Zero).some,
+    overseasPensionSchemeContributions = overseasPensionSchemeContributions // not part of this journey, but if we set None it will be wiped out
+  )
+}
 
 object PaymentsIntoPensionsAnswers {
   implicit val format: OFormat[PaymentsIntoPensionsAnswers] = Json.format[PaymentsIntoPensionsAnswers]

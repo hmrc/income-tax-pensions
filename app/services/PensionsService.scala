@@ -51,10 +51,15 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     res.leftMap(err => err.toServiceError)
   }
 
-  def upsertPensionsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers): ApiResultT[Unit] = {
+  def upsertPensionsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
+
     for {
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino.value, ctx.taxYear.endYear)
+      maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
+      updatedReliefs                          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
+      _ <- reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

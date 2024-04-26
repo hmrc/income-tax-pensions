@@ -21,6 +21,8 @@ import play.api.libs.json.{JsObject, Reads}
 import scala.reflect.ClassTag
 
 package object models {
+  val Zero: BigDecimal = 0.0
+
   def jsonAs[A: Reads](jsObj: JsObject)(implicit ct: ClassTag[A]): Either[InvalidJsonFormatError, A] =
     jsObj
       .validate[A]
