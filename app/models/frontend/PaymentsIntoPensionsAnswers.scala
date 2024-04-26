@@ -20,15 +20,15 @@ import models.{PensionReliefs, Zero}
 import play.api.libs.json.{Json, OFormat}
 import cats.implicits._
 
-final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Option[Boolean] = None,
-                                             totalRASPaymentsAndTaxRelief: Option[BigDecimal] = None,
-                                             oneOffRasPaymentPlusTaxReliefQuestion: Option[Boolean] = None,
-                                             totalOneOffRasPaymentPlusTaxRelief: Option[BigDecimal] = None,
-                                             pensionTaxReliefNotClaimedQuestion: Option[Boolean] = None,
-                                             retirementAnnuityContractPaymentsQuestion: Option[Boolean] = None,
-                                             totalRetirementAnnuityContractPayments: Option[BigDecimal] = None,
-                                             workplacePensionPaymentsQuestion: Option[Boolean] = None,
-                                             totalWorkplacePensionPayments: Option[BigDecimal] = None) {
+final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
+                                             totalRASPaymentsAndTaxRelief: Option[BigDecimal],
+                                             oneOffRasPaymentPlusTaxReliefQuestion: Option[Boolean],
+                                             totalOneOffRasPaymentPlusTaxRelief: Option[BigDecimal],
+                                             pensionTaxReliefNotClaimedQuestion: Boolean,
+                                             retirementAnnuityContractPaymentsQuestion: Option[Boolean],
+                                             totalRetirementAnnuityContractPayments: Option[BigDecimal],
+                                             workplacePensionPaymentsQuestion: Option[Boolean],
+                                             totalWorkplacePensionPayments: Option[BigDecimal]) {
   def toPensionReliefs(overseasPensionSchemeContributions: Option[BigDecimal]): PensionReliefs = PensionReliefs(
     regularPensionContributions = totalRASPaymentsAndTaxRelief.getOrElse(Zero).some,
     oneOffPensionContributionsPaid = totalOneOffRasPaymentPlusTaxRelief.getOrElse(Zero).some,

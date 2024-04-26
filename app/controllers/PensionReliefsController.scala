@@ -38,10 +38,12 @@ class PensionReliefsController @Inject() (pensionsService: PensionsService,
     extends BackendController(cc)
     with Logging {
 
+  // TODO Move it to one common Controller at the end of refactoring and add tests
   def getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     handleOptionalApiResult(pensionsService.getPaymentsIntoPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
+  // TODO Move it to one common Controller at the end of refactoring and add tests
   def savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     getBodyWithCtx[PaymentsIntoPensionsAnswers](taxYear, nino) { (ctx, value) =>
       pensionsService.upsertPaymentsIntoPensions(ctx, value).map(_ => NoContent)

@@ -19,11 +19,11 @@ package models.database
 import models.frontend.PaymentsIntoPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
-final case class PaymentsIntoPensionsStorageAnswers(rasPensionPaymentQuestion: Option[Boolean] = None,
-                                                    oneOffRasPaymentPlusTaxReliefQuestion: Option[Boolean] = None,
-                                                    pensionTaxReliefNotClaimedQuestion: Option[Boolean] = None,
-                                                    retirementAnnuityContractPaymentsQuestion: Option[Boolean] = None,
-                                                    workplacePensionPaymentsQuestion: Option[Boolean] = None)
+final case class PaymentsIntoPensionsStorageAnswers(rasPensionPaymentQuestion: Boolean,
+                                                    oneOffRasPaymentPlusTaxReliefQuestion: Option[Boolean],
+                                                    pensionTaxReliefNotClaimedQuestion: Boolean,
+                                                    retirementAnnuityContractPaymentsQuestion: Option[Boolean],
+                                                    workplacePensionPaymentsQuestion: Option[Boolean])
 
 object PaymentsIntoPensionsStorageAnswers {
   implicit val format: OFormat[PaymentsIntoPensionsStorageAnswers] = Json.format[PaymentsIntoPensionsStorageAnswers]

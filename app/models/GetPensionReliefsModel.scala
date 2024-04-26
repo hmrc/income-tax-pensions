@@ -30,17 +30,8 @@ object PensionReliefs {
 }
 
 case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs) {
-  def toPaymentsIntoPensions(): PaymentsIntoPensionsAnswers = PaymentsIntoPensionsAnswers(
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None
-  )
+  // TODO It will be implemented in the next PR
+  def toPaymentsIntoPensions(): PaymentsIntoPensionsAnswers = ???
 }
 
 object GetPensionReliefsModel {
