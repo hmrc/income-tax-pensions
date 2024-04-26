@@ -2,6 +2,7 @@
 
 GET           /income-tax/nino/:nino/sources                                   controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
+# Journeys
 GET           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
