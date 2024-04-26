@@ -55,15 +55,22 @@ package object controllers {
     InternalServerError(error.errorMessage)
   }
 
-  private def parseBody[A: Reads](user: User[AnyContent]): Try[Option[JsResult[A]]] =
-    Try(user.body.asJson.map(_.validate[A]))
+  private def parseBody[A: Reads](user: User[AnyContent])(implicit logger: Logger): Try[Option[JsResult[A]]] =
+    Try {
+      val maybeJson  = user.body.asJson
+      val prettyJson = maybeJson.map(Json.prettyPrint).getOrElse("")
+
+      logger.debug(s"Request Body:\n===Request Body Received===\n$prettyJson\n===")
+      maybeJson.map(_.validate[A])
+    }
 
   def getBody[A: Reads](user: User[AnyContent])(invokeBlock: A => ApiResultT[Result])(implicit ec: ExecutionContext, logger: Logger): Future[Result] =
     parseBody[A](user) match {
       case Success(validatedRes) =>
         validatedRes.fold[Future[Result]](Future.successful(BadRequest)) {
-          case JsSuccess(value, _) => handleResultT(invokeBlock(value))
-          case JsError(err)        => Future.successful(toBadRequest(CannotReadJsonError(err.toList)))
+          case JsSuccess(value, _) =>
+            handleResultT(invokeBlock(value))
+          case JsError(err) => Future.successful(toBadRequest(CannotReadJsonError(err.toList)))
         }
       case Failure(err) => Future.successful(toBadRequest(CannotParseJsonError(err)))
     }
