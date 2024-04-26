@@ -18,9 +18,9 @@ package repositories
 
 import cats.data.EitherT
 import cats.implicits._
-import models.common.Journey.PaymentsIntoPensions
+import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
 import models.common.JourneyStatus._
-import models.common.{Journey, JourneyContext}
+import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
 import models.database.JourneyAnswers
 import models.error.ServiceError
 import org.scalatest.EitherValues._
@@ -117,6 +117,20 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
 
       result.status shouldBe Completed
       result.updatedAt shouldBe now.plus(Duration.ofDays(2))
+    }
+  }
+
+  "getAllJourneyStatuses" should {
+    "return the completed status of any journey answers" in {
+      val result = (for {
+        _        <- repository.upsertAnswers(paymentsIntoPensionsCtx, Json.obj("field" -> "value"))
+        _        <- repository.upsertAnswers(unauthorisedPaymentsCtx, Json.obj("field" -> "value"))
+        _        <- repository.setStatus(paymentsIntoPensionsCtx, Completed)
+        _        <- repository.setStatus(unauthorisedPaymentsCtx, InProgress)
+        statuses <- repository.getAllJourneyStatuses(taxYear, mtditid)
+      } yield statuses).rightValue
+
+      result shouldBe List(JourneyNameAndStatus(PaymentsIntoPensions, Completed), JourneyNameAndStatus(UnauthorisedPayments, InProgress))
     }
   }
 
