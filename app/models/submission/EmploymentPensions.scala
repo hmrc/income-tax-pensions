@@ -20,10 +20,17 @@ import cats.implicits.catsSyntaxOptionId
 import models.employment.AllEmploymentData
 import play.api.libs.json.{Json, OFormat}
 
-final case class EmploymentPensions(employmentData: Seq[EmploymentPensionModel])
+final case class EmploymentPensions(employmentData: Seq[EmploymentPensionModel]) {
+
+  def isEmpty: Boolean =
+    this.employmentData.isEmpty
+}
 
 object EmploymentPensions {
   implicit val format: OFormat[EmploymentPensions] = Json.format[EmploymentPensions]
+
+  val empty: EmploymentPensions =
+    EmploymentPensions(Seq.empty[EmploymentPensionModel])
 
   /** Case class for converting the raw employment data response we retrieve from income-tax-employments into a model containing data only relevant to
     * pensions. This model is what will be serialized and sent over the wire to income-tax-submission.

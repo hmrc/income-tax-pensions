@@ -1,8 +1,6 @@
-# microservice specific routes
-
 GET           /income-tax/nino/:nino/sources                                   controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
-#Pension Charges
+# Pension Charges
 GET           /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
 DELETE        /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
@@ -14,7 +12,7 @@ PUT           /pension-charges/session-data/nino/:nino/taxYear/:taxYear        c
 DELETE        /pension-charges/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionChargesController.deletePensionChargesData(nino:String, taxYear: Int)
 
 
-#Pension Reliefs
+# Pension Reliefs
 GET           /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
 
 PUT           /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.createOrAmendPensionReliefs(nino: String, taxYear: Int)
@@ -25,7 +23,7 @@ PUT           /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        c
 
 DELETE        /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionReliefsController.deletePensionReliefsUserData(nino:String, taxYear: Int)
 
-#Pension Income
+# Pension Income
 GET           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.getPensionIncome(nino: String, taxYear: Int)
 
 PUT           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.createOrAmendPensionIncome(nino: String, taxYear: Int)
@@ -35,3 +33,6 @@ DELETE        /pension-income/nino/:nino/taxYear/:taxYear                      c
 PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
 
 DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
+
+# Employment Pension
+GET           /employment-pensions/nino/:nino/taxYear/:taxYear                 controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)

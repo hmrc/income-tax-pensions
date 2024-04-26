@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext
 
 class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
-  def getEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
+  def loadEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
     val incomeSourceUri: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"
 
     def call(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {

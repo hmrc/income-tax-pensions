@@ -16,6 +16,7 @@
 
 package utils
 
+import cats.data.EitherT
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
@@ -51,6 +52,10 @@ import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
 trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach with PekkoGuiceSupport {
 
+  val taxYear = 2022
+  val nino    = "AA123456A"
+  val mtditid = "1234567890"
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     SharedMetricRegistries.clear()
@@ -61,8 +66,8 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
 
-  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type]   = FakeRequest().withHeaders("mtditid" -> "1234567890")
-  val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession("MTDITID" -> "1234567890")
+  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type]   = FakeRequest().withHeaders("mtditid" -> mtditid)
+  val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession("MTDITID" -> mtditid)
   implicit val emptyHeaderCarrier: HeaderCarrier                  = HeaderCarrier()
 
   val mockAppConfig: AppConfig                                = app.injector.instanceOf[AppConfig]
@@ -79,6 +84,12 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     val awaited = await(awaitable)
     await(awaited.body.consumeData.map(_.utf8String))
   }
+
+  val someServiceError: ServiceErrorModel =
+    DesErrorModel(
+      status = 500,
+      body = DesErrorBodyModel.serverError
+    )
 
   val individualEnrolments: Enrolments = Enrolments(
     Set(
@@ -274,4 +285,9 @@ object TestUtils {
     Instant.now(),
     Instant.now()
   )
+
+  implicit class ToEitherTOps[A, B](value: Either[A, B]) {
+    def toEitherT(implicit ec: ExecutionContext): EitherT[Future, A, B] =
+      EitherT.fromEither[Future](value)
+  }
 }
