@@ -20,19 +20,44 @@ import cats.data.EitherT
 import cats.implicits.{catsSyntaxOptionId, none}
 import connectors._
 import models._
+import models.common.{Journey, JourneyContext, JourneyContextWithNino}
+import models.domain.ApiResultT
 import models.employment.AllEmploymentData
+import models.frontend.PaymentsIntoPensionsAnswers
 import models.submission.EmploymentPensions
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import cats.implicits._
+import models.database.PaymentsIntoPensionsStorageAnswers
+import play.api.libs.json.Json
+import repositories.JourneyAnswersRepository
 
 class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentConnector) {
+                                 employmentsConnector: EmploymentConnector,
+                                 repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
+
+  def getPensionsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
+    val res = for {
+      reliefs <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear))
+      paymentsIntoPensionsAnswers = reliefs.map(_.toPaymentsIntoPensions())
+    } yield paymentsIntoPensionsAnswers
+
+    res.leftMap(err => err.toServiceError)
+  }
+
+  def upsertPensionsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers): ApiResultT[Unit] = {
+    val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
+    for {
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions

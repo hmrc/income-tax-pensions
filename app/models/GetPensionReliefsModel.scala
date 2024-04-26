@@ -16,6 +16,7 @@
 
 package models
 
+import models.frontend.PaymentsIntoPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class PensionReliefs(regularPensionContributions: Option[BigDecimal],
@@ -28,7 +29,19 @@ object PensionReliefs {
   implicit val format: OFormat[PensionReliefs] = Json.format[PensionReliefs]
 }
 
-case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs)
+case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs) {
+  def toPaymentsIntoPensions(): PaymentsIntoPensionsAnswers = PaymentsIntoPensionsAnswers(
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None
+  )
+}
 
 object GetPensionReliefsModel {
   implicit val format: OFormat[GetPensionReliefsModel] = Json.format[GetPensionReliefsModel]

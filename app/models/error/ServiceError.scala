@@ -39,4 +39,17 @@ object ServiceError {
   case class InvalidJsonFormatError(expectedCaseClassName: String, rawJson: String, error: JsonErrorWithPath) extends ServiceError {
     val errorMessage: String = s"Cannot convert JSON to a case class: $expectedCaseClassName. Error: ${error.toString}. JSON:\n$rawJson"
   }
+
+  final case class CannotReadJsonError(details: JsonErrorWithPath) extends ServiceError {
+    val errorMessage: String = s"Cannot read JSON: ${details.toString}"
+  }
+
+  final case class CannotParseJsonError(details: Throwable) extends ServiceError {
+    val errorMessage: String = s"Cannot parse JSON: ${details.getMessage}"
+  }
+
+  final case class DownstreamError(error: String) extends ServiceError {
+    val errorMessage: String = s"Downstream error: $error"
+  }
+
 }

@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
+import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.domain.ApiResultT
 import models.error.ServiceError
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Result
+import play.api.mvc.{AnyContent, Result}
 import play.api.mvc.Results._
+import models.User
+import models.error.ServiceError.{CannotParseJsonError, CannotReadJsonError}
+import play.api.http.Status.BAD_REQUEST
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 package object controllers {
 
@@ -49,4 +54,31 @@ package object controllers {
     logger.error(s"HttpError encountered: ${error.errorMessage}")
     InternalServerError(error.errorMessage)
   }
+
+  private def parseBody[A: Reads](user: User[AnyContent]): Try[Option[JsResult[A]]] =
+    Try(user.body.asJson.map(_.validate[A]))
+
+  def getBody[A: Reads](user: User[AnyContent])(invokeBlock: A => ApiResultT[Result])(implicit ec: ExecutionContext, logger: Logger): Future[Result] =
+    parseBody[A](user) match {
+      case Success(validatedRes) =>
+        validatedRes.fold[Future[Result]](Future.successful(BadRequest)) {
+          case JsSuccess(value, _) => handleResultT(invokeBlock(value))
+          case JsError(err)        => Future.successful(toBadRequest(CannotReadJsonError(err.toList)))
+        }
+      case Failure(err) => Future.successful(toBadRequest(CannotParseJsonError(err)))
+    }
+
+  def getBodyWithCtx[A: Reads](taxYear: TaxYear, nino: Nino)(invokeBlock: (JourneyContextWithNino, A) => ApiResultT[Result])(implicit
+      ec: ExecutionContext,
+      logger: Logger,
+      request: User[AnyContent]): Future[Result] = {
+    val ctx = JourneyContextWithNino(taxYear, request.getMtditid, nino)
+    getBody(request)(invokeBlock(ctx, _))
+  }
+
+  private def toBadRequest(error: ServiceError)(implicit logger: Logger): Result = {
+    logger.error(s"Bad Request: ${error.errorMessage}")
+    BadRequest(Json.obj("code" -> BAD_REQUEST, "reason" -> error.errorMessage))
+  }
+
 }

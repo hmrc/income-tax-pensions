@@ -19,20 +19,34 @@ package controllers
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.CreateOrAmendPensionReliefsResponse
 import controllers.predicates.AuthorisedAction
 import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, ServiceErrorModel}
-import play.api.Logging
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.PensionReliefsService
+import services.{PensionReliefsService, PensionsService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import models.common._
+import models.frontend.PaymentsIntoPensionsAnswers
+import utils.Logging
 
 @Singleton
-class PensionReliefsController @Inject() (pensionReliefsService: PensionReliefsService, auth: AuthorisedAction, cc: ControllerComponents)(implicit
-    ec: ExecutionContext)
+class PensionReliefsController @Inject() (pensionsService: PensionsService,
+                                          pensionReliefsService: PensionReliefsService,
+                                          auth: AuthorisedAction,
+                                          cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
+
+  def getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    handleOptionalApiResult(pensionsService.getPensionsIntoPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
+  def savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    getBodyWithCtx[PaymentsIntoPensionsAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertPensionsIntoPensions(ctx, value).map(_ => NoContent)
+    }
+  }
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     pensionReliefsService.getPensionReliefs(nino, taxYear).map {
