@@ -29,6 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
+    getAllJourneyStatuses: List[JourneyNameAndStatus] = List.empty,
     upsertDateField: Either[ServiceError, Unit] = Right(()),
     upsertStatusField: Either[ServiceError, Unit] = Right(())
 ) extends JourneyAnswersRepository {
@@ -44,4 +45,6 @@ case class StubJourneyAnswersRepository(
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
     EitherT.rightT[Future, ServiceError](getAnswer)
+  def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
+    EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
 }

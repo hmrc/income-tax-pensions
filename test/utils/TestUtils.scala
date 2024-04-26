@@ -271,6 +271,7 @@ object TestUtils {
   // more complex data
   val journeyCtxWithNino: JourneyContextWithNino = JourneyContextWithNino(currTaxYear, mtditid, nino)
   val paymentsIntoPensionsCtx: JourneyContext    = journeyCtxWithNino.toJourneyContext(Journey.PaymentsIntoPensions)
+  val unauthorisedPaymentsCtx: JourneyContext    = journeyCtxWithNino.toJourneyContext(Journey.UnauthorisedPayments)
 
   // operations
   def mkNow(): Instant                 = Instant.now().truncatedTo(ChronoUnit.SECONDS)

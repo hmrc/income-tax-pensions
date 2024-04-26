@@ -18,7 +18,7 @@ package config
 
 import com.google.inject.AbstractModule
 import repositories.{JourneyAnswersRepository, MongoJourneyAnswersRepository}
-import services.{LoadSubmittedDataService, LoadSubmittedDataServiceImpl, PensionReliefsService, PensionReliefsServiceImpl}
+import services._
 
 import java.time.{Clock, ZoneOffset}
 
@@ -30,6 +30,7 @@ class Module extends AbstractModule {
     bind(classOf[JourneyAnswersRepository]).to(classOf[MongoJourneyAnswersRepository])
     bind(classOf[PensionReliefsService]).to(classOf[PensionReliefsServiceImpl])
     bind(classOf[LoadSubmittedDataService]).to(classOf[LoadSubmittedDataServiceImpl])
+    bind(classOf[JourneyStatusService]).to(classOf[JourneyStatusServiceImpl])
   }
 
 }
