@@ -39,12 +39,12 @@ class PensionReliefsController @Inject() (pensionsService: PensionsService,
     with Logging {
 
   def getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    handleOptionalApiResult(pensionsService.getPensionsIntoPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+    handleOptionalApiResult(pensionsService.getPaymentsIntoPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
   def savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     getBodyWithCtx[PaymentsIntoPensionsAnswers](taxYear, nino) { (ctx, value) =>
-      pensionsService.upsertPensionsIntoPensions(ctx, value).map(_ => NoContent)
+      pensionsService.upsertPaymentsIntoPensions(ctx, value).map(_ => NoContent)
     }
   }
 

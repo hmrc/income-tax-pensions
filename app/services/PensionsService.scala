@@ -42,7 +42,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  employmentsConnector: EmploymentConnector,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 
-  def getPensionsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
     val res = for {
       reliefs <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear))
       paymentsIntoPensionsAnswers = reliefs.map(_.toPaymentsIntoPensions())
@@ -51,7 +51,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     res.leftMap(err => err.toServiceError)
   }
 
-  def upsertPensionsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+  def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
 
