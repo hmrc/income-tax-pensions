@@ -34,11 +34,10 @@ class LoadSubmittedDataController @Inject() (service: LoadSubmittedDataService, 
 
   // TODO: Implement proper error handling.
   def loadEmploymentPension(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit req =>
-    service.loadEmployment(nino, taxYear).map {
+    service.loadEmployment(nino, taxYear, req.mtditid).map {
       case Right(employmentPension) if employmentPension.isEmpty => NoContent
       case Right(employmentPension)                              => Ok(Json.toJson(employmentPension))
       case Left(error)                                           => Status(error.status)(error.toJson)
-
     }
   }
 }

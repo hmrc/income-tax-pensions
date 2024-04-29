@@ -38,4 +38,4 @@ PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         c
 DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
 
 # Employment Pension
-GET           /employment-pensions/nino/:nino/taxYear/:taxYear                 controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)
+GET           /employment-pension/nino/:nino/taxYear/:taxYear                 controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)

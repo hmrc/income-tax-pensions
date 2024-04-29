@@ -21,18 +21,19 @@ import connectors.EmploymentConnector
 import models.submission.EmploymentPensions
 import services.journeyAnswers.ServiceOutcome
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.HeaderCarrierUtils.HeaderCarrierOps
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 trait LoadSubmittedDataService {
-  def loadEmployment(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions]
+  def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions]
 }
 
 class LoadSubmittedDataServiceImpl @Inject() (connector: EmploymentConnector)(implicit ec: ExecutionContext) extends LoadSubmittedDataService {
 
-  override def loadEmployment(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
-    EitherT(connector.loadEmployments(nino, taxYear)).map {
+  override def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
+    EitherT(connector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))).map {
       case Some(e) => EmploymentPensions.fromEmploymentResponse(e)
       case None    => EmploymentPensions.empty
     }.value

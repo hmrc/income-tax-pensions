@@ -28,6 +28,6 @@ import utils.FutureUtils.FutureOps
 class StubLoadSubmittedDataService(
     loadEmploymentResult: ServiceOutcome[EmploymentPensions] = employmentPensionsData.asRight[ServiceErrorModel].toFuture
 ) extends LoadSubmittedDataService {
-  override def loadEmployment(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
+  override def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
     loadEmploymentResult
 }

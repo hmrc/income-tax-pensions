@@ -16,9 +16,10 @@
 
 package services
 
-import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
+import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId, none}
 import mocks.MockEmploymentConnector
 import models.ServiceErrorModel
+import models.employment.AllEmploymentData
 import models.submission.EmploymentPensions
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
@@ -40,13 +41,27 @@ class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConn
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
-            .loadEmployment(nino, taxYear)
+            .loadEmployment(nino, taxYear, mtditid)
             .futureValue
 
         val expectedEmploymentModel: EmploymentPensions =
           EmploymentPensions.fromEmploymentResponse(allEmploymentsData)
 
         result shouldBe expectedEmploymentModel.asRight
+      }
+    }
+    "connector returns a success result but with no EmploymentPensions" must {
+      "generate an empty EmploymentPensions model" in {
+        MockEmploymentConnector
+          .loadEmployments(nino, taxYear)
+          .returns(none[AllEmploymentData].asRight.toFuture)
+
+        val result: Either[ServiceErrorModel, EmploymentPensions] =
+          service
+            .loadEmployment(nino, taxYear, mtditid)
+            .futureValue
+
+        result shouldBe EmploymentPensions.empty.asRight
       }
     }
     "connector returns an unsuccessful result" must {
@@ -57,7 +72,7 @@ class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConn
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
-            .loadEmployment(nino, taxYear)
+            .loadEmployment(nino, taxYear, mtditid)
             .futureValue
 
         result shouldBe someServiceError.asLeft

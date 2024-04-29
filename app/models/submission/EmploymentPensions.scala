@@ -33,7 +33,7 @@ object EmploymentPensions {
     EmploymentPensions(Seq.empty[EmploymentPensionModel])
 
   /** Case class for converting the raw employment data response we retrieve from income-tax-employments into a model containing data only relevant to
-    * pensions. This model is what will be serialized and sent over the wire to income-tax-submission.
+    * pensions.
     */
   def fromEmploymentResponse(resp: AllEmploymentData): EmploymentPensions =
     EmploymentPensions(
