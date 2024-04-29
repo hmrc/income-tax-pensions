@@ -38,7 +38,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
     override val employmentBaseUrl: String = s"http://localhost:$wireMockPort"
   }
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val nino    = "AA000001B"
   val taxYear = 2024
