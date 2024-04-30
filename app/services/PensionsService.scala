@@ -74,7 +74,8 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       chargesData       <- EitherT(getCharges(nino, taxYear))
       stateBenefitsData <- EitherT(getStateBenefits(nino, taxYear, mtditid))
       pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
-      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
+//      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
+      employmentData = None // TODO It's broken for 2025, fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
