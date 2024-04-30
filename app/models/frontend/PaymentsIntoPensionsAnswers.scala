@@ -16,7 +16,7 @@
 
 package models.frontend
 
-import models.{PensionReliefs, Zero}
+import models.PensionReliefs
 import play.api.libs.json.{Json, OFormat}
 import cats.implicits._
 
@@ -30,10 +30,10 @@ final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
                                              workplacePensionPaymentsQuestion: Option[Boolean],
                                              totalWorkplacePensionPayments: Option[BigDecimal]) {
   def toPensionReliefs(overseasPensionSchemeContributions: Option[BigDecimal]): PensionReliefs = PensionReliefs(
-    regularPensionContributions = totalRASPaymentsAndTaxRelief.getOrElse(Zero).some,
-    oneOffPensionContributionsPaid = totalOneOffRasPaymentPlusTaxRelief.getOrElse(Zero).some,
-    retirementAnnuityPayments = totalRetirementAnnuityContractPayments.getOrElse(Zero).some,
-    paymentToEmployersSchemeNoTaxRelief = totalWorkplacePensionPayments.getOrElse(Zero).some,
+    regularPensionContributions = totalRASPaymentsAndTaxRelief,
+    oneOffPensionContributionsPaid = totalOneOffRasPaymentPlusTaxRelief,
+    retirementAnnuityPayments = totalRetirementAnnuityContractPayments,
+    paymentToEmployersSchemeNoTaxRelief = totalWorkplacePensionPayments,
     overseasPensionSchemeContributions = overseasPensionSchemeContributions // not part of this journey, but if we set None it will be wiped out
   )
 }

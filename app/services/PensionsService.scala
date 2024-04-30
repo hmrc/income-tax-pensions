@@ -41,14 +41,12 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  employmentsConnector: EmploymentConnector,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 
-  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
-    val res = for {
-      reliefs <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear))
-      paymentsIntoPensionsAnswers = reliefs.map(_.toPaymentsIntoPensions())
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
+    for {
+      reliefs        <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear)).leftMap(_.toServiceError)
+      maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
+      paymentsIntoPensionsAnswers = reliefs.flatMap(_.toPaymentsIntoPensions(maybeDbAnswers))
     } yield paymentsIntoPensionsAnswers
-
-    res.leftMap(err => err.toServiceError)
-  }
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
