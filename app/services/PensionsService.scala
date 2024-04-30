@@ -17,11 +17,17 @@
 package services
 
 import cats.data.EitherT
-import cats.implicits.{catsSyntaxOptionId, none}
+import cats.implicits._
 import connectors._
 import models._
+import models.common.{Journey, JourneyContextWithNino}
+import models.database.PaymentsIntoPensionsStorageAnswers
+import models.domain.ApiResultT
 import models.employment.AllEmploymentData
+import models.frontend.PaymentsIntoPensionsAnswers
 import models.submission.EmploymentPensions
+import play.api.libs.json.Json
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
@@ -32,7 +38,30 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentConnector) {
+                                 employmentsConnector: EmploymentConnector,
+                                 repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
+
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
+    val res = for {
+      reliefs <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear))
+      paymentsIntoPensionsAnswers = reliefs.map(_.toPaymentsIntoPensions())
+    } yield paymentsIntoPensionsAnswers
+
+    res.leftMap(err => err.toServiceError)
+  }
+
+  def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
+
+    for {
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino.value, ctx.taxYear.endYear)
+      maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
+      updatedReliefs                          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
+      _ <- reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions

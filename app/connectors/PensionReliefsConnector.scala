@@ -16,12 +16,15 @@
 
 package connectors
 
+import cats.data.EitherT
 import config.AppConfig
 import connectors.PensionReliefsConnector.PensionReliefsBaseApi
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
 import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
-import models.CreateOrUpdatePensionReliefsModel
+import models.common.JourneyContextWithNino
+import models.{CreateOrUpdatePensionReliefsModel, GetPensionReliefsModel}
+import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
 import play.api.Logging
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
@@ -39,6 +42,11 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
   private def pensionReliefsDesIncomeSourceUri(nino: String, taxYear: Int): String =
     appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
 
+  def getPensionReliefsT(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionReliefsModel]] = {
+    val ans = getPensionReliefs(nino, taxYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] = {
     def call(incomeSourceUri: String)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
       http.GET[GetPensionReliefsResponse](incomeSourceUri)
@@ -53,6 +61,11 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
       ConnectorRequestInfo("GET", incomeSourceUri, "des").logRequest(logger)
       call(incomeSourceUri)(desHeaderCarrier(incomeSourceUri))
     }
+  }
+  def createOrAmendPensionReliefsT(ctx: JourneyContextWithNino, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = createOrAmendPensionReliefs(ctx.nino.value, ctx.taxYear.endYear, pensionReliefs)
+    EitherT(ans).leftMap(err => err.toServiceError)
   }
 
   def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
