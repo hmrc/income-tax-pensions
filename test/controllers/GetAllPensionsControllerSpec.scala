@@ -21,7 +21,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
 import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel, ServiceErrorModel}
-import org.scalamock.handlers.{CallHandler4, CallHandler5}
+import org.scalamock.handlers.CallHandler4
 import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import services.PensionsService
@@ -30,7 +30,7 @@ import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EmploymentPensionsBuilder.employmentPensionsData
 import utils.TestUtils
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class GetAllPensionsControllerSpec extends TestUtils {
   val reliefsConnector: PensionReliefsConnector         = mock[PensionReliefsConnector]
@@ -71,8 +71,7 @@ class GetAllPensionsControllerSpec extends TestUtils {
       .returning(Future.successful(validEmptyPensionsData))
   }
 
-  def mockGetAllPensionsDataBadRequest()
-      : CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
+  def mockGetAllPensionsDataBadRequest(): CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
     val badRequestResponse = Left(DesErrorModel(BAD_REQUEST, DesErrorBodyModel.invalidTaxYear))
     (pensionsService
       .getAllPensionsData(_: String, _: Int, _: String)(_: HeaderCarrier))
