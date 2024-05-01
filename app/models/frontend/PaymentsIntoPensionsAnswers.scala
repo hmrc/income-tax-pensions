@@ -18,7 +18,6 @@ package models.frontend
 
 import models.PensionReliefs
 import play.api.libs.json.{Json, OFormat}
-import cats.implicits._
 
 final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
                                              totalRASPaymentsAndTaxRelief: Option[BigDecimal],

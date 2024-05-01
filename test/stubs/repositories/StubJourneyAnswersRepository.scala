@@ -22,10 +22,11 @@ import models.common._
 import models.database.JourneyAnswers
 import models.domain.ApiResultT
 import models.error.ServiceError
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Reads}
 import repositories.JourneyAnswersRepository
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
@@ -47,4 +48,6 @@ case class StubJourneyAnswersRepository(
     EitherT.rightT[Future, ServiceError](getAnswer)
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
+
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] = ???
 }
