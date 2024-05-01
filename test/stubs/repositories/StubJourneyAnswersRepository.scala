@@ -32,22 +32,29 @@ case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
     getAllJourneyStatuses: List[JourneyNameAndStatus] = List.empty,
     upsertDateField: Either[ServiceError, Unit] = Right(()),
+    var upsertAnswersList: List[JsValue] = Nil,
     upsertStatusField: Either[ServiceError, Unit] = Right(())
 ) extends JourneyAnswersRepository {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] =
+  def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
+    upsertAnswersList ::= newData
     EitherT.fromEither[Future](upsertDateField)
+  }
 
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit] =
     EitherT.fromEither[Future](upsertStatusField)
 
-  def testOnlyClearAllData(): ApiResultT[Unit] = ???
+  def testOnlyClearAllData(): ApiResultT[Unit] = {
+    upsertAnswersList = Nil
+    EitherT.rightT[Future, ServiceError](())
+  }
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
     EitherT.rightT[Future, ServiceError](getAnswer)
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
 
-  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] = ???
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
+    EitherT.rightT[Future, ServiceError](upsertAnswersList.headOption.map(_.as[A]))
 }

@@ -43,9 +43,9 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     for {
-      reliefs        <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear)).leftMap(_.toServiceError)
+      maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
-      paymentsIntoPensionsAnswers = reliefs.flatMap(_.toPaymentsIntoPensions(maybeDbAnswers))
+      paymentsIntoPensionsAnswers = maybeReliefs.flatMap(_.toPaymentsIntoPensions(maybeDbAnswers))
     } yield paymentsIntoPensionsAnswers
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -53,7 +53,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
 
     for {
-      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino.value, ctx.taxYear.endYear)
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
       updatedReliefs                          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
       _ <- reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
@@ -65,8 +65,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
   //       duplicates the data in the cache.
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[ServiceErrorModel, AllPensionsData]] =
+      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] =
     (for {
       reliefsData       <- EitherT(getReliefs(nino, taxYear))
       chargesData       <- EitherT(getCharges(nino, taxYear))
