@@ -16,6 +16,7 @@
 
 package models
 
+import models.database.PaymentsIntoPensionsStorageAnswers
 import models.frontend.PaymentsIntoPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
@@ -30,8 +31,22 @@ object PensionReliefs {
 }
 
 case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs) {
-  // TODO It will be implemented in the next PR
-  def toPaymentsIntoPensions(): PaymentsIntoPensionsAnswers = ???
+  // TODO When we finish introducing DB, come back to each journey and make sure we favour IFS answers over our DB state
+  def toPaymentsIntoPensions(maybeDbAnswers: Option[PaymentsIntoPensionsStorageAnswers]): Option[PaymentsIntoPensionsAnswers] =
+    maybeDbAnswers.map { dbAnswers =>
+      PaymentsIntoPensionsAnswers(
+        rasPensionPaymentQuestion = dbAnswers.rasPensionPaymentQuestion,
+        totalRASPaymentsAndTaxRelief = pensionReliefs.regularPensionContributions,
+        oneOffRasPaymentPlusTaxReliefQuestion = dbAnswers.oneOffRasPaymentPlusTaxReliefQuestion,
+        totalOneOffRasPaymentPlusTaxRelief = pensionReliefs.oneOffPensionContributionsPaid,
+        pensionTaxReliefNotClaimedQuestion = dbAnswers.pensionTaxReliefNotClaimedQuestion,
+        retirementAnnuityContractPaymentsQuestion = dbAnswers.retirementAnnuityContractPaymentsQuestion,
+        totalRetirementAnnuityContractPayments = pensionReliefs.retirementAnnuityPayments,
+        workplacePensionPaymentsQuestion = dbAnswers.workplacePensionPaymentsQuestion,
+        totalWorkplacePensionPayments = pensionReliefs.paymentToEmployersSchemeNoTaxRelief
+      )
+
+    }
 }
 
 object GetPensionReliefsModel {

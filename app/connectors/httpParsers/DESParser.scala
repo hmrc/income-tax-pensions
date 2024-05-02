@@ -27,8 +27,8 @@ trait DESParser extends Logging {
 
   val parserName: String
 
-  def logMessage(response: HttpResponse): String =
-    s"[$parserName][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response)
+  def logMessage(method: String, url: String, response: HttpResponse): String =
+    s"[$parserName][read] Received ${response.status} from DES: $method $url. Body:${response.body}" + getCorrelationId(response)
 
   def badSuccessJsonFromDES[Response]: Either[DesErrorModel, Response] = {
     pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, s"[$parserName][read] Invalid Json from DES.")

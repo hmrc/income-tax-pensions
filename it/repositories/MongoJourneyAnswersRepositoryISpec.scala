@@ -21,7 +21,7 @@ import cats.implicits._
 import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
 import models.common.JourneyStatus._
 import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
-import models.database.JourneyAnswers
+import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.error.ServiceError
 import org.scalatest.EitherValues._
 import play.api.libs.json.{JsObject, Json}
@@ -35,14 +35,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport[JourneyAnswers] {
-  private val now   = mkNow()
-  private val clock = mkClock(now)
+  private val now       = mkNow()
+  private val clock     = mkClock(now)
+  private val sampleCtx = JourneyContext(currTaxYear, mtditid, Journey.PaymentsIntoPensions)
 
   override val repository = new MongoJourneyAnswersRepository(mongoComponent, clock)
 
   override def beforeEach(): Unit = {
     clock.reset(now)
-    await(removeAll(repository.collection))
+    await(repository.testOnlyClearAllData().value)
   }
 
   "setStatus" should {
@@ -148,13 +149,12 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
 
   "upsertStatus" should {
     "return correct UpdateResult for insert and update" in {
-      val ctx = JourneyContext(currTaxYear, mtditid, Journey.PaymentsIntoPensions)
       val result = (for {
-        beginning     <- repository.get(ctx)
-        createdResult <- EitherT.right[ServiceError](repository.upsertStatus(ctx, InProgress))
-        created       <- repository.get(ctx)
-        updatedResult <- EitherT.right[ServiceError](repository.upsertStatus(ctx, Completed))
-        updated       <- repository.get(ctx)
+        beginning     <- repository.get(sampleCtx)
+        createdResult <- EitherT.right[ServiceError](repository.upsertStatus(sampleCtx, InProgress))
+        created       <- repository.get(sampleCtx)
+        updatedResult <- EitherT.right[ServiceError](repository.upsertStatus(sampleCtx, Completed))
+        updated       <- repository.get(sampleCtx)
       } yield (beginning, createdResult, created, updatedResult, updated)).value
 
       val (beginning, createdResult, created, updatedResult, updated) = result.futureValue.value
@@ -171,5 +171,22 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
       assert(updated.value.status === Completed)
     }
 
+  }
+
+  "getAnswers" should {
+    "return None if no answers" in {
+      val maybeAnswers = repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx).value.futureValue
+      assert(maybeAnswers.value === None)
+    }
+
+    "return answers" in {
+      val answers = PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(false), Some(false))
+      val maybeAnswers = (for {
+        _                <- repository.upsertAnswers(sampleCtx, Json.toJson(answers))
+        persistedAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx)
+      } yield persistedAnswers).value.futureValue
+
+      assert(maybeAnswers.value.value === answers)
+    }
   }
 }

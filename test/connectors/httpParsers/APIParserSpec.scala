@@ -40,9 +40,9 @@ class APIParserSpec extends TestUtils {
 
   "FakeParser" should {
     "log the correct message" in {
-      val result = FakeParser.logMessage(httpResponse())
+      val result = FakeParser.logMessage("GET", "/someurl", httpResponse())
       result mustBe
-        """[TestParser][read] Received 500 from service API. Body:{
+        """[TestParser][read] Received 500 from service API: GET /someurl. Body:{
           |  "failures" : [ {
           |    "code" : "SERVICE_UNAVAILABLE",
           |    "reason" : "The service is currently unavailable"

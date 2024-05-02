@@ -22,7 +22,7 @@ import connectors.PensionReliefsConnector.PensionReliefsBaseApi
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
 import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
-import models.common.JourneyContextWithNino
+import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.{CreateOrUpdatePensionReliefsModel, GetPensionReliefsModel}
 import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
@@ -42,8 +42,8 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
   private def pensionReliefsDesIncomeSourceUri(nino: String, taxYear: Int): String =
     appConfig.desBaseUrl + s"/income-tax/reliefs/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
 
-  def getPensionReliefsT(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionReliefsModel]] = {
-    val ans = getPensionReliefs(nino, taxYear)
+  def getPensionReliefsT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionReliefsModel]] = {
+    val ans = getPensionReliefs(nino.value, taxYear.endYear)
     EitherT(ans).leftMap(err => err.toServiceError)
   }
 

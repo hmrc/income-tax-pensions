@@ -46,16 +46,16 @@ object GetPensionChargesHttpParser extends DESParser {
             )
         case NOT_FOUND => Right(None)
         case INTERNAL_SERVER_ERROR =>
-          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
+          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
         case SERVICE_UNAVAILABLE =>
-          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
+          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
         case BAD_REQUEST =>
-          pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
+          pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
         case _ =>
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
+          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(method, url, response))
           handleDESError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }

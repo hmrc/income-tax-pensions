@@ -44,5 +44,28 @@ class PaymentsIntoPensionsAnswersSpec extends AnyWordSpecLike {
           overseasPensionSchemeContributions = Some(5.0)
         ))
     }
+
+    "convert an empty Pension Relief" in {
+      val answers = PaymentsIntoPensionsAnswers(
+        rasPensionPaymentQuestion = false,
+        totalRASPaymentsAndTaxRelief = None,
+        oneOffRasPaymentPlusTaxReliefQuestion = None,
+        totalOneOffRasPaymentPlusTaxRelief = None,
+        pensionTaxReliefNotClaimedQuestion = false,
+        retirementAnnuityContractPaymentsQuestion = None,
+        totalRetirementAnnuityContractPayments = None,
+        workplacePensionPaymentsQuestion = None,
+        totalWorkplacePensionPayments = None
+      )
+      val result = answers.toPensionReliefs(None)
+      assert(
+        result === PensionReliefs(
+          regularPensionContributions = None,
+          oneOffPensionContributionsPaid = None,
+          retirementAnnuityPayments = None,
+          paymentToEmployersSchemeNoTaxRelief = None,
+          overseasPensionSchemeContributions = None
+        ))
+    }
   }
 }
