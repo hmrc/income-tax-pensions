@@ -64,10 +64,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       stubRepository
     )
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-  val mtditid = "1234567890"
-
   val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
   val expectedStateBenefitsResult: GetStateBenefitsResponse                   = Right(Some(anAllStateBenefitsData))
@@ -99,7 +95,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .returning(Future.successful(expectedStateBenefitsResult))
 
       (mockEmploymentConnector
-        .getEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedEmploymentsResult))
 
@@ -131,7 +127,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .returning(Future.successful(Right(None)))
 
       (mockEmploymentConnector
-        .getEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 

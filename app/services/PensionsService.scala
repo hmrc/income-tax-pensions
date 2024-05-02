@@ -96,6 +96,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =
-    employmentsConnector.getEmployments(nino, taxYear)(hc.withInternalId(mtditid))
+    employmentsConnector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))
 
 }

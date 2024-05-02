@@ -39,9 +39,6 @@ class GetAllPensionsControllerSpec extends TestUtils {
   val pensionsService: PensionsService                  = mock[PensionsService]
   val controller: GetAllPensionsController              = new GetAllPensionsController(pensionsService, authorisedAction, mockControllerComponents)
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-
   val expectedReliefsResult: GetPensionReliefsResponse      = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse      = Right(Some(fullPensionChargesModel))
   val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))

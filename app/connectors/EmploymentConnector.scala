@@ -27,14 +27,14 @@ import scala.concurrent.ExecutionContext
 
 class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
-  def getEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
-    val incomeSourceUri: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"
+  def loadEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
+    val url: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"
 
     def call(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
-      ConnectorRequestInfo("GET", incomeSourceUri, "income-tax-employment").logRequest(logger)
-      http.GET[DownstreamErrorOr[Option[AllEmploymentData]]](incomeSourceUri)(GetEmploymentsHttpReads, hc, ec)
+      ConnectorRequestInfo("GET", url, "income-tax-employment").logRequest(logger)
+      http.GET[DownstreamErrorOr[Option[AllEmploymentData]]](url)(GetEmploymentsHttpReads, hc, ec)
     }
 
-    call(headerCarrier(incomeSourceUri))
+    call(headerCarrier(url))
   }
 }
