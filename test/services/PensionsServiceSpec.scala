@@ -180,7 +180,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         res <- service.getPaymentsIntoPensions(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result === Some(PaymentsIntoPensionsAnswers(true, None, Some(true), None, true, Some(true), None, Some(true), None)))
+      assert(result === Some(PaymentsIntoPensionsAnswers(false, None, Some(true), None, true, Some(true), None, Some(true), None)))
     }
 
     "return answers" in {
