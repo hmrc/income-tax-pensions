@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package testdata
+package models.database
 
-import models.frontend.PaymentsIntoPensionsAnswers
+import models.database.AnnualAllowancesStorageAnswers._
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.annualAllowances.annualAllowancesAnswers
 
-object frontend {
-  val paymentsIntoPensionsAnswers: PaymentsIntoPensionsAnswers =
-    PaymentsIntoPensionsAnswers(true, Some(1.0), Some(true), Some(2.0), true, Some(true), Some(3.0), Some(true), Some(4.0))
+class AnnualAllowancesStorageAnswersSpec extends AnyWordSpecLike {
+
+  "fromJourneyAnswers" should {
+    "convert answers to a storage model" in {
+      val answers = annualAllowancesAnswers
+      val result  = fromJourneyAnswers(answers)
+      assert(result === AnnualAllowancesStorageAnswers(Some(true), Some(true)))
+    }
+  }
 }

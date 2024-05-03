@@ -4,6 +4,9 @@ GET           /income-tax/nino/:nino/sources                                   c
 GET           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
+GET           /:taxYear/annual-allowances/:nino/answers                        controllers.PensionChargesController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.PensionChargesController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
+
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 
@@ -42,4 +45,4 @@ PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         c
 DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
 
 # Employment Pension
-GET           /employment-pension/nino/:nino/taxYear/:taxYear                 controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)
+GET           /employment-pension/nino/:nino/taxYear/:taxYear                  controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)

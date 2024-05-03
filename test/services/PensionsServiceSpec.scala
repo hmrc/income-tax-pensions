@@ -22,10 +22,10 @@ import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesRespo
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import mocks.MockPensionReliefsConnector
+import mocks.{MockPensionChargesConnector, MockPensionReliefsConnector}
 import models._
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
-import models.database.PaymentsIntoPensionsStorageAnswers
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.employment.AllEmploymentData
 import models.frontend.PaymentsIntoPensionsAnswers
 import org.scalatest.BeforeAndAfterEach
@@ -34,6 +34,7 @@ import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
+import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.frontend.paymentsIntoPensionsAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
@@ -44,7 +45,7 @@ import utils.TestUtils.currTaxYear
 
 import scala.concurrent.Future
 
-class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector with BeforeAndAfterEach {
+class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector with MockPensionChargesConnector with BeforeAndAfterEach {
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
@@ -230,6 +231,54 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(persistedAnswers === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
     }
 
+  }
+
+  "getAnnualAllowances" should {
+    val annualAllowancesCtx = sampleCtx.toJourneyContext(Journey.AnnualAllowances)
+
+    "get None if no answers" in {
+      mockGetPensionChargesT(Right(None))
+      val result = service.getAnnualAllowances(sampleCtx).value.futureValue
+      assert(result.value === None)
+    }
+
+    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+      mockGetPensionChargesT(Right(None))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(annualAllowancesCtx, Json.toJson(annualAllowancesStorageAnswers))
+        res <- service.getAnnualAllowances(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result === None)
+    }
+
+    "return answers" in {
+      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, None, None, Some(pensionContributions), None))))
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(annualAllowancesCtx, Json.toJson(annualAllowancesStorageAnswers))
+        res <- service.getAnnualAllowances(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result.value === annualAllowancesAnswers)
+    }
+  }
+
+  "upsertAnnualAllowances" should {
+    "upsert answers " in {
+      mockGetPensionChargesT(Right(None))
+      mockCreateOrAmendPensionChargesT(
+        Right(None),
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(pensionContributions), None)
+      )
+
+      val result = service.upsertAnnualAllowances(sampleCtx, annualAllowancesAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[AnnualAllowancesStorageAnswers]
+      assert(persistedAnswers === annualAllowancesStorageAnswers)
+    }
   }
 
 }
