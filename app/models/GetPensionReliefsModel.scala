@@ -24,10 +24,18 @@ case class PensionReliefs(regularPensionContributions: Option[BigDecimal],
                           oneOffPensionContributionsPaid: Option[BigDecimal],
                           retirementAnnuityPayments: Option[BigDecimal],
                           paymentToEmployersSchemeNoTaxRelief: Option[BigDecimal],
-                          overseasPensionSchemeContributions: Option[BigDecimal])
+                          overseasPensionSchemeContributions: Option[BigDecimal]) {
+  def nonEmpty: Boolean = regularPensionContributions.isDefined ||
+    oneOffPensionContributionsPaid.isDefined ||
+    retirementAnnuityPayments.isDefined ||
+    paymentToEmployersSchemeNoTaxRelief.isDefined ||
+    overseasPensionSchemeContributions.isDefined
+}
 
 object PensionReliefs {
   implicit val format: OFormat[PensionReliefs] = Json.format[PensionReliefs]
+
+  def empty: PensionReliefs = PensionReliefs(None, None, None, None, None)
 }
 
 case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs) {

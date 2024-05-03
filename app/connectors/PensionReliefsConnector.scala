@@ -90,6 +90,11 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
     }
   }
 
+  def deletePensionReliefsT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = deletePensionReliefs(nino.value, taxYear.endYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
   def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
     def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
       ConnectorRequestInfo("DELETE", incomeSourceUri, apiNumber).logRequest(logger)
