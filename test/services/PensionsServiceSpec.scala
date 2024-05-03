@@ -171,7 +171,8 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(result.value === None)
     }
 
-    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+    // TODO It is not valid situation, we probably need to think how we want to handle mismatches IFS vs our DB
+    "get answers if there are DB answers, but IFS return None (favour IFS)" in {
       mockGetPensionReliefsT(Right(None))
 
       val result = (for {
@@ -179,7 +180,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         res <- service.getPaymentsIntoPensions(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result === None)
+      assert(result === Some(PaymentsIntoPensionsAnswers(true, None, Some(true), None, true, Some(true), None, Some(true), None)))
     }
 
     "return answers" in {
