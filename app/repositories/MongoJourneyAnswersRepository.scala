@@ -46,6 +46,7 @@ trait JourneyAnswersRepository {
   def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]]
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit]
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]]
+  def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]]
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit]
   def testOnlyClearAllData(): ApiResultT[Unit]
 }
@@ -119,6 +120,18 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] = {
     val filter     = filterAllJourneys(taxYear, mtditid)
     val projection = exclude("data")
+    EitherT.right[ServiceError](
+      collection
+        .find(filter)
+        .projection(projection)
+        .toFuture()
+        .map(_.toList.map(a => JourneyNameAndStatus(a.journey, a.status))))
+  }
+
+  def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] = {
+    val filter     = filterJourney(ctx)
+    val projection = exclude("data")
+
     EitherT.right[ServiceError](
       collection
         .find(filter)

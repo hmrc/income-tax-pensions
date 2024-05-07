@@ -31,6 +31,8 @@ import scala.reflect.ClassTag
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
     getAllJourneyStatuses: List[JourneyNameAndStatus] = List.empty,
+    getJourneyStatus: List[JourneyNameAndStatus] = List.empty,
+    saveJourneyStatus: Unit = Right(()),
     upsertDateField: Either[ServiceError, Unit] = Right(()),
     var upsertAnswersList: List[JsValue] = Nil,
     upsertStatusField: Either[ServiceError, Unit] = Right(())
@@ -52,8 +54,14 @@ case class StubJourneyAnswersRepository(
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
     EitherT.rightT[Future, ServiceError](getAnswer)
+
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
+
+  def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] = EitherT.rightT[Future, ServiceError](getJourneyStatus)
+
+  def saveJourneyStatus(ctx: JourneyContext, journeyContext: JourneyContext): ApiResultT[Unit] =
+    EitherT.rightT[Future, ServiceError](saveJourneyStatus)
 
   def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
     EitherT.rightT[Future, ServiceError](upsertAnswersList.headOption.map(_.as[A]))

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
+import models.User
 import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.domain.ApiResultT
 import models.error.ServiceError
-import play.api.Logger
-import play.api.libs.json._
-import play.api.mvc.{AnyContent, Result}
-import play.api.mvc.Results._
-import models.User
 import models.error.ServiceError.{CannotParseJsonError, CannotReadJsonError}
+import play.api.Logger
 import play.api.http.Status.BAD_REQUEST
+import play.api.libs.json._
+import play.api.mvc.Results._
+import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

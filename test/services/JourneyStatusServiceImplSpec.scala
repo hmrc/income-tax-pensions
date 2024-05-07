@@ -17,7 +17,9 @@
 package services
 
 import cats.implicits._
-import models.common.{Journey, JourneyNameAndStatus, JourneyStatus}
+import models.common.Journey.PaymentsIntoPensions
+import models.common.JourneyStatus.Completed
+import models.common.{Journey, JourneyContext, JourneyNameAndStatus, JourneyStatus}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.repositories.StubJourneyAnswersRepository
@@ -48,6 +50,38 @@ class JourneyStatusServiceImplSpec extends AnyWordSpecLike with Matchers {
 
       val result = underTest.getAllStatuses(taxYear, mtditid)
       result.value.futureValue shouldBe statusList.asRight
+    }
+  }
+
+  "getJourneyStatus" should {
+    "return an empty list if no answers exist" in {
+      val ctx    = JourneyContext(taxYear, mtditid, PaymentsIntoPensions)
+      val result = underTest.getJourneyStatus(ctx)
+
+      result.value.futureValue shouldBe List.empty.asRight
+    }
+
+    "return a List of JourneyNameAndStatus" in {
+      val ctx = JourneyContext(taxYear, mtditid, PaymentsIntoPensions)
+
+      val statusList = List(JourneyNameAndStatus(Journey.PaymentsIntoPensions, JourneyStatus.Completed))
+
+      val underTest = new JourneyStatusServiceImpl(repository.copy(getJourneyStatus = statusList))
+
+      val result = underTest.getJourneyStatus(ctx)
+      result.value.futureValue shouldBe statusList.asRight
+    }
+  }
+
+  "saveJourneyStatus" should {
+    "return Unit if journey is updated successfully" in {
+      val ctx = JourneyContext(taxYear, mtditid, PaymentsIntoPensions)
+
+      val underTest = new JourneyStatusServiceImpl(repository.copy(saveJourneyStatus = ()))
+
+      val result = underTest.saveJourneyStatus(ctx, Completed)
+
+      result.value.futureValue shouldBe ().asRight
     }
   }
 }
