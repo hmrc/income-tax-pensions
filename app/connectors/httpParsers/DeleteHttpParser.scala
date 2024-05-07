@@ -23,26 +23,28 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object DeletePensionReliefsHttpParser extends DESParser {
-  type DeletePensionReliefsResponse = Either[DesErrorModel, Unit]
+object DeleteHttpParser extends DESParser {
+  type DeleteResponse = Either[DesErrorModel, Unit] // TODO Fix to common ApiResult (with common ServiceError type)
 
-  override val parserName: String = "DeletePensionReliefsHttpParser"
+  override val parserName: String = "DeleteHttpParser"
 
-  implicit object DeletePensionReliefsHttpReads extends HttpReads[DeletePensionReliefsResponse] {
+  implicit object DeleteHttpReads extends HttpReads[DeleteResponse] {
 
-    override def read(method: String, url: String, response: HttpResponse): DeletePensionReliefsResponse = {
+    // TODO review pager duty logic and add tests
+    override def read(method: String, url: String, response: HttpResponse): DeleteResponse = {
       ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
 
       response.status match {
 
-        case NO_CONTENT => Right(())
+        case NO_CONTENT | NOT_FOUND =>
+          Right(())
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
-        case BAD_REQUEST | NOT_FOUND =>
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(method, url, response))
           handleDESError(response)
         case _ =>
