@@ -28,7 +28,6 @@ import play.api.test.FakeRequest
 import services.JourneyStatusService
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
-import utils.TestUtils.taxYear
 
 import scala.concurrent.Future
 
@@ -49,7 +48,7 @@ class JourneyStatusControllerSpec extends TestUtils {
           .getAllStatuses(_: TaxYear, _: Mtditid)(_: HeaderCarrier))
           .expects(*, *, *)
           .returning(EitherT.fromEither[Future](journeyNamesAndStatusList.asRight[ServiceError]))
-        underTest.getAllStatuses(taxYear.endYear)(fakeRequest)
+        underTest.getAllStatuses(taxYear)(fakeRequest)
       }
 
       status(result) mustBe OK

@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package models.database
+package mocks
 
-import models.frontend.PaymentsIntoPensionsAnswers
-import org.scalatest.wordspec.AnyWordSpecLike
-import PaymentsIntoPensionsStorageAnswers._
-import testdata.frontend
+import connectors.EmploymentConnector
+import org.scalamock.scalatest.MockFactory
+import uk.gov.hmrc.http.HeaderCarrier
 
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
+trait MockEmploymentConnector extends MockFactory {
 
-  "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = frontend.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
-    }
+  val mockEmploymentConnector: EmploymentConnector = mock[EmploymentConnector]
+
+  object MockEmploymentConnector {
+
+    def loadEmployments(nino: String, taxYear: Int) =
+      (mockEmploymentConnector
+        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+
   }
+
 }

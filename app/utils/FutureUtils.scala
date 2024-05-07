@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package models.database
+package utils
 
-import models.frontend.PaymentsIntoPensionsAnswers
-import org.scalatest.wordspec.AnyWordSpecLike
-import PaymentsIntoPensionsStorageAnswers._
-import testdata.frontend
+import scala.concurrent.Future
 
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
+object FutureUtils {
 
-  "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = frontend.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
-    }
+  implicit class FutureOps[A](value: A) {
+    def toFuture: Future[A] =
+      Future.successful(value)
   }
+
 }

@@ -41,21 +41,19 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  employmentsConnector: EmploymentConnector,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 
-  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] = {
-    val res = for {
-      reliefs <- EitherT(reliefsConnector.getPensionReliefs(ctx.nino.value, ctx.taxYear.endYear))
-      paymentsIntoPensionsAnswers = reliefs.map(_.toPaymentsIntoPensions())
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
+    for {
+      maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
+      paymentsIntoPensionsAnswers = maybeReliefs.flatMap(_.toPaymentsIntoPensions(maybeDbAnswers))
     } yield paymentsIntoPensionsAnswers
-
-    res.leftMap(err => err.toServiceError)
-  }
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
 
     for {
-      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino.value, ctx.taxYear.endYear)
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
       updatedReliefs                          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
       _ <- reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
@@ -67,8 +65,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
   //       duplicates the data in the cache.
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[ServiceErrorModel, AllPensionsData]] =
+      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] =
     (for {
       reliefsData       <- EitherT(getReliefs(nino, taxYear))
       chargesData       <- EitherT(getCharges(nino, taxYear))
@@ -99,6 +96,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =
-    employmentsConnector.getEmployments(nino, taxYear)(hc.withInternalId(mtditid))
+    employmentsConnector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))
 
 }

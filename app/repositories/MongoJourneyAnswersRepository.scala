@@ -28,8 +28,9 @@ import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, Reads}
 import repositories.ExpireAtCalculator.calculateExpireAt
+import services.journeyAnswers.getPersistedAnswers
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import utils.Logging
@@ -38,9 +39,11 @@ import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 trait JourneyAnswersRepository {
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]]
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]]
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit]
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]]
   def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]]
@@ -96,6 +99,12 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
         .find(filter)
         .headOption())
   }
+
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
+    for {
+      maybeDbAnswers        <- get(ctx)
+      maybeJourneyDbAnswers <- getPersistedAnswers[A](maybeDbAnswers)
+    } yield maybeJourneyDbAnswers
 
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
     logger.info(s"Repository ctx=${ctx.toString} persisting answers:\n===Repository===\n${Json.prettyPrint(newData)}\n===")
@@ -194,7 +203,8 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
       if (notInsertedOne && notUpdatedOne) {
         logger.warn(
-          s"Upsert invalid state (this should never happened): getModifiedCount=${r.getModifiedCount}, getMatchedCount=${r.getMatchedCount}, getUpsertedId=${r.getUpsertedId}, notInsertedOne=$notInsertedOne, notUpdatedOne=$notUpdatedOne, for ctx=${ctx.toString}"
+          s"Upsert invalid state (this should never happened): getModifiedCount=${r.getModifiedCount}, getMatchedCount=${r.getMatchedCount}, " +
+            s"getUpsertedId=${r.getUpsertedId}, notInsertedOne=$notInsertedOne, notUpdatedOne=$notUpdatedOne, for ctx=${ctx.toString}"
         ) // TODO Add Pager Duty
       }
       Right(r)

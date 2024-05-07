@@ -39,9 +39,9 @@ class DESParserSpec extends TestUtils {
 
   "FakeParser" should {
     "log the correct message" in {
-      val result = FakeParser.logMessage(httpResponse())
+      val result = FakeParser.logMessage("GET", "/someurl", httpResponse())
       result mustBe
-        """[TestParser][read] Received 500 from DES. Body:{
+        """[TestParser][read] Received 500 from DES: GET /someurl. Body:{
           |  "failures" : [ {
           |    "code" : "SERVICE_UNAVAILABLE",
           |    "reason" : "The service is currently unavailable"
