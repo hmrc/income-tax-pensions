@@ -20,7 +20,7 @@ import cats.data.EitherT
 import config.AppConfig
 import connectors.PensionReliefsConnector.PensionReliefsBaseApi
 import connectors.httpParsers.CreateOrAmendPensionReliefsHttpParser.{CreateOrAmendPensionReliefsHttpReads, CreateOrAmendPensionReliefsResponse}
-import connectors.httpParsers.DeletePensionReliefsHttpParser.{DeletePensionReliefsHttpReads, DeletePensionReliefsResponse}
+import connectors.httpParsers.DeleteHttpParser.{DeleteHttpReads, DeleteResponse}
 import connectors.httpParsers.GetPensionReliefsHttpParser.{GetPensionReliefsHttpReads, GetPensionReliefsResponse}
 import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.{CreateOrUpdatePensionReliefsModel, GetPensionReliefsModel}
@@ -90,10 +90,15 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
     }
   }
 
-  def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
-    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[DeletePensionReliefsResponse] = {
+  def deletePensionReliefsT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = deletePensionReliefs(nino.value, taxYear.endYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
+  def deletePensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeleteResponse] = {
+    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[DeleteResponse] = {
       ConnectorRequestInfo("DELETE", incomeSourceUri, apiNumber).logRequest(logger)
-      http.DELETE[DeletePensionReliefsResponse](incomeSourceUri)(DeletePensionReliefsHttpReads, hc, ec)
+      http.DELETE[DeleteResponse](incomeSourceUri)(DeleteHttpReads, hc, ec)
     }
 
     if (TaxYearHelper.isTysApi(taxYear, PensionReliefsBaseApi.Delete)) {

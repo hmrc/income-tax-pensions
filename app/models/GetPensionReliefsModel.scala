@@ -24,28 +24,44 @@ case class PensionReliefs(regularPensionContributions: Option[BigDecimal],
                           oneOffPensionContributionsPaid: Option[BigDecimal],
                           retirementAnnuityPayments: Option[BigDecimal],
                           paymentToEmployersSchemeNoTaxRelief: Option[BigDecimal],
-                          overseasPensionSchemeContributions: Option[BigDecimal])
+                          overseasPensionSchemeContributions: Option[BigDecimal]) {
+  def nonEmpty: Boolean = regularPensionContributions.isDefined ||
+    oneOffPensionContributionsPaid.isDefined ||
+    retirementAnnuityPayments.isDefined ||
+    paymentToEmployersSchemeNoTaxRelief.isDefined ||
+    overseasPensionSchemeContributions.isDefined
+
+  def hasNoPaymentIntoPensionAnswers: Boolean =
+    List(regularPensionContributions, oneOffPensionContributionsPaid, retirementAnnuityPayments, paymentToEmployersSchemeNoTaxRelief).forall(
+      _.isEmpty)
+}
 
 object PensionReliefs {
   implicit val format: OFormat[PensionReliefs] = Json.format[PensionReliefs]
+
+  def empty: PensionReliefs = PensionReliefs(None, None, None, None, None)
 }
 
 case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String], pensionReliefs: PensionReliefs) {
   // TODO When we finish introducing DB, come back to each journey and make sure we favour IFS answers over our DB state
   def toPaymentsIntoPensions(maybeDbAnswers: Option[PaymentsIntoPensionsStorageAnswers]): Option[PaymentsIntoPensionsAnswers] =
-    maybeDbAnswers.map { dbAnswers =>
-      PaymentsIntoPensionsAnswers(
-        rasPensionPaymentQuestion = dbAnswers.rasPensionPaymentQuestion,
-        totalRASPaymentsAndTaxRelief = pensionReliefs.regularPensionContributions,
-        oneOffRasPaymentPlusTaxReliefQuestion = dbAnswers.oneOffRasPaymentPlusTaxReliefQuestion,
-        totalOneOffRasPaymentPlusTaxRelief = pensionReliefs.oneOffPensionContributionsPaid,
-        pensionTaxReliefNotClaimedQuestion = dbAnswers.pensionTaxReliefNotClaimedQuestion,
-        retirementAnnuityContractPaymentsQuestion = dbAnswers.retirementAnnuityContractPaymentsQuestion,
-        totalRetirementAnnuityContractPayments = pensionReliefs.retirementAnnuityPayments,
-        workplacePensionPaymentsQuestion = dbAnswers.workplacePensionPaymentsQuestion,
-        totalWorkplacePensionPayments = pensionReliefs.paymentToEmployersSchemeNoTaxRelief
+    if (pensionReliefs.hasNoPaymentIntoPensionAnswers && maybeDbAnswers.isEmpty) None
+    else {
+      // if no IFS answer, but we have something in DB it would mean that user selected No / No answers
+      Some(
+        PaymentsIntoPensionsAnswers(
+          rasPensionPaymentQuestion = pensionReliefs.regularPensionContributions.isDefined,
+          totalRASPaymentsAndTaxRelief = pensionReliefs.regularPensionContributions,
+          oneOffRasPaymentPlusTaxReliefQuestion = maybeDbAnswers.flatMap(_.oneOffRasPaymentPlusTaxReliefQuestion),
+          totalOneOffRasPaymentPlusTaxRelief = pensionReliefs.oneOffPensionContributionsPaid,
+          pensionTaxReliefNotClaimedQuestion =
+            maybeDbAnswers.exists(_.pensionTaxReliefNotClaimedQuestion), // TODO we should probably calculate this from IFS answers
+          retirementAnnuityContractPaymentsQuestion = maybeDbAnswers.flatMap(_.retirementAnnuityContractPaymentsQuestion),
+          totalRetirementAnnuityContractPayments = pensionReliefs.retirementAnnuityPayments,
+          workplacePensionPaymentsQuestion = maybeDbAnswers.flatMap(_.workplacePensionPaymentsQuestion),
+          totalWorkplacePensionPayments = pensionReliefs.paymentToEmployersSchemeNoTaxRelief
+        )
       )
-
     }
 }
 

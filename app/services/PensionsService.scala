@@ -45,8 +45,16 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
-      paymentsIntoPensionsAnswers = maybeReliefs.flatMap(_.toPaymentsIntoPensions(maybeDbAnswers))
+      paymentsIntoPensionsAnswers = maybeReliefs
+        .getOrElse(GetPensionReliefsModel("", None, PensionReliefs.empty))
+        .toPaymentsIntoPensions(maybeDbAnswers)
     } yield paymentsIntoPensionsAnswers
+
+  private def createOrDeleteWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit hc: HeaderCarrier) =
+    if (updatedReliefs.nonEmpty)
+      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+    else
+      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
@@ -55,8 +63,8 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
-      updatedReliefs                          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
-      _ <- reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+      updatedReliefs: PensionReliefs          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
+      _ <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
