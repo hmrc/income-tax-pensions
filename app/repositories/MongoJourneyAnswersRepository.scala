@@ -135,7 +135,8 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     EitherT.right[ServiceError](
       collection
         .find(filter)
-        .projection(projection).toFuture()
+        .projection(projection)
+        .toFuture()
         .map(_.toList.map(a => JourneyNameAndStatus(a.journey, a.status))))
   }
 

@@ -54,7 +54,7 @@ case class StubJourneyAnswersRepository(
 
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
     EitherT.rightT[Future, ServiceError](getAnswer)
-  
+
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
 

@@ -55,7 +55,7 @@ class JourneyStatusServiceImplSpec extends AnyWordSpecLike with Matchers {
 
   "getJourneyStatus" should {
     "return an empty list if no answers exist" in {
-      val ctx = JourneyContext(taxYear, mtditid, PaymentsIntoPensions)
+      val ctx    = JourneyContext(taxYear, mtditid, PaymentsIntoPensions)
       val result = underTest.getJourneyStatus(ctx)
 
       result.value.futureValue shouldBe List.empty.asRight
