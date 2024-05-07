@@ -38,8 +38,7 @@ class JourneyStatusController @Inject() (journeyStatusService: JourneyStatusServ
   }
 
   def getJourneyStatus(taxYear: Int, journey: Journey): Action[AnyContent] = auth.async { implicit request =>
-    val ctx    = JourneyContext(TaxYear(taxYear), Mtditid(request.mtditid), journey)
-    val result = journeyStatusService.getJourneyStatus(ctx)
+    val result = journeyStatusService.getJourneyStatus(JourneyContext(TaxYear(taxYear), Mtditid(request.mtditid), journey))
     handleApiResultT(result)
   }
 

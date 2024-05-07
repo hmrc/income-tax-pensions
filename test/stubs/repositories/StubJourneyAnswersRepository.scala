@@ -60,7 +60,8 @@ case class StubJourneyAnswersRepository(
 
   def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] = EitherT.rightT[Future, ServiceError](getJourneyStatus)
 
-  def saveJourneyStatus(ctx: JourneyContext, journeyContext: JourneyContext): ApiResultT[Unit] = EitherT.rightT[Future, ServiceError](saveJourneyStatus)
+  def saveJourneyStatus(ctx: JourneyContext, journeyContext: JourneyContext): ApiResultT[Unit] =
+    EitherT.rightT[Future, ServiceError](saveJourneyStatus)
 
   def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
     EitherT.rightT[Future, ServiceError](upsertAnswersList.headOption.map(_.as[A]))

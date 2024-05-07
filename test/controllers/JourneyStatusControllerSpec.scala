@@ -64,7 +64,7 @@ class JourneyStatusControllerSpec extends TestUtils {
           .getJourneyStatus(_: JourneyContext))
           .expects(*)
           .returning(EitherT.fromEither[Future](singleJourneyNameAndStatusList.asRight[ServiceError]))
-        underTest.getJourneyStatus(taxYear.endYear, PaymentsIntoPensions)(fakeRequest)
+        underTest.getJourneyStatus(taxYear, PaymentsIntoPensions)(fakeRequest)
       }
 
       status(result) mustBe OK
@@ -85,7 +85,7 @@ class JourneyStatusControllerSpec extends TestUtils {
           .saveJourneyStatus(_: JourneyContext, _: JourneyStatus))
           .expects(*, *)
           .returning(EitherT.fromEither[Future](().asRight))
-        underTest.saveJourneyStatus(taxYear.endYear, PaymentsIntoPensions)(fakeRequestWithJourney)
+        underTest.saveJourneyStatus(taxYear, PaymentsIntoPensions)(fakeRequestWithJourney)
       }
 
       status(result) mustBe NO_CONTENT
