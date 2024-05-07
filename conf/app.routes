@@ -9,6 +9,10 @@ PUT           /:taxYear/payments-into-pensions/:nino/answers                   c
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 
+GET           /journey-status/:journey/taxYear/:taxYear                        controllers.JourneyStatusController.getJourneyStatus(taxYear: Int, journey: Journey)
+
+PUT           /journey-status/:journey/taxYear/:taxYear                        controllers.JourneyStatusController.saveJourneyStatus(taxYear: Int, journey: Journey)
+
 #Pension Charges
 GET           /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
