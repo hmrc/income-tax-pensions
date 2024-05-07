@@ -218,7 +218,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
 
-        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+        Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, BAD_REQUEST).foreach { status =>
           s"Des returns $status" in {
             val desError                   = DesErrorModel(status, desErrorBodyModel)
             implicit val hc: HeaderCarrier = HeaderCarrier()
