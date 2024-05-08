@@ -49,16 +49,15 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
-  val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
   val mockEmploymentConnector: EmploymentConnector      = mock[EmploymentConnector]
-  val stubRepository                                    = StubJourneyAnswersRepository()
+  val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
 
   val service: PensionsService =
     new PensionsService(
       mockReliefsConnector,
-      chargesConnector,
+      mockChargesConnector,
       stateBenefitsConnector,
       pensionIncomeConnector,
       mockEmploymentConnector,
@@ -85,7 +84,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (chargesConnector
+      (mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
@@ -117,7 +116,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (chargesConnector
+      (mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
@@ -150,7 +149,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (chargesConnector
+      (mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
@@ -164,7 +163,12 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
 
   "getPaymentsIntoPensions" should {
     val paymentIntoPensionsCtx = sampleCtx.toJourneyContext(Journey.PaymentsIntoPensions)
-    val answers                = PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true))
+    val answers = PaymentsIntoPensionsStorageAnswers(
+      rasPensionPaymentQuestion = true,
+      Some(true),
+      pensionTaxReliefNotClaimedQuestion = true,
+      Some(true),
+      Some(true))
 
     "get None if no answers" in {
       mockGetPensionReliefsT(Right(None))
@@ -190,7 +194,17 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         res <- service.getPaymentsIntoPensions(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result.value === PaymentsIntoPensionsAnswers(true, Some(1.0), Some(true), Some(2.0), true, Some(true), Some(3.0), Some(true), Some(4.0)))
+      assert(
+        result.value === PaymentsIntoPensionsAnswers(
+          rasPensionPaymentQuestion = true,
+          Some(1.0),
+          Some(true),
+          Some(2.0),
+          pensionTaxReliefNotClaimedQuestion = true,
+          Some(true),
+          Some(3.0),
+          Some(true),
+          Some(4.0)))
     }
   }
 
@@ -209,7 +223,13 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(result.isRight)
       assert(stubRepository.upsertAnswersList.size === 1)
       val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoPensionsStorageAnswers]
-      assert(persistedAnswers === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
+      assert(
+        persistedAnswers === PaymentsIntoPensionsStorageAnswers(
+          rasPensionPaymentQuestion = true,
+          Some(true),
+          pensionTaxReliefNotClaimedQuestion = true,
+          Some(true),
+          Some(true)))
     }
 
     "upsert answers if overseasPensionSchemeContributions exist" in {
@@ -228,7 +248,13 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(result.isRight)
       assert(stubRepository.upsertAnswersList.size === 1)
       val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoPensionsStorageAnswers]
-      assert(persistedAnswers === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
+      assert(
+        persistedAnswers === PaymentsIntoPensionsStorageAnswers(
+          rasPensionPaymentQuestion = true,
+          Some(true),
+          pensionTaxReliefNotClaimedQuestion = true,
+          Some(true),
+          Some(true)))
     }
 
   }
