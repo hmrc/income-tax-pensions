@@ -18,12 +18,10 @@ package controllers
 
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import controllers.predicates.AuthorisedAction
-import models.common.{JourneyContextWithNino, Nino, TaxYear}
-import models.frontend.AnnualAllowancesAnswers
 import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel, ServiceErrorModel}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{PensionChargesService, PensionsService}
+import services.PensionChargesService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Logging
 
@@ -31,22 +29,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PensionChargesController @Inject() (pensionsService: PensionsService,
-                                          pensionChargesService: PensionChargesService,
-                                          authorisedAction: AuthorisedAction,
-                                          cc: ControllerComponents)(implicit ec: ExecutionContext)
+class PensionChargesController @Inject() (pensionChargesService: PensionChargesService, authorisedAction: AuthorisedAction, cc: ControllerComponents)(
+    implicit ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
-
-  def getAnnualAllowances(taxYear: TaxYear, nino: Nino): Action[AnyContent] = authorisedAction.async { implicit user =>
-    handleOptionalApiResult(pensionsService.getAnnualAllowances(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
-  }
-
-  def saveAnnualAllowances(taxYear: TaxYear, nino: Nino): Action[AnyContent] = authorisedAction.async { implicit user =>
-    getBodyWithCtx[AnnualAllowancesAnswers](taxYear, nino) { (ctx, value) =>
-      pensionsService.upsertAnnualAllowances(ctx, value).map(_ => NoContent)
-    }
-  }
 
   def getPensionCharges(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     pensionChargesService.getPensionCharges(nino, taxYear).map {

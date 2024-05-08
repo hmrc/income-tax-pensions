@@ -1,11 +1,11 @@
 GET           /income-tax/nino/:nino/sources                                   controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
 # Journeys
-GET           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/payments-into-pensions/:nino/answers                   controllers.PensionReliefsController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/payments-into-pensions/:nino/answers                   controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/payments-into-pensions/:nino/answers                   controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/annual-allowances/:nino/answers                        controllers.PensionChargesController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.PensionChargesController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)

@@ -21,34 +21,18 @@ import controllers.predicates.AuthorisedAction
 import models.{CreateOrUpdatePensionReliefsModel, DesErrorBodyModel, ServiceErrorModel}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import services.{PensionReliefsService, PensionsService}
+import services.PensionReliefsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import utils.Logging
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import models.common._
-import models.frontend.PaymentsIntoPensionsAnswers
-import utils.Logging
 
 @Singleton
-class PensionReliefsController @Inject() (pensionsService: PensionsService,
-                                          pensionReliefsService: PensionReliefsService,
-                                          auth: AuthorisedAction,
-                                          cc: ControllerComponents)(implicit ec: ExecutionContext)
+class PensionReliefsController @Inject() (pensionReliefsService: PensionReliefsService, auth: AuthorisedAction, cc: ControllerComponents)(implicit
+    ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
-
-  // TODO Move it to one common Controller at the end of refactoring and add tests
-  def getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    handleOptionalApiResult(pensionsService.getPaymentsIntoPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
-  }
-
-  // TODO Move it to one common Controller at the end of refactoring and add tests
-  def savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    getBodyWithCtx[PaymentsIntoPensionsAnswers](taxYear, nino) { (ctx, value) =>
-      pensionsService.upsertPaymentsIntoPensions(ctx, value).map(_ => NoContent)
-    }
-  }
 
   def getPensionReliefs(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
     pensionReliefsService.getPensionReliefs(nino, taxYear).map {
