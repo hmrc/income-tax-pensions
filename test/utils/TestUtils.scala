@@ -44,6 +44,7 @@ import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EmploymentPensionsBuilder.employmentPensionsData
+import utils.TestUtils.currTaxYear
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset}
@@ -52,9 +53,11 @@ import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
 trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach with PekkoGuiceSupport {
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-  val mtditid = "1234567890"
+  val taxYear        = 2022
+  val currentTaxYear = TaxYear(2024)
+  val nino           = "AA123456A"
+  val validNino      = common.Nino("AA123456A")
+  val mtditid        = "1234567890"
 
   override def beforeEach(): Unit = {
     super.beforeEach()

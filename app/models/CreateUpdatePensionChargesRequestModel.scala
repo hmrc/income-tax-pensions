@@ -26,4 +26,6 @@ case class CreateUpdatePensionChargesRequestModel(pensionSavingsTaxCharges: Opti
 
 object CreateUpdatePensionChargesRequestModel {
   implicit val format: OFormat[CreateUpdatePensionChargesRequestModel] = Json.format[CreateUpdatePensionChargesRequestModel]
+
+  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, None)
 }

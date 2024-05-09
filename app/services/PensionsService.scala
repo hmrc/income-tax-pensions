@@ -21,10 +21,10 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.PaymentsIntoPensionsStorageAnswers
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.domain.ApiResultT
 import models.employment.AllEmploymentData
-import models.frontend.PaymentsIntoPensionsAnswers
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -65,6 +65,27 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
       updatedReliefs: PensionReliefs          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
       _ <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getAnnualAllowances(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AnnualAllowancesAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[AnnualAllowancesStorageAnswers](ctx.toJourneyContext(Journey.AnnualAllowances))
+      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionContributions.flatMap(_.toAnnualAllowances(maybeDbAnswers)))
+    } yield annualAllowancesAnswers
+
+  def upsertAnnualAllowances(ctx: JourneyContextWithNino, answers: AnnualAllowancesAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = AnnualAllowancesStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.AnnualAllowances)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      updatedContributions = answers.toPensionChargesContributions.some
+      updatedCharges       = existingCharges.copy(pensionContributions = updatedContributions)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
