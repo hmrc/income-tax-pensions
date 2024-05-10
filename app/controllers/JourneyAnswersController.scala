@@ -53,4 +53,9 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     }
   }
 
+  def getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    handleOptionalApiResult(pensionsService.getUnauthorisedPaymentsFromPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
+
 }

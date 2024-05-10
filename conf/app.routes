@@ -7,6 +7,8 @@ PUT           /:taxYear/payments-into-pensions/:nino/answers                   c
 GET           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
+GET           /:taxYear/unauthorised-payments-from-pensions/:nino/answers      controllers.JourneyAnswersController.getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
+
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 
