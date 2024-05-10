@@ -57,5 +57,4 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     handleOptionalApiResult(pensionsService.getUnauthorisedPaymentsFromPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
-
 }
