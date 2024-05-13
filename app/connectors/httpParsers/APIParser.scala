@@ -44,8 +44,8 @@ trait APIParser extends Logging {
   val parserName: String
   val service: String
 
-  def logMessage(response: HttpResponse): String =
-    s"[$parserName][read] Received ${response.status} from $service API. Body:${response.body}"
+  def logMessage(method: String, url: String, response: HttpResponse): String =
+    s"[$parserName][read] Received ${response.status} from $service API: $method $url. Body:${response.body}"
 
   def badSuccessJsonFromAPI[Response]: Either[APIErrorModel, Response] = {
     pagerDutyLog(BAD_SUCCESS_JSON_FROM_API, s"[$parserName][read] Invalid Json from $service API.")

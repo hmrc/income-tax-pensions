@@ -35,10 +35,6 @@ class PensionChargesServiceSpec extends TestUtils {
 
   val service: PensionChargesService = new PensionChargesService(chargesConnector, submissionConnector)
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-  val mtditid = "1234567890"
-
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
 
   "saveUserPensionChargesData" should {

@@ -28,8 +28,9 @@ import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, Reads}
 import repositories.ExpireAtCalculator.calculateExpireAt
+import services.journeyAnswers.getPersistedAnswers
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import utils.Logging
@@ -38,11 +39,14 @@ import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 trait JourneyAnswersRepository {
   def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]]
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]]
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit]
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]]
+  def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]]
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit]
   def testOnlyClearAllData(): ApiResultT[Unit]
 }
@@ -96,8 +100,14 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
         .headOption())
   }
 
+  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
+    for {
+      maybeDbAnswers        <- get(ctx)
+      maybeJourneyDbAnswers <- getPersistedAnswers[A](maybeDbAnswers)
+    } yield maybeJourneyDbAnswers
+
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
-    logger.info(s"Repository ctx=${ctx.toString} persisting answers:\n===\n${Json.prettyPrint(newData)}\n===")
+    logger.info(s"Repository ctx=${ctx.toString} persisting answers:\n===Repository===\n${Json.prettyPrint(newData)}\n===")
 
     val filter  = filterJourney(ctx)
     val bson    = BsonDocument(Json.stringify(newData))
@@ -110,6 +120,18 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] = {
     val filter     = filterAllJourneys(taxYear, mtditid)
     val projection = exclude("data")
+    EitherT.right[ServiceError](
+      collection
+        .find(filter)
+        .projection(projection)
+        .toFuture()
+        .map(_.toList.map(a => JourneyNameAndStatus(a.journey, a.status))))
+  }
+
+  def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] = {
+    val filter     = filterJourney(ctx)
+    val projection = exclude("data")
+
     EitherT.right[ServiceError](
       collection
         .find(filter)
@@ -182,7 +204,8 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
       if (notInsertedOne && notUpdatedOne) {
         logger.warn(
-          s"Upsert invalid state (this should never happened): getModifiedCount=${r.getModifiedCount}, getMatchedCount=${r.getMatchedCount}, getUpsertedId=${r.getUpsertedId}, notInsertedOne=$notInsertedOne, notUpdatedOne=$notUpdatedOne, for ctx=${ctx.toString}"
+          s"Upsert invalid state (this should never happened): getModifiedCount=${r.getModifiedCount}, getMatchedCount=${r.getMatchedCount}, " +
+            s"getUpsertedId=${r.getUpsertedId}, notInsertedOne=$notInsertedOne, notUpdatedOne=$notUpdatedOne, for ctx=${ctx.toString}"
         ) // TODO Add Pager Duty
       }
       Right(r)

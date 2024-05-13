@@ -17,11 +17,18 @@
 package services
 
 import cats.data.EitherT
-import cats.implicits.{catsSyntaxOptionId, none}
+import cats.implicits._
 import connectors._
 import models._
+import models.common.{Journey, JourneyContextWithNino}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
+import models.domain.ApiResultT
 import models.employment.AllEmploymentData
+import models.error.ServiceError
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UnauthorisedPaymentsAnswers}
 import models.submission.EmploymentPensions
+import play.api.libs.json.Json
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
@@ -32,20 +39,73 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentConnector) {
+                                 employmentsConnector: EmploymentConnector,
+                                 repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
+
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
+    for {
+      maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
+      paymentsIntoPensionsAnswers = maybeReliefs
+        .getOrElse(GetPensionReliefsModel("", None, PensionReliefs.empty))
+        .toPaymentsIntoPensions(maybeDbAnswers)
+    } yield paymentsIntoPensionsAnswers
+
+  private def createOrDeleteWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit hc: HeaderCarrier) =
+    if (updatedReliefs.nonEmpty)
+      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+    else
+      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
+
+  def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
+
+    for {
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
+      updatedReliefs: PensionReliefs          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
+      _ <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getAnnualAllowances(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AnnualAllowancesAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[AnnualAllowancesStorageAnswers](ctx.toJourneyContext(Journey.AnnualAllowances))
+      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionContributions.flatMap(_.toAnnualAllowances(maybeDbAnswers)))
+    } yield annualAllowancesAnswers
+
+  def upsertAnnualAllowances(ctx: JourneyContextWithNino, answers: AnnualAllowancesAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = AnnualAllowancesStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.AnnualAllowances)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      updatedContributions = answers.toPensionChargesContributions.some
+      updatedCharges       = existingCharges.copy(pensionContributions = updatedContributions)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
+    EitherT.rightT[Future, ServiceError](None)
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
   //       duplicates the data in the cache.
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[Either[ServiceErrorModel, AllPensionsData]] =
+      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] =
     (for {
       reliefsData       <- EitherT(getReliefs(nino, taxYear))
       chargesData       <- EitherT(getCharges(nino, taxYear))
       stateBenefitsData <- EitherT(getStateBenefits(nino, taxYear, mtditid))
       pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
-      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
+//      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
+      employmentData = None // TODO It's broken for 2025, fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
@@ -69,6 +129,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =
-    employmentsConnector.getEmployments(nino, taxYear)(hc.withInternalId(mtditid))
+    employmentsConnector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))
 
 }

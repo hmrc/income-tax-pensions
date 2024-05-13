@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
+import play.sbt.routes.RoutesKeys
 
 lazy val appName = "income-tax-pensions"
 
@@ -55,7 +56,10 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always,
     scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s", // suppress warnings
-    scalacOptions += "-Wconf:src=routes/.*:s"
+    scalacOptions += "-Wconf:src=routes/.*:s",
+    RoutesKeys.routesImport ++= Seq(
+      "models.common._"
+    )
   )
   .configs(IntegrationTest extend Test)
   .settings(integrationTestSettings(): _*)

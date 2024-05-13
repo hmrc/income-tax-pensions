@@ -98,7 +98,7 @@ class DeletePensionReliefsISpec extends WiremockSpec with ScalaFutures {
         }
       }
 
-      "return 404 if a user has no recorded pension reliefs to delete" in new Setup {
+      "return No Content if a user has no recorded pension reliefs to delete" in new Setup {
 
         val errorResponseBody: String = Json
           .toJson(DesErrorBodyModel("NO_DATA_FOUND", "The remote endpoint has indicated that the requested resource could not be found."))
@@ -112,8 +112,8 @@ class DeletePensionReliefsISpec extends WiremockSpec with ScalaFutures {
           buildClient(serviceUrl)
             .withHttpHeaders(requestHeaders: _*)
             .delete()) { result =>
-          result.status mustBe NOT_FOUND
-          result.body mustBe errorResponseBody
+          result.status mustBe NO_CONTENT
+          result.body mustBe ""
         }
       }
 

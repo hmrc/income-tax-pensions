@@ -33,10 +33,6 @@ class PensionIncomeServiceSpec extends TestUtils {
   val submissionConnector: SubmissionConnector       = mock[SubmissionConnector]
   val service                                        = new PensionIncomeService(pensionIncomeConnector, submissionConnector)
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-  val mtditid = "1234567890"
-
   val expectedPensionIncomeResult: GetPensionIncomeResponse = Right(Some(fullPensionIncomeModel))
 
   "savePensionIncomeSessionData" should {

@@ -16,13 +16,16 @@
 
 package connectors
 
+import cats.data.EitherT
 import config.AppConfig
 import connectors.PensionChargesConnector.PensionChargesBaseApi
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.{CreateUpdatePensionChargesHttpReads, CreateUpdatePensionChargesResponse}
 import connectors.httpParsers.DeletePensionChargesHttpParser.{DeletePensionChargesHttpReads, DeletePensionChargesResponse}
 import connectors.httpParsers.GetPensionChargesHttpParser.{GetPensionChargesHttpReads, GetPensionChargesResponse}
-import models.CreateUpdatePensionChargesRequestModel
+import models.common.{JourneyContextWithNino, Nino, TaxYear}
+import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
+import models.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.TaxYearHelper
 
@@ -33,6 +36,17 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
 
   private def pensionChargesIncomeSourceUri(nino: String, taxYear: Int, baseApiNum: String): String =
     appConfig.ifBaseUrl + s"/income-tax/charges/pensions/${TaxYearHelper.apiPath(nino, taxYear, baseApiNum)}"
+  // TODO refactor method above to remove repeat if needed, else delete once all journeys are upgrade
+  private def pensionChargesIfsIncomeSourceUri(nino: String, taxYear: Int, apiNum: String): String =
+    appConfig.ifBaseUrl + s"/income-tax/charges/pensions/${TaxYearHelper.apiPath(nino, taxYear, apiNum)}"
+
+  private def pensionChargesDesIncomeSourceUri(nino: String, taxYear: Int): String =
+    appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
+
+  def getPensionChargesT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionChargesRequestModel]] = {
+    val ans = getPensionCharges(nino.value, taxYear.endYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] = {
     val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Get)
@@ -58,12 +72,16 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
     desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
   }
 
+  def createUpdatePensionChargesT(ctx: JourneyContextWithNino, pensionCharges: CreateUpdatePensionChargesRequestModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = createUpdatePensionCharges(ctx.nino.value, ctx.taxYear.endYear, pensionCharges)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
   def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)(implicit
       hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
-    val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Update)
-    val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionChargesBaseApi.Update)
 
-    def desIfCall(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
+    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
       ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, model)
       http.PUT[CreateUpdatePensionChargesRequestModel, CreateUpdatePensionChargesResponse](incomeSourceUri, model)(
         charges => CreateUpdatePensionChargesRequestModel.format.writes(charges),
@@ -72,7 +90,14 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
         ec)
     }
 
-    desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
+    if (TaxYearHelper.isTysApi(taxYear, PensionChargesBaseApi.Update)) {
+      val incomeSourceUri = pensionChargesIfsIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Update)
+      val apiNumber       = TaxYearHelper.apiVersion(taxYear, PensionChargesBaseApi.Update)
+      call(incomeSourceUri, apiNumber)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
+    } else {
+      val incomeSourceUri: String = pensionChargesDesIncomeSourceUri(nino, taxYear)
+      call(incomeSourceUri, "des")(desHeaderCarrier(incomeSourceUri))
+    }
   }
 }
 

@@ -55,7 +55,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
         response = Json.toJson(allEmploymentsData).toString()
       )
 
-      connector.getEmployments(nino, taxYear).futureValue shouldBe allEmploymentsData.some.asRight
+      connector.loadEmployments(nino, taxYear).futureValue shouldBe allEmploymentsData.some.asRight
     }
   }
 

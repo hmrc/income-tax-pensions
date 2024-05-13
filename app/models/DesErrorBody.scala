@@ -16,6 +16,8 @@
 
 package models
 
+import models.error.ServiceError
+import models.error.ServiceError.DownstreamError
 import play.api.libs.json.{JsValue, Json, OFormat}
 
 trait ServiceErrorBody
@@ -35,6 +37,8 @@ case class DesErrorModel(status: Int, body: DesErrorBody) extends ServiceErrorMo
       case error: DesErrorBodyModel   => Json.toJson(error)
       case errors: DesErrorsBodyModel => Json.toJson(errors)
     }
+
+  def toServiceError: ServiceError = DownstreamError(body.toString)
 }
 
 /** Single DES Error * */

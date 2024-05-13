@@ -34,10 +34,6 @@ class PensionReliefsServiceImplSpec extends TestUtils {
   val reliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
   val service: PensionReliefsService            = new PensionReliefsServiceImpl(reliefsConnector, submissionConnector, StubJourneyAnswersRepository())
 
-  val taxYear = 2022
-  val nino    = "AA123456A"
-  val mtditid = "1234567890"
-
   "saveUserPensionReliefsData" should {
 
     val pensionRelief = PensionReliefs(Some(100.01), Some(100.01), Some(100.01), Some(100.01), Some(100.01))

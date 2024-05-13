@@ -16,6 +16,9 @@
 
 package models
 
+import cats.implicits.catsSyntaxOptionId
+import models.database.AnnualAllowancesStorageAnswers
+import models.frontend.AnnualAllowancesAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
@@ -37,7 +40,24 @@ case class PensionContributions(pensionSchemeTaxReference: Seq[String],
                                 annualAllowanceTaxPaid: BigDecimal,
                                 isAnnualAllowanceReduced: Option[Boolean],
                                 taperedAnnualAllowance: Option[Boolean],
-                                moneyPurchasedAllowance: Option[Boolean])
+                                moneyPurchasedAllowance: Option[Boolean]) {
+  // noinspection ScalaStyle
+  def toAnnualAllowances(maybeDbAnswers: Option[AnnualAllowancesStorageAnswers]): Option[AnnualAllowancesAnswers] =
+    maybeDbAnswers.map { dbAnswers =>
+      val aboveAllowanceGateway: Boolean = inExcessOfTheAnnualAllowance != 0
+      val taxPaidGateway: Boolean        = annualAllowanceTaxPaid != 0
+      AnnualAllowancesAnswers(
+        reducedAnnualAllowanceQuestion = isAnnualAllowanceReduced,
+        moneyPurchaseAnnualAllowance = moneyPurchasedAllowance,
+        taperedAnnualAllowance = taperedAnnualAllowance,
+        aboveAnnualAllowanceQuestion = if (aboveAllowanceGateway) true.some else dbAnswers.aboveAnnualAllowanceQuestion,
+        aboveAnnualAllowance = if (aboveAllowanceGateway) inExcessOfTheAnnualAllowance.some else None,
+        pensionProvidePaidAnnualAllowanceQuestion = if (taxPaidGateway) true.some else dbAnswers.pensionProvidePaidAnnualAllowanceQuestion,
+        taxPaidByPensionProvider = if (taxPaidGateway) annualAllowanceTaxPaid.some else None,
+        pensionSchemeTaxReferences = if (pensionSchemeTaxReference.isEmpty) None else pensionSchemeTaxReference.some
+      )
+    }
+}
 
 object PensionContributions {
   implicit val format: OFormat[PensionContributions] = Json.format[PensionContributions]
@@ -85,7 +105,15 @@ case class GetPensionChargesRequestModel(submittedOn: String,
                                          pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
                                          pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
                                          pensionContributions: Option[PensionContributions],
-                                         overseasPensionContributions: Option[OverseasPensionContributions]) {}
+                                         overseasPensionContributions: Option[OverseasPensionContributions]) {
+
+  def toCreateUpdatePensionChargesRequestModel: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(
+    pensionSavingsTaxCharges,
+    pensionSchemeOverseasTransfers,
+    pensionSchemeUnauthorisedPayments,
+    pensionContributions,
+    overseasPensionContributions)
+}
 
 object GetPensionChargesRequestModel {
   implicit val format: OFormat[GetPensionChargesRequestModel] = Json.format[GetPensionChargesRequestModel]
