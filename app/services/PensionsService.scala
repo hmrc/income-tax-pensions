@@ -24,7 +24,8 @@ import models.common.{Journey, JourneyContextWithNino}
 import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.domain.ApiResultT
 import models.employment.AllEmploymentData
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers}
+import models.error.ServiceError
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UnauthorisedPaymentsAnswers}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -89,6 +90,9 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
+
+  def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
+    EitherT.rightT[Future, ServiceError](None)
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
