@@ -36,7 +36,18 @@ import models.{APIErrorBodyModel, APIErrorModel, APIErrorsBodyModel}
 import play.api.Logging
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HttpResponse
-import utils.PagerDutyHelper.PagerDutyKeys.{BAD_SUCCESS_JSON_FROM_API, UNEXPECTED_RESPONSE_FROM_API}
+import utils.PagerDutyHelper.PagerDutyKeys.{
+  BAD_SUCCESS_JSON_FROM_API,
+  FOURXX_RESPONSE_FROM_API,
+  INTERNAL_SERVER_ERROR_FROM_API,
+  SERVICE_UNAVAILABLE_FROM_API,
+  UNEXPECTED_RESPONSE_FROM_API
+}
+import utils.PagerDutyHelper.pagerDutyLog
+import cats.implicits._
+import connectors.DownstreamErrorOr
+import play.api.http.Status._
+import uk.gov.hmrc.http._
 import utils.PagerDutyHelper.pagerDutyLog
 
 trait APIParser extends Logging {
@@ -73,4 +84,29 @@ trait APIParser extends Logging {
       case _: Exception => Left(APIErrorModel(status, APIErrorBodyModel.parsingError))
     }
   }
+
+  object SessionHttpReads extends HttpReads[DownstreamErrorOr[Unit]] {
+    override def read(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Unit] =
+      response.status match {
+        case NO_CONTENT => ().asRight
+
+        case BAD_REQUEST =>
+          pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(method, url, response))
+          handleAPIError(response)
+
+        case INTERNAL_SERVER_ERROR =>
+          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(method, url, response))
+          handleAPIError(response)
+
+        case SERVICE_UNAVAILABLE =>
+          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(method, url, response))
+          handleAPIError(response)
+
+        case _ =>
+          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(method, url, response))
+          handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
+      }
+
+  }
+
 }

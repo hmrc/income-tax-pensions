@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package services
+package stubs.services
 
-import cats.data.EitherT
-import connectors.EmploymentConnector
+import cats.implicits.catsSyntaxEitherId
+import models.ServiceErrorModel
 import models.submission.EmploymentPensions
+import services.EmploymentService
 import services.journeyAnswers.ServiceOutcome
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.HeaderCarrierUtils.HeaderCarrierOps
+import utils.EmploymentPensionsBuilder.employmentPensionsData
+import utils.FutureUtils.FutureOps
 
-import javax.inject.Inject
-import scala.concurrent.ExecutionContext
-
-trait LoadSubmittedDataService {
-  def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions]
-}
-
-class LoadSubmittedDataServiceImpl @Inject() (connector: EmploymentConnector)(implicit ec: ExecutionContext) extends LoadSubmittedDataService {
-
+class StubEmploymentService(
+    loadEmploymentResult: ServiceOutcome[EmploymentPensions] = employmentPensionsData.asRight[ServiceErrorModel].toFuture
+) extends EmploymentService {
   override def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
-    EitherT(connector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))).map {
-      case Some(e) => EmploymentPensions.fromEmploymentResponse(e)
-      case None    => EmploymentPensions.empty
-    }.value
-
+    loadEmploymentResult
 }

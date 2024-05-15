@@ -22,13 +22,13 @@ import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.HeaderCarrier
 
 final case class ConnectorRequestInfo(method: String, url: String, apiId: String)(implicit hc: HeaderCarrier) {
-  private def apiIdStr = s"Request to API#$apiId"
+  private def apiIdStr = s"Request to ==> API#$apiId"
 
   private def connectorMessage: String =
     s"Connector [$CorrelationIdHeaderKey=${hc.correlationId}]: $apiIdStr $method $url"
 
   def logRequestWithBody[A: Writes](logger: Logger, body: A): Unit =
-    logger.debug(s"$connectorMessage. Request Body:\n===Connector===\n${Json.prettyPrint(implicitly[Writes[A]].writes(body))}\n===")
+    logger.debug(s"$connectorMessage.\n===Connector, request body:===\n${Json.prettyPrint(implicitly[Writes[A]].writes(body))}\n===")
 
   def logRequest(logger: Logger): Unit =
     logger.debug(connectorMessage)

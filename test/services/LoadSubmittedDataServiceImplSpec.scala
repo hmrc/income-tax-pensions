@@ -29,8 +29,8 @@ import utils.TestUtils
 
 class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConnector {
 
-  val service: LoadSubmittedDataServiceImpl =
-    new LoadSubmittedDataServiceImpl(mockEmploymentConnector)
+  val service: EmploymentServiceImpl =
+    new EmploymentServiceImpl(mockEmploymentConnector)
 
   "loading employment data" when {
     "connector returns a success result with an employment data model" must {
@@ -41,7 +41,7 @@ class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConn
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
-            .loadEmployment(nino, taxYear, mtditid)
+            .getEmployment(nino, taxYear, mtditid)
             .futureValue
 
         val expectedEmploymentModel: EmploymentPensions =
@@ -58,7 +58,7 @@ class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConn
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
-            .loadEmployment(nino, taxYear, mtditid)
+            .getEmployment(nino, taxYear, mtditid)
             .futureValue
 
         result shouldBe EmploymentPensions.empty.asRight
@@ -72,7 +72,7 @@ class LoadSubmittedDataServiceImplSpec extends TestUtils with MockEmploymentConn
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
-            .loadEmployment(nino, taxYear, mtditid)
+            .getEmployment(nino, taxYear, mtditid)
             .futureValue
 
         result shouldBe someServiceError.asLeft

@@ -17,8 +17,11 @@
 package connectors
 
 import config.AppConfig
+import connectors.httpParsers.DeleteEmploymentHttpParser.DeleteEmploymentHttpReads
 import connectors.httpParsers.GetEmploymentsHttpParser.GetEmploymentsHttpReads
-import models.employment.AllEmploymentData
+import connectors.httpParsers.SaveEmploymentHttpParser.SaveEmploymentHttpReads
+import models.common.{Nino, TaxYear}
+import models.employment.{AllEmploymentData, CreateUpdateEmploymentRequest}
 import models.logging.ConnectorRequestInfo
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
@@ -27,7 +30,7 @@ import scala.concurrent.ExecutionContext
 
 class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
 
-  def loadEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
+  def loadEmployments(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
     val url: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"
 
     def call(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
@@ -37,4 +40,35 @@ class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppCon
 
     call(headerCarrier(url))
   }
+
+  def saveEmployment(nino: Nino, taxYear: TaxYear, model: CreateUpdateEmploymentRequest)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): DownstreamOutcome[Unit] = {
+
+    val url = s"${appConfig.employmentBaseUrl}/income-tax/nino/$nino/sources?taxYear=$taxYear"
+    ConnectorRequestInfo("POST", url, "income-tax-employment").logRequestWithBody(logger, model)
+
+    http.POST[CreateUpdateEmploymentRequest, DownstreamErrorOr[Unit]](url, model)(
+      CreateUpdateEmploymentRequest.format,
+      SaveEmploymentHttpReads,
+      hc,
+      ec)
+  }
+
+  def deleteEmployment(nino: Nino, taxYear: TaxYear, employmentId: String)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): DownstreamOutcome[Unit] = {
+    // TODO: Will there ever be HMRC-held employments?
+    val source = "CUSTOMER"
+    val url    = s"${appConfig.employmentBaseUrl}/income-tax/nino/$nino/sources/$employmentId/$source?taxYear=$taxYear"
+
+    ConnectorRequestInfo("DELETE", url, "income-tax-employment").logRequest(logger)
+
+    http.DELETE[DownstreamErrorOr[Unit]](url)(
+      DeleteEmploymentHttpReads,
+      hc,
+      ec
+    )
+  }
+
 }

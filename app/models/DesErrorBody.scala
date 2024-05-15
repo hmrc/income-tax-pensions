@@ -27,6 +27,8 @@ trait ServiceErrorModel {
   val body: ServiceErrorBody
 
   def toJson: JsValue
+
+  def toServiceError: ServiceError = DownstreamError(body.toString)
 }
 
 sealed trait DesErrorBody extends ServiceErrorBody
@@ -37,8 +39,6 @@ case class DesErrorModel(status: Int, body: DesErrorBody) extends ServiceErrorMo
       case error: DesErrorBodyModel   => Json.toJson(error)
       case errors: DesErrorsBodyModel => Json.toJson(errors)
     }
-
-  def toServiceError: ServiceError = DownstreamError(body.toString)
 }
 
 /** Single DES Error * */

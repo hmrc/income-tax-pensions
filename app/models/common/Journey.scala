@@ -40,8 +40,12 @@ object Journey extends Enum[Journey] with utils.PlayJsonEnum[Journey] {
       strBinder.unbind(key, journeyName.entryName)
   }
 
-  case object AnnualAllowances     extends Journey("annual-allowances")
   case object PaymentsIntoPensions extends Journey("payments-into-pensions")
+
+  case object UkPensionIncome           extends Journey("uk-pension-income")
+  case object StatePension              extends Journey("state-pension")
+
+  case object AnnualAllowances     extends Journey("annual-allowances")
   case object UnauthorisedPayments extends Journey("unauthorised-payments")
 
   case object OverseasPensionsSummary      extends Journey("overseas-pensions-summary")
@@ -51,7 +55,5 @@ object Journey extends Enum[Journey] with utils.PlayJsonEnum[Journey] {
   case object ShortServiceRefunds          extends Journey("short-service-refunds")
 
   case object IncomeFromPensionsSummary extends Journey("income-from-pensions-summary")
-  case object UkPensionIncome           extends Journey("uk-pension-income")
-  case object StatePension              extends Journey("state-pension")
 
 }
