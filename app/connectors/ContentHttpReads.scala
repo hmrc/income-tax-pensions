@@ -17,6 +17,7 @@
 package connectors
 
 import cats.implicits._
+import models.error.ServiceError.DownstreamError
 import models.{APIErrorBodyModel, APIErrorModel, ServiceErrorModel}
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Reads
@@ -24,16 +25,6 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.Logging
 
 import scala.util.{Failure, Success, Try}
-
-class ContentHttpReads[A: Reads] extends HttpReads[DownstreamErrorOr[A]] {
-
-  override def read(method: String, url: String, response: HttpResponse): DownstreamErrorOr[A] =
-    if (isSuccess(response.status)) {
-      ContentHttpReads.readOne[A](method, url, response)
-    } else {
-      ??? // TODO LT fix me
-    }
-}
 
 object ContentHttpReads extends Logging {
   def readOne[A: Reads](method: String, url: String, response: HttpResponse): Either[ServiceErrorModel, A] = {
@@ -43,10 +34,9 @@ object ContentHttpReads extends Logging {
       case Success(validatedRes) =>
         validatedRes.fold(
           { err =>
-            logger.error(s"Error on validating JSON response: ${err.toList.mkString("\n")}")
-//            APIParser.badSuccessJsonFromAPI("ContentHttpReads", s"$method $url")
-            // TODO LT fix me
-            ???
+            val errorMessage = s"Error on validating JSON response: ${err.toList.mkString("\n")}"
+            logger.error(errorMessage)
+            DownstreamError(s"$method $url returned invalid json, error: $errorMessage").asLeft
           },
           a => a.asRight
         )
