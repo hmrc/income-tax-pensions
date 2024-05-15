@@ -17,6 +17,7 @@
 package mocks
 
 import connectors.EmploymentConnector
+import models.common.{Nino, TaxYear}
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,9 +27,9 @@ trait MockEmploymentConnector extends MockFactory {
 
   object MockEmploymentConnector {
 
-    def loadEmployments(nino: String, taxYear: Int) =
+    def loadEmployments(nino: Nino, taxYear: TaxYear) =
       (mockEmploymentConnector
-        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
+        .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
 
   }

@@ -33,6 +33,6 @@ object EmploymentPensionsBuilder {
     isCustomerEmploymentData = true.some
   )
 
-  val employmentPensionsData = EmploymentPensions(Seq(employmentPensionModel))
+  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
 
 }

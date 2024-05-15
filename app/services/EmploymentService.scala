@@ -44,7 +44,7 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
   def getEmployment(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[EmploymentPensions] = {
     implicit val updatedHc: HeaderCarrier = hc.withInternalId(ctx.mtditid.value)
 
-    EitherT(connector.loadEmployments(ctx.nino, ctx.taxYear)(updatedHc))
+    EitherT(connector.getEmployments(ctx.nino, ctx.taxYear)(updatedHc))
       .map {
         case Some(e) => EmploymentPensions.fromEmploymentResponse(e)
         case None    => EmploymentPensions.empty

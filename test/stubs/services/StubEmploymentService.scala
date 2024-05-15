@@ -16,18 +16,29 @@
 
 package stubs.services
 
-import cats.implicits.catsSyntaxEitherId
-import models.ServiceErrorModel
+import cats.data.EitherT
+import cats.implicits._
+import models.common.JourneyContextWithNino
+import models.domain.ApiResultT
+import models.error.ServiceError
+import models.frontend.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
 import services.EmploymentService
-import services.journeyAnswers.ServiceOutcome
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EmploymentPensionsBuilder.employmentPensionsData
-import utils.FutureUtils.FutureOps
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class StubEmploymentService(
-    loadEmploymentResult: ServiceOutcome[EmploymentPensions] = employmentPensionsData.asRight[ServiceErrorModel].toFuture
+    loadEmploymentResult: Either[ServiceError, EmploymentPensions] = employmentPensionsData.asRight[ServiceError],
+    var ukPensionIncome: List[UkPensionIncomeAnswers] = Nil
 ) extends EmploymentService {
-  override def loadEmployment(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): ServiceOutcome[EmploymentPensions] =
-    loadEmploymentResult
+  def getEmployment(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[EmploymentPensions] =
+    EitherT.fromEither[Future](loadEmploymentResult)
+
+  def upsertUkPensionIncome(ctx: JourneyContextWithNino, answers: UkPensionIncomeAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    ukPensionIncome ::= answers
+    EitherT.rightT(())
+  }
 }

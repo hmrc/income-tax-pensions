@@ -24,7 +24,7 @@ object PIIMaskingConverter {
   private val ninoPattern: Regex         = """(?<=nino/)\w+""".r
   private val ninoPensionsPattern: Regex = """(?<=/pensions/)\w+(?=/)""".r
 
-  private val allPatterns = List(ninoPattern, ninoPensionsPattern)
+  private val allPatterns: List[Regex] = List()
 
   def mask(raw: String): String =
     allPatterns.foldLeft(raw) { (maskedString, pattern) =>

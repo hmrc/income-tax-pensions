@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
@@ -29,6 +30,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.libs.pekko.PekkoGuiceSupport
+import utils.EitherTTestOps.PatienceConfig
 
 import scala.concurrent.ExecutionContext
 
@@ -46,8 +48,8 @@ trait WiremockSpec
 
   val wireMockPort = 11111
 
-  lazy val ws: WSClient             = app.injector.instanceOf(classOf[WSClient])
-  implicit val ec: ExecutionContext = ExecutionContext.global
+  lazy val ws: WSClient                       = app.injector.instanceOf(classOf[WSClient])
+  implicit val ec: ExecutionContext           = ExecutionContext.global
 
   val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(wireMockPort))
 

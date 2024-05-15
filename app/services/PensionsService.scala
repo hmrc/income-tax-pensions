@@ -40,7 +40,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentConnector,
                                  employmentService: EmploymentService,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 

@@ -38,6 +38,8 @@ trait Connector extends Logging {
 }
 
 object Connector {
+
+  // TODO Why we have to send different headers for internal vs external, cannot we simplify that to same?
   def headerCarrier(isInternalHost: Boolean, extraHeaders: (String, String)*)(implicit hc: HeaderCarrier): HeaderCarrier = {
     val explicitHeaders = if (isInternalHost) {
       hc.toInternalHeaders

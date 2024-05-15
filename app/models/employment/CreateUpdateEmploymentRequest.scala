@@ -17,7 +17,6 @@
 package models.employment
 
 import models.employment.CreateUpdateEmploymentRequest.{CreateUpdateEmployment, CreateUpdateEmploymentData}
-import models.frontend.UkPensionIncomeAnswers
 import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
 import play.api.libs.json.{Json, OFormat}
 

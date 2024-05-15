@@ -52,8 +52,8 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
 
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
-  val mockEmploymentConnector: EmploymentConnector      = mock[EmploymentConnector]
   val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
+  val mockEmploymentService = ???
 
   val service: PensionsService =
     new PensionsService(
@@ -61,7 +61,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       mockChargesConnector,
       stateBenefitsConnector,
       pensionIncomeConnector,
-      mockEmploymentConnector,
+      mockEmploymentService,
       stubRepository
     )
 
@@ -95,11 +95,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
 
-      (mockEmploymentConnector
-        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedEmploymentsResult))
-
       (pensionIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -124,11 +119,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
 
       (stateBenefitsConnector
         .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(Right(None)))
-
-      (mockEmploymentConnector
-        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
