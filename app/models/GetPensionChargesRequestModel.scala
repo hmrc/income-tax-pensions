@@ -17,8 +17,9 @@
 package models
 
 import cats.implicits.catsSyntaxOptionId
-import models.database.AnnualAllowancesStorageAnswers
-import models.frontend.AnnualAllowancesAnswers
+import models.common.Country
+import models.database.{AnnualAllowancesStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
+import models.frontend.{AnnualAllowancesAnswers, TransferPensionScheme, TransfersIntoOverseasPensionsAnswers}
 import play.api.libs.json.{Json, OFormat}
 
 case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
@@ -29,7 +30,24 @@ object Charge {
 
 case class PensionSchemeOverseasTransfers(overseasSchemeProvider: Seq[OverseasSchemeProvider],
                                           transferCharge: BigDecimal,
-                                          transferChargeTaxPaid: BigDecimal)
+                                          transferChargeTaxPaid: BigDecimal) {
+  def isEmpty: Boolean = this.overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
+
+  def toTransfersIntoOverseasPensions(
+      maybeDbAnswers: Option[TransfersIntoOverseasPensionsStorageAnswers]): Option[TransfersIntoOverseasPensionsAnswers] =
+    maybeDbAnswers.map { dbAnswers =>
+      val transferChargeGateway: Boolean    = transferCharge != 0
+      val transferChargeTaxGateway: Boolean = transferChargeTaxPaid != 0
+      TransfersIntoOverseasPensionsAnswers(
+        transferPensionSavings = dbAnswers.transferPensionSavings,
+        overseasTransferCharge = if (transferChargeGateway) true.some else dbAnswers.overseasTransferCharge,
+        overseasTransferChargeAmount = if (transferChargeGateway) transferCharge.some else None,
+        pensionSchemeTransferCharge = if (transferChargeTaxGateway) true.some else dbAnswers.pensionSchemeTransferCharge,
+        pensionSchemeTransferChargeAmount = if (transferChargeTaxGateway) transferChargeTaxPaid.some else None,
+        transferPensionScheme = overseasSchemeProvider.map(_.toTransferPensionScheme)
+      )
+    }
+}
 
 object PensionSchemeOverseasTransfers {
   implicit val format: OFormat[PensionSchemeOverseasTransfers] = Json.format[PensionSchemeOverseasTransfers]
@@ -67,7 +85,17 @@ case class OverseasSchemeProvider(providerName: String,
                                   providerAddress: String,
                                   providerCountryCode: String,
                                   qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]],
-                                  pensionSchemeTaxReference: Option[Seq[String]])
+                                  pensionSchemeTaxReference: Option[Seq[String]]) {
+  def toTransferPensionScheme: TransferPensionScheme = TransferPensionScheme(
+    ukTransferCharge = Some(providerCountryCode == "GBR"),
+    name = Some(providerName),
+    pstr = pensionSchemeTaxReference.map(_.head).map(_.replace("Q", "")),
+    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head),
+    providerAddress = Some(providerAddress),
+    alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(Some(providerCountryCode)),
+    alphaThreeCountryCode = Some(providerCountryCode)
+  )
+}
 
 object OverseasSchemeProvider {
   implicit val format: OFormat[OverseasSchemeProvider] = Json.format[OverseasSchemeProvider]

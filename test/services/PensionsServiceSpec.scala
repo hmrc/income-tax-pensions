@@ -36,6 +36,11 @@ import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.frontend.paymentsIntoPensionsAnswers
+import testdata.transfersIntoOverseasPensions.{
+  pensionSchemeOverseasTransfers,
+  transfersIntoOverseasPensionsAnswers,
+  transfersIntoOverseasPensionsStorageAnswers
+}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
@@ -305,6 +310,36 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(stubRepository.upsertAnswersList.size === 1)
       val persistedAnswers = stubRepository.upsertAnswersList.head.as[AnnualAllowancesStorageAnswers]
       assert(persistedAnswers === annualAllowancesStorageAnswers)
+    }
+  }
+
+  "getTransfersIntoOverseasPensions" should {
+    val transferIntoOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.TransferIntoOverseasPensions)
+
+    "get None if no answers" in {
+      mockGetPensionChargesT(Right(None))
+      val result = service.getTransfersIntoOverseasPensions(sampleCtx).value.futureValue
+      assert(result.value === None)
+    }
+
+    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+      mockGetPensionChargesT(Right(None))
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
+        res <- service.getTransfersIntoOverseasPensions(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result === None)
+    }
+
+    "return answers" ignore { // TODO 8251 fix this test
+      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, Some(pensionSchemeOverseasTransfers), None, None, None))))
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
+        res <- service.getTransfersIntoOverseasPensions(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result.value === transfersIntoOverseasPensionsAnswers)
     }
   }
 

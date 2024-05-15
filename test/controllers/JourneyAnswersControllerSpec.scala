@@ -21,12 +21,13 @@ import cats.implicits.catsSyntaxEitherId
 import models.common.JourneyContextWithNino
 import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers}
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import services.PensionsService
 import testdata.annualAllowances.annualAllowancesAnswers
 import testdata.frontend.paymentsIntoPensionsAnswers
+import testdata.transfersIntoOverseasPensions.transfersIntoOverseasPensionsAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EitherTTestOps.convertScalaFuture
 import utils.TestUtils
@@ -134,6 +135,34 @@ class JourneyAnswersControllerSpec extends TestUtils {
           .expects(*, *)
           .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[AnnualAllowancesAnswers]]))
         underTest.getAnnualAllowances(currentTaxYear, validNino)(fakeRequest)
+      }.futureValue.header
+
+      assert(result.status == INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  "getTransfersIntoOverseasPensions" should {
+    "return any AnnualAllowances journey answers from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getTransfersIntoOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](Some(transfersIntoOverseasPensionsAnswers).asRight[ServiceError]))
+        underTest.getTransfersIntoOverseasPensions(currentTaxYear, validNino)(fakeRequest)
+      }
+
+      status(result) mustBe OK
+      bodyOf(result) mustBe Json.toJson(Some(transfersIntoOverseasPensionsAnswers)).toString()
+    }
+    "return an Error from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getTransfersIntoOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[TransfersIntoOverseasPensionsAnswers]]))
+        underTest.getTransfersIntoOverseasPensions(currentTaxYear, validNino)(fakeRequest)
       }.futureValue.header
 
       assert(result.status == INTERNAL_SERVER_ERROR)
