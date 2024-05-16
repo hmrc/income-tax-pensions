@@ -21,11 +21,11 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
 import models.domain.ApiResultT
 import models.employment.AllEmploymentData
 import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -93,6 +93,15 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
+
+  def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[TransfersIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.TransferIntoOverseasPensions))
+      transfersIntoOverseasPensionsAnswers = maybeCharges.flatMap(
+        _.pensionSchemeOverseasTransfers.flatMap(_.toTransfersIntoOverseasPensions(maybeDbAnswers)))
+    } yield transfersIntoOverseasPensionsAnswers
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
