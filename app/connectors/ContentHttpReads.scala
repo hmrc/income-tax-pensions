@@ -17,7 +17,8 @@
 package connectors
 
 import cats.implicits._
-import models.error.ServiceError.DownstreamError
+import models.APIErrorBodyModel.parsingError
+import models.error.ServiceError.{CannotReadJsonError, DownstreamError}
 import models.{APIErrorBodyModel, APIErrorModel, ServiceErrorModel}
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Reads
@@ -36,14 +37,14 @@ object ContentHttpReads extends Logging {
           { err =>
             val errorMessage = s"Error on validating JSON response: ${err.toList.mkString("\n")}"
             logger.error(errorMessage)
-            DownstreamError(s"$method $url returned invalid json, error: $errorMessage").asLeft
+            CannotReadJsonError(err.toList).asLeft
           },
           a => a.asRight
         )
 
       case Failure(err) =>
         logger.error(s"Error on parsing JSON response", err)
-        APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError).asLeft
+        ServiceErrorModel.parsingError
     }
   }
 }
