@@ -40,7 +40,6 @@ import stubs.services.StubEmploymentService
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions._
-import testdata.frontend.paymentsIntoPensionsAnswers
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
