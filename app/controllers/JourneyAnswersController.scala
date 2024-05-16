@@ -79,4 +79,8 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     handleOptionalApiResult(pensionsService.getTransfersIntoOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
+  def getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    handleOptionalApiResult(pensionsService.getPaymentsIntoOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
 }

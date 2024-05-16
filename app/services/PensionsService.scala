@@ -27,6 +27,13 @@ import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
 import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{
+  AnnualAllowancesAnswers,
+  PaymentsIntoOverseasPensionsAnswers,
+  PaymentsIntoPensionsAnswers,
+  TransfersIntoOverseasPensionsAnswers,
+  UnauthorisedPaymentsAnswers
+}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -109,6 +116,10 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   }
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
+    EitherT.rightT[Future, ServiceError](None)
+
+  def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
