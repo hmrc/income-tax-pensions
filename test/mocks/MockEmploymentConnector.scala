@@ -18,8 +18,11 @@ package mocks
 
 import connectors.EmploymentConnector
 import models.common.{Nino, TaxYear}
+import models.employment.CreateUpdateEmploymentRequest
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 trait MockEmploymentConnector extends MockFactory {
 
@@ -31,6 +34,16 @@ trait MockEmploymentConnector extends MockFactory {
       (mockEmploymentConnector
         .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
+
+    def saveEmployment(nino: Nino, taxYear: TaxYear, model: CreateUpdateEmploymentRequest) =
+      (mockEmploymentConnector
+        .saveEmployment(_: Nino, _: TaxYear, _: CreateUpdateEmploymentRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(nino, taxYear, model, *, *)
+
+    def deleteEmployment(nino: Nino, taxYear: TaxYear, employmentId: String) =
+      (mockEmploymentConnector
+        .deleteEmployment(_: Nino, _: TaxYear, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(nino, taxYear, employmentId, *, *)
 
   }
 
