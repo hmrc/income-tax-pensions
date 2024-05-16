@@ -26,7 +26,7 @@ import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import services.PensionsService
 import testdata.annualAllowances.annualAllowancesAnswers
-import testdata.frontend.paymentsIntoPensionsAnswers
+import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions.transfersIntoOverseasPensionsAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EitherTTestOps.convertScalaFuture

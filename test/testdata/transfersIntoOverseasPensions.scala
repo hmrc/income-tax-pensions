@@ -21,6 +21,7 @@ import models.frontend.{TransferPensionScheme, TransfersIntoOverseasPensionsAnsw
 import models.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
 
 object transfersIntoOverseasPensions {
+
   def transfersIntoOverseasPensionsAnswers: TransfersIntoOverseasPensionsAnswers =
     TransfersIntoOverseasPensionsAnswers(
       Some(true),
@@ -34,16 +35,17 @@ object transfersIntoOverseasPensions {
   val annualAllowancesAnswersNoJourney: TransfersIntoOverseasPensionsAnswers =
     TransfersIntoOverseasPensionsAnswers(Some(false), None, None, None, None, Seq.empty)
 
-  val transferPensionSchemeUK: TransferPensionScheme =
-    TransferPensionScheme(Some(true), Some("UK Scheme"), Some("PSTR"), Some("QOPS"), Some("Address"), Some("GBR"), Some("GB"))
-  val transferPensionSchemeNonUK: TransferPensionScheme =
-    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), Some("PSTR"), Some("QOPS"), Some("Address"), Some("FRA"), Some("FR"))
+  def transferPensionSchemeUK: TransferPensionScheme =
+    TransferPensionScheme(Some(true), Some("UK Scheme"), Some("PSTR"), None, Some("Address"), Some("GB"), Some("GBR"))
+  def transferPensionSchemeNonUK: TransferPensionScheme =
+    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some("QOPS"), Some("Address"), Some("FR"), Some("FRA"))
 
-  def pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
-    PensionSchemeOverseasTransfers(Seq(overseasSchemeProvider), BigDecimal(1), BigDecimal(2))
+  val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
+    PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
 
-  val overseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Name", "Address", "GBR", Some(Seq("QOPS")), Some(Seq("PSTR")))
+  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(Seq("PSTR")))
+  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq("QOPS")), None)
 
-  def transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
+  val transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
     TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))
 }

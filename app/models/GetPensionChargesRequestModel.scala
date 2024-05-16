@@ -31,6 +31,7 @@ object Charge {
 case class PensionSchemeOverseasTransfers(overseasSchemeProvider: Seq[OverseasSchemeProvider],
                                           transferCharge: BigDecimal,
                                           transferChargeTaxPaid: BigDecimal) {
+
   def isEmpty: Boolean = this.overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
 
   def toTransfersIntoOverseasPensions(
@@ -39,7 +40,7 @@ case class PensionSchemeOverseasTransfers(overseasSchemeProvider: Seq[OverseasSc
       val transferChargeGateway: Boolean    = transferCharge != 0
       val transferChargeTaxGateway: Boolean = transferChargeTaxPaid != 0
       TransfersIntoOverseasPensionsAnswers(
-        transferPensionSavings = dbAnswers.transferPensionSavings,
+        transferPensionSavings = if (transferChargeGateway || transferChargeTaxGateway) true.some else dbAnswers.transferPensionSavings,
         overseasTransferCharge = if (transferChargeGateway) true.some else dbAnswers.overseasTransferCharge,
         overseasTransferChargeAmount = if (transferChargeGateway) transferCharge.some else None,
         pensionSchemeTransferCharge = if (transferChargeTaxGateway) true.some else dbAnswers.pensionSchemeTransferCharge,

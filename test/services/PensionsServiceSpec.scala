@@ -35,12 +35,8 @@ import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
-import testdata.frontend.paymentsIntoPensionsAnswers
-import testdata.transfersIntoOverseasPensions.{
-  pensionSchemeOverseasTransfers,
-  transfersIntoOverseasPensionsAnswers,
-  transfersIntoOverseasPensionsStorageAnswers
-}
+import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
+import testdata.transfersIntoOverseasPensions._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
