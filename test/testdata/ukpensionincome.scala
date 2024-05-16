@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package testdata.connector
+package testdata
 
-import models.employment.CreateUpdateEmploymentRequest
-import models.employment.CreateUpdateEmploymentRequest.{CreateUpdateEmployment, CreateUpdateEmploymentData, PayModel}
+import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
 
-object employment {
-
-  val fullEmploymentRequest: CreateUpdateEmploymentRequest = CreateUpdateEmploymentRequest(
-    Some("employmentId"),
-    Some(
-      CreateUpdateEmployment(
-        Some("ref"),
-        "employer",
-        "2020-01-01",
-        Some("2020-01-02"),
-        Some("payrollId")
-      )),
-    Some(
-      CreateUpdateEmploymentData(
-        PayModel(1.0, 2.0)
-      )),
+object ukpensionincome {
+  val sampleSingleUkPensionIncome: SingleUkPensionIncomeAnswers = SingleUkPensionIncomeAnswers(
+    Some("some_id"),
+    Some("some_id"),
+    Some("2020-01-01"),
+    Some("2021-01-01"),
+    Some("some name"),
+    Some("some_ref"),
+    None,
+    None,
     Some(true)
   )
 

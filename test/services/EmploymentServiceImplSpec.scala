@@ -21,12 +21,14 @@ import mocks.MockEmploymentConnector
 import models.ServiceErrorModel
 import models.common.JourneyContextWithNino
 import models.employment.AllEmploymentData
+import models.error.ServiceError.DownstreamError
 import models.submission.EmploymentPensions
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.EitherTTestOps.convertScalaFuture
 import utils.FutureUtils.FutureOps
 import utils.TestUtils
+import org.scalatest.EitherValues._
 
 class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
 
@@ -36,7 +38,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns a success result with an employment data model" must {
       "convert the model to an EmploymentPensions and return it" in {
         MockEmploymentConnector
-          .loadEmployments(validNino, currentTaxYear)
+          .getEmployments(validNino, currentTaxYear)
           .returns(allEmploymentsData.some.asRight.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
@@ -54,7 +56,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns a success result but with no EmploymentPensions" must {
       "generate an empty EmploymentPensions model" in {
         MockEmploymentConnector
-          .loadEmployments(validNino, currentTaxYear)
+          .getEmployments(validNino, currentTaxYear)
           .returns(none[AllEmploymentData].asRight.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
@@ -69,7 +71,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns an unsuccessful result" must {
       "propagate the error" in {
         MockEmploymentConnector
-          .loadEmployments(validNino, currentTaxYear)
+          .getEmployments(validNino, currentTaxYear)
           .returns(someServiceError.asLeft.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
@@ -78,7 +80,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
             .value
             .futureValue
 
-        result shouldBe someServiceError.asLeft
+        result.left.value shouldBe a[DownstreamError]
       }
     }
   }

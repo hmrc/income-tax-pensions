@@ -27,7 +27,7 @@ trait MockEmploymentConnector extends MockFactory {
 
   object MockEmploymentConnector {
 
-    def loadEmployments(nino: Nino, taxYear: TaxYear) =
+    def getEmployments(nino: Nino, taxYear: TaxYear) =
       (mockEmploymentConnector
         .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
         .expects(nino, taxYear, *)

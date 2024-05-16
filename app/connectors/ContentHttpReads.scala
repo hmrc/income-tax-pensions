@@ -17,12 +17,10 @@
 package connectors
 
 import cats.implicits._
-import models.APIErrorBodyModel.parsingError
-import models.error.ServiceError.{CannotReadJsonError, DownstreamError}
-import models.{APIErrorBodyModel, APIErrorModel, ServiceErrorModel}
-import play.api.http.Status.INTERNAL_SERVER_ERROR
+import models.ServiceErrorModel
+import models.error.ServiceError.CannotReadJsonError
 import play.api.libs.json.Reads
-import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import uk.gov.hmrc.http.HttpResponse
 import utils.Logging
 
 import scala.util.{Failure, Success, Try}

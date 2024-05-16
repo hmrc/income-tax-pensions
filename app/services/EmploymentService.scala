@@ -88,6 +88,7 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
         .map(sequence)).collapse
       .leftMap(err => err.toServiceError)
 
+  // TODO Moved from FE, we need to simplify this
   private def sequence[A, B](s: Seq[Either[A, B]]): Either[A, Seq[B]] =
     s.foldRight(Right(Nil): Either[A, Seq[B]]) { (e, acc) =>
       for {
@@ -96,6 +97,7 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
       } yield xs :+ x
     }
 
+  // TODO Moved from FE, we need to simplify this
   private implicit class FCollapser[F[_]: Functor](outcome: F[Seq[Unit]]) {
     def collapse: F[Unit] =
       outcome.map(_.reduce(_ |+| _))

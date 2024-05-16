@@ -30,7 +30,7 @@ import utils.EmploymentPensionsBuilder.employmentPensionsData
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StubEmploymentService(
+case class StubEmploymentService(
     loadEmploymentResult: Either[ServiceError, EmploymentPensions] = employmentPensionsData.asRight[ServiceError],
     var ukPensionIncome: List[UkPensionIncomeAnswers] = Nil
 ) extends EmploymentService {

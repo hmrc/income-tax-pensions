@@ -30,7 +30,7 @@ final case class EmploymentPensions(employmentData: List[EmploymentPensionModel]
 
   def nonEmpty: Boolean = !isEmpty
 
-  def toUkPensionIncomeAnswers(maybeDbAnswers: Option[UkPensionIncomeStorageAnswers]): Option[UkPensionIncomeAnswers] = {
+  def toUkPensionIncomeAnswers(maybeDbAnswers: Option[UkPensionIncomeStorageAnswers]): Option[UkPensionIncomeAnswers] =
     if (isEmpty && maybeDbAnswers.isEmpty) None
     else {
       val uKPensionIncomesQuestion = nonEmpty
@@ -49,7 +49,6 @@ final case class EmploymentPensions(employmentData: List[EmploymentPensionModel]
       }
       Some(UkPensionIncomeAnswers(uKPensionIncomesQuestion, answers))
     }
-  }
 }
 
 object EmploymentPensions {

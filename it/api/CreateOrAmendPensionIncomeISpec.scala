@@ -25,6 +25,7 @@ import play.api.libs.json.{JsValue, Json}
 import utils.TaxYearHelper.desIfTaxYearConverter
 
 class CreateOrAmendPensionIncomeISpec extends WiremockSpec with ScalaFutures {
+
   val minimumPensionIncomeModel: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(
     foreignPension = Some(
       Seq(
