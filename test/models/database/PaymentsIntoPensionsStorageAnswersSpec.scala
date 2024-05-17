@@ -19,13 +19,13 @@ package models.database
 import models.frontend.PaymentsIntoPensionsAnswers
 import org.scalatest.wordspec.AnyWordSpecLike
 import PaymentsIntoPensionsStorageAnswers._
-import testdata.frontend
+import testdata.paymentsIntoPensions
 
 class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
 
   "fromJourneyAnswers" should {
     "convert answers to a storage model" in {
-      val answers = frontend.paymentsIntoPensionsAnswers
+      val answers = paymentsIntoPensions.paymentsIntoPensionsAnswers
       val result  = fromJourneyAnswers(answers)
       assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
     }

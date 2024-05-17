@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package utils
+package testdata
 
-import cats.implicits.catsSyntaxOptionId
-import models.submission.{EmploymentPensionModel, EmploymentPensions}
+import models.PensionSchemeOverseasTransfers
+import testdata.transfersIntoOverseasPensions.{nonUkOverseasSchemeProvider, ukOverseasSchemeProvider}
 
-object EmploymentPensionsBuilder {
+object pensionSchemeOverseasTransfers {
 
-  private val employmentPensionModel = EmploymentPensionModel(
-    employmentId = "some_id",
-    pensionSchemeName = "some name",
-    pensionSchemeRef = "some_ref".some,
-    pensionId = "some_id".some,
-    startDate = "2020-01-01".some,
-    endDate = "2021-01-01".some,
-    amount = None,
-    taxPaid = None,
-    isCustomerEmploymentData = true.some
-  )
-
-  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
+  val pensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider), 1, 2)
 
 }

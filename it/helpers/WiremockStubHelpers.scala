@@ -46,7 +46,7 @@ trait WiremockStubHelpers {
 
   def stubPostWithoutResponseBody(url: String, status: Int, requestBody: String): StubMapping =
     stubFor(
-      post(urlEqualTo(url))
+      post(urlMatching(url))
         .withRequestBody(equalToJson(requestBody))
         .willReturn(aResponse()
           .withStatus(status)

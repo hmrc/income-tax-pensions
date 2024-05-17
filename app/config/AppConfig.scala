@@ -16,6 +16,7 @@
 
 package config
 
+import models.common.{Nino, TaxYear}
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -28,6 +29,11 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   val submissionBaseUrl: String    = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
+
+  def getEmploymentSourceUrl(nino: Nino, taxYear: TaxYear) = s"$employmentBaseUrl/income-tax/nino/$nino/sources?taxYear=$taxYear"
+
+  def getEmploymentUrl(nino: Nino, employmentId: String, source: String, taxYear: TaxYear) =
+    s"$employmentBaseUrl/income-tax/nino/$nino/sources/$employmentId/$source?taxYear=$taxYear"
 
   val environment: String                     = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")

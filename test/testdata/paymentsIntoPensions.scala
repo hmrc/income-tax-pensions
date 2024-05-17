@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package utils
+package testdata
 
-import cats.implicits.catsSyntaxOptionId
-import models.submission.{EmploymentPensionModel, EmploymentPensions}
+import models.frontend.PaymentsIntoPensionsAnswers
 
-object EmploymentPensionsBuilder {
+object paymentsIntoPensions {
 
-  private val employmentPensionModel = EmploymentPensionModel(
-    employmentId = "some_id",
-    pensionSchemeName = "some name",
-    pensionSchemeRef = "some_ref".some,
-    pensionId = "some_id".some,
-    startDate = "2020-01-01".some,
-    endDate = "2021-01-01".some,
-    amount = None,
-    taxPaid = None,
-    isCustomerEmploymentData = true.some
-  )
-
-  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
+  val paymentsIntoPensionsAnswers: PaymentsIntoPensionsAnswers =
+    PaymentsIntoPensionsAnswers(true, Some(1.0), Some(true), Some(2.0), true, Some(true), Some(3.0), Some(true), Some(4.0))
 
 }

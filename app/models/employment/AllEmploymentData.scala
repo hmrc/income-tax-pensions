@@ -16,6 +16,7 @@
 
 package models.employment
 
+import connectors.OptionalContentHttpReads
 import play.api.libs.json.{Json, OFormat}
 
 final case class AllEmploymentData(hmrcEmploymentData: Seq[HmrcEmploymentSource],
@@ -25,5 +26,7 @@ final case class AllEmploymentData(hmrcEmploymentData: Seq[HmrcEmploymentSource]
                                    otherEmploymentIncome: Option[OtherEmploymentIncome])
 
 object AllEmploymentData {
-  implicit val format: OFormat[AllEmploymentData] = Json.format[AllEmploymentData]
+  implicit val format: OFormat[AllEmploymentData]                  = Json.format[AllEmploymentData]
+  implicit val optRds: OptionalContentHttpReads[AllEmploymentData] = new OptionalContentHttpReads[AllEmploymentData]
+
 }

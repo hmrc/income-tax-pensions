@@ -21,11 +21,12 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
 import models.domain.ApiResultT
-import models.employment.AllEmploymentData
 import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -39,7 +40,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  chargesConnector: PensionChargesConnector,
                                  stateBenefitsConnector: GetStateBenefitsConnector,
                                  pensionIncomeConnector: PensionIncomeConnector,
-                                 employmentsConnector: EmploymentConnector,
+                                 employmentService: EmploymentService,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
@@ -70,6 +71,22 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     } yield ()
   }
 
+  def getUkPensionIncome(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UkPensionIncomeAnswers]] =
+    for {
+      employment     <- employmentService.getEmployment(ctx)
+      maybeDbAnswers <- repository.getAnswers[UkPensionIncomeStorageAnswers](ctx.toJourneyContext(Journey.UkPensionIncome))
+    } yield employment.toUkPensionIncomeAnswers(maybeDbAnswers)
+
+  def upsertUkPensionIncome(ctx: JourneyContextWithNino, answers: UkPensionIncomeAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UkPensionIncomeStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UkPensionIncome)
+
+    for {
+      _ <- employmentService.upsertUkPensionIncome(ctx, answers)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
   def getAnnualAllowances(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AnnualAllowancesAnswers]] =
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
@@ -93,6 +110,15 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
+
+  def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[TransfersIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.TransferIntoOverseasPensions))
+      transfersIntoOverseasPensionsAnswers = maybeCharges.flatMap(
+        _.pensionSchemeOverseasTransfers.flatMap(_.toTransfersIntoOverseasPensions(maybeDbAnswers)))
+    } yield transfersIntoOverseasPensionsAnswers
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
@@ -127,8 +153,5 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
-
-  private def getEmployments(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] =
-    employmentsConnector.loadEmployments(nino, taxYear)(hc.withInternalId(mtditid))
 
 }

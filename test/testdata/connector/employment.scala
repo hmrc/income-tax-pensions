@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package testdata
+package testdata.connector
 
-import models.frontend.PaymentsIntoPensionsAnswers
+import models.employment.CreateUpdateEmploymentRequest
+import models.employment.CreateUpdateEmploymentRequest.{CreateUpdateEmployment, CreateUpdateEmploymentData, PayModel}
 
-object frontend {
-  val paymentsIntoPensionsAnswers: PaymentsIntoPensionsAnswers =
-    PaymentsIntoPensionsAnswers(true, Some(1.0), Some(true), Some(2.0), true, Some(true), Some(3.0), Some(true), Some(4.0))
+object employment {
+
+  val fullEmploymentRequest: CreateUpdateEmploymentRequest = CreateUpdateEmploymentRequest(
+    Some("employmentId"),
+    Some(
+      CreateUpdateEmployment(
+        Some("ref"),
+        "employer",
+        "2020-01-01",
+        Some("2020-01-02"),
+        Some("payrollId")
+      )),
+    Some(
+      CreateUpdateEmploymentData(
+        PayModel(1.0, 2.0)
+      )),
+    Some(true)
+  )
 
 }

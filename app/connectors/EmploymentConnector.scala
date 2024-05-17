@@ -17,8 +17,9 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.GetEmploymentsHttpParser.GetEmploymentsHttpReads
-import models.employment.AllEmploymentData
+import connectors.httpParsers.ApiParser
+import models.common.{Nino, TaxYear}
+import models.employment.{AllEmploymentData, CreateUpdateEmploymentRequest}
 import models.logging.ConnectorRequestInfo
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
@@ -26,15 +27,37 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
+  private val downstreamServiceName = "income-tax-employment"
+  private val parser                = ApiParser.CommonHttpReads(downstreamServiceName)
 
-  def loadEmployments(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
-    val url: String = appConfig.employmentBaseUrl + s"/income-tax/nino/$nino/sources?taxYear=$taxYear"
+  def getEmployments(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
+    val url = appConfig.getEmploymentSourceUrl(nino, taxYear)
 
-    def call(implicit hc: HeaderCarrier): DownstreamOutcome[Option[AllEmploymentData]] = {
-      ConnectorRequestInfo("GET", url, "income-tax-employment").logRequest(logger)
-      http.GET[DownstreamErrorOr[Option[AllEmploymentData]]](url)(GetEmploymentsHttpReads, hc, ec)
-    }
+    implicit val updatedHc: HeaderCarrier                            = headerCarrier(url)(hc)
+    implicit val optRds: OptionalContentHttpReads[AllEmploymentData] = new OptionalContentHttpReads[AllEmploymentData]
 
-    call(headerCarrier(url))
+    ConnectorRequestInfo("GET", url, downstreamServiceName)(updatedHc).logRequest(logger)
+    http.GET[DownstreamErrorOr[Option[AllEmploymentData]]](url)(optRds, updatedHc, ec)
   }
+
+  def saveEmployment(nino: Nino, taxYear: TaxYear, model: CreateUpdateEmploymentRequest)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): DownstreamOutcome[Unit] = {
+    val url = appConfig.getEmploymentSourceUrl(nino, taxYear)
+
+    ConnectorRequestInfo("POST", url, downstreamServiceName).logRequestWithBody(logger, model)
+    http.POST[CreateUpdateEmploymentRequest, DownstreamErrorOr[Unit]](url, model)(CreateUpdateEmploymentRequest.format, parser, hc, ec)
+  }
+
+  def deleteEmployment(nino: Nino, taxYear: TaxYear, employmentId: String)(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext): DownstreamOutcome[Unit] = {
+    // TODO: Will there ever be HMRC-held employments?
+    val source = "CUSTOMER"
+    val url    = appConfig.getEmploymentUrl(nino, employmentId, source, taxYear)
+
+    ConnectorRequestInfo("DELETE", url, downstreamServiceName).logRequest(logger)
+    http.DELETE[DownstreamErrorOr[Unit]](url)(parser, hc, ec)
+  }
+
 }
