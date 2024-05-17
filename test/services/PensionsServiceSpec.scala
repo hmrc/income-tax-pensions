@@ -16,6 +16,7 @@
 
 package services
 
+import cats.implicits.catsSyntaxEitherId
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
@@ -25,24 +26,27 @@ import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsRespons
 import mocks.{MockPensionChargesConnector, MockPensionReliefsConnector}
 import models._
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
 import models.employment.AllEmploymentData
-import models.frontend.PaymentsIntoPensionsAnswers
+import models.frontend.{PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
+import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._
 import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
+import stubs.services.StubEmploymentService
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions._
+import testdata.ukpensionincome.sampleSingleUkPensionIncome
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EitherTTestOps.convertScalaFuture
-import utils.TestUtils
 import utils.TestUtils.currTaxYear
+import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
@@ -52,18 +56,20 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
 
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
-  val mockEmploymentConnector: EmploymentConnector      = mock[EmploymentConnector]
   val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
+  val stubEmploymentService                             = StubEmploymentService()
 
-  val service: PensionsService =
+  def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
     new PensionsService(
       mockReliefsConnector,
       mockChargesConnector,
       stateBenefitsConnector,
       pensionIncomeConnector,
-      mockEmploymentConnector,
+      stubEmploymentService,
       stubRepository
     )
+
+  val service: PensionsService = createPensionWithStubEmployment(stubEmploymentService)
 
   val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
@@ -95,11 +101,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
 
-      (mockEmploymentConnector
-        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedEmploymentsResult))
-
       (pensionIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -124,11 +125,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
 
       (stateBenefitsConnector
         .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(Right(None)))
-
-      (mockEmploymentConnector
-        .loadEmployments(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
@@ -259,6 +255,75 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
           Some(true)))
     }
 
+  }
+
+  "getUkPensionIncome" should {
+    val ctx = sampleCtx.toJourneyContext(Journey.UkPensionIncome)
+
+    "get None if No downstream and DB answers" in {
+      val service = createPensionWithStubEmployment(
+        StubEmploymentService(
+          loadEmploymentResult = EmploymentPensions(Nil).asRight
+        ))
+
+      val result = service.getUkPensionIncome(sampleCtx).value.futureValue
+
+      assert(result.value === None)
+    }
+
+    "get uKPensionIncomesQuestion=false with no incomes if no downstream answers, but if db answers exist" in {
+      val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
+      val service = createPensionWithStubEmployment(
+        StubEmploymentService(
+          loadEmploymentResult = EmploymentPensions(Nil).asRight
+        ))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(ctx, Json.toJson(answers))
+        res <- service.getUkPensionIncome(sampleCtx)
+      } yield res).value.futureValue
+
+      assert(result.value === Some(UkPensionIncomeAnswers(uKPensionIncomesQuestion = false, Nil)))
+    }
+
+    "get uKPensionIncomesQuestion=false with no incomes" in {
+      val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
+      val service = createPensionWithStubEmployment(
+        StubEmploymentService(
+          loadEmploymentResult = EmploymentPensionsBuilder.employmentPensionsData.asRight
+        ))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(ctx, Json.toJson(answers))
+        res <- service.getUkPensionIncome(sampleCtx)
+      } yield res).value.futureValue
+
+      assert(result.value === Some(UkPensionIncomeAnswers(uKPensionIncomesQuestion = true, List(sampleSingleUkPensionIncome))))
+    }
+  }
+
+  "upsertUkPensionIncome" should {
+    val employmentStub = StubEmploymentService(
+      loadEmploymentResult = EmploymentPensionsBuilder.employmentPensionsData.asRight
+    )
+    val service = createPensionWithStubEmployment(employmentStub)
+
+    "upsert answers" in {
+      val answers = UkPensionIncomeAnswers(uKPensionIncomesQuestion = true, List(sampleSingleUkPensionIncome))
+
+      val result = service.upsertUkPensionIncome(sampleCtx, answers).value.futureValue
+
+      assert(result.isRight)
+      assert(
+        employmentStub.ukPensionIncome === List(
+          UkPensionIncomeAnswers(
+            uKPensionIncomesQuestion = true,
+            List(sampleSingleUkPensionIncome)
+          )))
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[UkPensionIncomeStorageAnswers]
+      assert(persistedAnswers === UkPensionIncomeStorageAnswers(true))
+    }
   }
 
   "getAnnualAllowances" should {

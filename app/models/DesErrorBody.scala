@@ -16,8 +16,10 @@
 
 package models
 
+import cats.implicits.catsSyntaxEitherId
 import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
+import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.{JsValue, Json, OFormat}
 
 trait ServiceErrorBody
@@ -27,6 +29,12 @@ trait ServiceErrorModel {
   val body: ServiceErrorBody
 
   def toJson: JsValue
+
+  def toServiceError: ServiceError = DownstreamError(body.toString)
+}
+
+object ServiceErrorModel {
+  def parsingError[A]: Either[APIErrorModel, A] = APIErrorModel(INTERNAL_SERVER_ERROR, APIErrorBodyModel.parsingError).asLeft
 }
 
 sealed trait DesErrorBody extends ServiceErrorBody
@@ -37,8 +45,6 @@ case class DesErrorModel(status: Int, body: DesErrorBody) extends ServiceErrorMo
       case error: DesErrorBodyModel   => Json.toJson(error)
       case errors: DesErrorsBodyModel => Json.toJson(errors)
     }
-
-  def toServiceError: ServiceError = DownstreamError(body.toString)
 }
 
 /** Single DES Error * */

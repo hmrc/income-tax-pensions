@@ -58,6 +58,8 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   val nino           = "AA123456A"
   val validNino      = common.Nino("AA123456A")
   val mtditid        = "1234567890"
+  val validMtditid   = Mtditid("1234567890")
+  val testContext    = JourneyContextWithNino(currTaxYear, validMtditid, validNino)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

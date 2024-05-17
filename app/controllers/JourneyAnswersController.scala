@@ -18,7 +18,7 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import models.common._
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, UkPensionIncomeAnswers, PaymentsIntoPensionsAnswers}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PensionsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -41,6 +41,24 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     getBodyWithCtx[PaymentsIntoPensionsAnswers](taxYear, nino) { (ctx, value) =>
       pensionsService.upsertPaymentsIntoPensions(ctx, value).map(_ => NoContent)
     }
+  }
+
+  def getUkPensionIncome(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    handleOptionalApiResult(pensionsService.getUkPensionIncome(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
+  def saveUkPensionIncome(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    getBodyWithCtx[UkPensionIncomeAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertUkPensionIncome(ctx, value).map(_ => NoContent)
+    }
+  }
+
+  def getStatePension(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    ???
+  }
+
+  def saveStatePension(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    ???
   }
 
   def getAnnualAllowances(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>

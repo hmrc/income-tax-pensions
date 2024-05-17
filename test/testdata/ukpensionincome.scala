@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package utils
+package testdata
 
-import cats.implicits.catsSyntaxOptionId
-import models.submission.{EmploymentPensionModel, EmploymentPensions}
+import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
 
-object EmploymentPensionsBuilder {
-
-  private val employmentPensionModel = EmploymentPensionModel(
-    employmentId = "some_id",
-    pensionSchemeName = "some name",
-    pensionSchemeRef = "some_ref".some,
-    pensionId = "some_id".some,
-    startDate = "2020-01-01".some,
-    endDate = "2021-01-01".some,
-    amount = None,
-    taxPaid = None,
-    isCustomerEmploymentData = true.some
+object ukpensionincome {
+  val sampleSingleUkPensionIncome: SingleUkPensionIncomeAnswers = SingleUkPensionIncomeAnswers(
+    Some("some_id"),
+    Some("some_id"),
+    Some("2020-01-01"),
+    Some("2021-01-01"),
+    Some("some name"),
+    Some("some_ref"),
+    None,
+    None,
+    Some(true)
   )
-
-  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
 
 }

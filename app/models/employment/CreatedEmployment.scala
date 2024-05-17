@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package utils
+package models.employment
 
-import cats.implicits.catsSyntaxOptionId
-import models.submission.{EmploymentPensionModel, EmploymentPensions}
+import play.api.libs.json.{Json, OFormat}
 
-object EmploymentPensionsBuilder {
+case class CreatedEmployment(employmentId: Option[String])
 
-  private val employmentPensionModel = EmploymentPensionModel(
-    employmentId = "some_id",
-    pensionSchemeName = "some name",
-    pensionSchemeRef = "some_ref".some,
-    pensionId = "some_id".some,
-    startDate = "2020-01-01".some,
-    endDate = "2021-01-01".some,
-    amount = None,
-    taxPaid = None,
-    isCustomerEmploymentData = true.some
-  )
-
-  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
-
+object CreatedEmployment {
+  implicit val formats: OFormat[CreatedEmployment] = Json.format[CreatedEmployment]
 }

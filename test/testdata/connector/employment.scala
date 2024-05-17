@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package utils
+package testdata.connector
 
-import cats.implicits.catsSyntaxOptionId
-import models.submission.{EmploymentPensionModel, EmploymentPensions}
+import models.employment.CreateUpdateEmploymentRequest
+import models.employment.CreateUpdateEmploymentRequest.{CreateUpdateEmployment, CreateUpdateEmploymentData, PayModel}
 
-object EmploymentPensionsBuilder {
+object employment {
 
-  private val employmentPensionModel = EmploymentPensionModel(
-    employmentId = "some_id",
-    pensionSchemeName = "some name",
-    pensionSchemeRef = "some_ref".some,
-    pensionId = "some_id".some,
-    startDate = "2020-01-01".some,
-    endDate = "2021-01-01".some,
-    amount = None,
-    taxPaid = None,
-    isCustomerEmploymentData = true.some
+  val fullEmploymentRequest: CreateUpdateEmploymentRequest = CreateUpdateEmploymentRequest(
+    Some("employmentId"),
+    Some(
+      CreateUpdateEmployment(
+        Some("ref"),
+        "employer",
+        "2020-01-01",
+        Some("2020-01-02"),
+        Some("payrollId")
+      )),
+    Some(
+      CreateUpdateEmploymentData(
+        PayModel(1.0, 2.0)
+      )),
+    Some(true)
   )
-
-  val employmentPensionsData = EmploymentPensions(List(employmentPensionModel))
 
 }

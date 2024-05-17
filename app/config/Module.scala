@@ -29,7 +29,7 @@ class Module extends AbstractModule {
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
     bind(classOf[JourneyAnswersRepository]).to(classOf[MongoJourneyAnswersRepository])
     bind(classOf[PensionReliefsService]).to(classOf[PensionReliefsServiceImpl])
-    bind(classOf[LoadSubmittedDataService]).to(classOf[LoadSubmittedDataServiceImpl])
+    bind(classOf[EmploymentService]).to(classOf[EmploymentServiceImpl])
     bind(classOf[JourneyStatusService]).to(classOf[JourneyStatusServiceImpl])
   }
 

@@ -4,6 +4,11 @@ GET           /income-tax/nino/:nino/sources                                    
 GET           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
+GET           /:taxYear/pension-income/uk-pension-income/:nino/answers         controllers.JourneyAnswersController.getUkPensionIncome(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/pension-income/uk-pension-income/:nino/answers         controllers.JourneyAnswersController.saveUkPensionIncome(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/pension-income/state-pension/:nino/answers             controllers.JourneyAnswersController.getStatePension(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/pension-income/state-pension/:nino/answers             controllers.JourneyAnswersController.saveStatePension(taxYear: TaxYear, nino: Nino)
+
 GET           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
@@ -52,6 +57,3 @@ DELETE        /pension-income/nino/:nino/taxYear/:taxYear                       
 PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
 
 DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
-
-# Employment Pension
-GET           /employment-pension/nino/:nino/taxYear/:taxYear                    controllers.LoadSubmittedDataController.loadEmploymentPension(nino: String, taxYear: Int)
