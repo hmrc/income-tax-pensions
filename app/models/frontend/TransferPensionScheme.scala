@@ -16,6 +16,7 @@
 
 package models.frontend
 
+import models.OverseasSchemeProvider
 import play.api.libs.json.{Json, OFormat}
 
 case class TransferPensionScheme(ukTransferCharge: Option[Boolean] = None,
@@ -24,7 +25,15 @@ case class TransferPensionScheme(ukTransferCharge: Option[Boolean] = None,
                                  qops: Option[String] = None,
                                  providerAddress: Option[String] = None,
                                  alphaTwoCountryCode: Option[String] = None,
-                                 alphaThreeCountryCode: Option[String] = None)
+                                 alphaThreeCountryCode: Option[String] = None) {
+  def toOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider(
+    providerName = name.getOrElse(""),
+    providerAddress = providerAddress.getOrElse(""),
+    providerCountryCode = alphaThreeCountryCode.getOrElse(""),
+    qualifyingRecognisedOverseasPensionScheme = qops.map(q => Seq("Q" + q)),
+    pensionSchemeTaxReference = pstr.map(p => Seq(p))
+  )
+}
 
 object TransferPensionScheme {
   implicit val format: OFormat[TransferPensionScheme] = Json.format[TransferPensionScheme]

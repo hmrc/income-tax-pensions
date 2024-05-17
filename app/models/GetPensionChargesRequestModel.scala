@@ -90,8 +90,8 @@ case class OverseasSchemeProvider(providerName: String,
   def toTransferPensionScheme: TransferPensionScheme = TransferPensionScheme(
     ukTransferCharge = Some(providerCountryCode == "GBR"),
     name = Some(providerName),
-    pstr = pensionSchemeTaxReference.map(_.head).map(_.replace("Q", "")),
-    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head),
+    pstr = pensionSchemeTaxReference.map(_.head),
+    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head).map(_.replace("Q", "")),
     providerAddress = Some(providerAddress),
     alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(Some(providerCountryCode)),
     alphaThreeCountryCode = Some(providerCountryCode)

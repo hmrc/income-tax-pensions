@@ -18,7 +18,7 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import models.common._
-import models.frontend.{AnnualAllowancesAnswers, UkPensionIncomeAnswers, PaymentsIntoPensionsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UkPensionIncomeAnswers}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PensionsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -77,6 +77,12 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
 
   def getTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     handleOptionalApiResult(pensionsService.getTransfersIntoOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
+  def saveTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    getBodyWithCtx[TransfersIntoOverseasPensionsAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertTransfersIntoOverseasPensions(ctx, value).map(_ => NoContent)
+    }
   }
 
 }
