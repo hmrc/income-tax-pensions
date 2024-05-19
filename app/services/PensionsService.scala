@@ -21,12 +21,11 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
+import models.database._
 import models.domain.ApiResultT
+import models.employment.AllEmploymentData
 import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -108,8 +107,28 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     } yield ()
   }
 
-  def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
-    EitherT.rightT[Future, ServiceError](None)
+  def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino,
+                                             answers: UnauthorisedPaymentsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UnauthorisedPayments)
+
+    for { //TODO why do I have get charges here?
+      existingCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeExistingCharges      = existingCharges.flatMap(_.pensionSchemeUnauthorisedPayments)
+      //TODO why do i have to create or delete when empty here?
+      // _ <- createOrDeleteWhenEmpty(ctx, maybeExistingCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)
+                                         (implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
+    for {
+        maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+        maybeDbAnswers <- repository.getAnswers[UnauthorisedPaymentsStorageAnswers](ctx.toJourneyContext(Journey.UnauthorisedPayments))
+        unauthorisedPaymentsAnswers = maybeCharges.flatMap(
+          _.pensionSchemeUnauthorisedPayments.flatMap(_.toUnauthorisedPayments(maybeDbAnswers)))
+    } yield unauthorisedPaymentsAnswers
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =

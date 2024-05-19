@@ -22,9 +22,10 @@ import models.{CreateUpdatePensionChargesRequestModel, ServiceErrorModel}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureEitherOps
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector, submissionConnector: SubmissionConnector) {
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
