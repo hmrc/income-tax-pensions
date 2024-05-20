@@ -22,8 +22,8 @@ import connectors.PensionIncomeConnector.PensionIncomeBaseApi
 import connectors.httpParsers.CreateOrAmendPensionIncomeHttpParser.{CreateOrAmendPensionIncomeHttpReads, CreateOrAmendPensionIncomeResponse}
 import connectors.httpParsers.DeletePensionIncomeHttpParser.{DeletePensionIncomeHttpReads, DeletePensionIncomeResponse}
 import connectors.httpParsers.GetPensionIncomeHttpParser.{GetPensionIncomeHttpReads, GetPensionIncomeResponse}
-import models.{CreateUpdatePensionIncomeModel, GetPensionChargesRequestModel, GetPensionIncomeModel}
-import models.common.{Nino, TaxYear}
+import models.{CreateOrUpdatePensionReliefsModel, CreateUpdatePensionIncomeModel, GetPensionChargesRequestModel, GetPensionIncomeModel}
+import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
@@ -51,6 +51,12 @@ class PensionIncomeConnector @Inject() (val http: HttpClient, val appConfig: App
     }
 
     integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
+  }
+
+  def createOrAmendPensionIncomeT(ctx: JourneyContextWithNino, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = createOrAmendPensionIncome(ctx.nino.value, ctx.taxYear.endYear, pensionIncome)
+    EitherT(ans).leftMap(err => err.toServiceError)
   }
 
   def createOrAmendPensionIncome(nino: String, taxYear: Int, pensionIncome: CreateUpdatePensionIncomeModel)(implicit

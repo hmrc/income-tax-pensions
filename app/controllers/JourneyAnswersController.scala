@@ -86,6 +86,7 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
   def savePaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     getBodyWithCtx[PaymentsIntoOverseasPensionsAnswers](taxYear, nino) { (ctx, value) =>
       pensionsService.upsertPaymentsIntoOverseasPensions(ctx, value).map(_ => NoContent)
-  }
+    }
 
+  }
 }

@@ -32,7 +32,15 @@ case class Relief(
     sf74Reference: Option[String] = None
 ) {
   def toOverseasPensionsContributions: OverseasPensionContribution = OverseasPensionContribution(
-    customerReference = customerReference, exemptEmployersPensionContribs = ???, migrantMemReliefQopsRefNo = ???, dblTaxationRelief = ???, dblTaxationCountry = ???, dblTaxationArticle = ???, dblTaxationTreaty = ???, sf74Reference = ???)
+    customerReference = customerReference,
+    exemptEmployersPensionContribs = employerPaymentsAmount.getOrElse(0),
+    migrantMemReliefQopsRefNo = qopsReference,
+    dblTaxationRelief = doubleTaxationReliefAmount,
+    dblTaxationCountry = alphaThreeCountryCode,
+    dblTaxationArticle = doubleTaxationArticle,
+    dblTaxationTreaty = doubleTaxationTreaty,
+    sf74Reference = sf74Reference
+  )
 }
 
 object Relief {

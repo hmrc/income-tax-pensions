@@ -25,12 +25,10 @@ case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuest
                                                taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None,
                                                reliefs: Seq[Relief] = Seq.empty[Relief]) {
 
-  def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer = PaymentsIntoOverseasPensionsStorageAnswer(
-    paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
+  def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer =
+    PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
 }
-
 
 object PaymentsIntoOverseasPensionsAnswers {
   implicit val format: OFormat[PaymentsIntoOverseasPensionsAnswers] = Json.format[PaymentsIntoOverseasPensionsAnswers]
 }
-
