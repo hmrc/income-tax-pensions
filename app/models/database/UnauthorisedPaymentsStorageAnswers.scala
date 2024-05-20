@@ -16,7 +16,6 @@
 
 package models.database
 
-
 import models.frontend.UnauthorisedPaymentsAnswers
 import play.api.libs.json.{Json, OFormat}
 

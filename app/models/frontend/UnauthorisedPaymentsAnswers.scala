@@ -41,7 +41,7 @@ case class UnauthorisedPaymentsAnswers(
 
   // TODO Decide if we need to send 0 - it was copied from Frontend. Maybe we should send None?
   private def determineCharge(maybeBaseQ: Option[Boolean], maybeAmount: Option[BigDecimal], maybeTaxAmount: Option[BigDecimal]): Charge = {
-    val blankSubmission = Charge(0.00, 0.00)
+    val blankSubmission = Charge(amount = 0.00, foreignTaxPaid = 0.00)
 
     (maybeBaseQ, maybeAmount, maybeTaxAmount) match {
       case (Some(_), Some(am), taxAm) =>
