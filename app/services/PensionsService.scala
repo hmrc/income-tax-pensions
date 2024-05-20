@@ -109,6 +109,21 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
 
+  def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino, answers: UnauthorisedPaymentsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UnauthorisedPayments)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      pensionSchemeUnauthorisedPayments = answers.toPensionCharges.some
+      updatedCharges                    = existingCharges.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
     for {
