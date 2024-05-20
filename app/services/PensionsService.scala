@@ -27,6 +27,8 @@ import models.commonTaskList.{TaskListModel, TaskListSection, TaskListSectionIte
 import models.database._
 import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend._
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -67,7 +69,8 @@ trait PensionsService {
 class PensionsServiceImpl @Inject() (appConfig: AppConfig,
                                      reliefsConnector: PensionReliefsConnector,
                                      chargesConnector: PensionChargesConnector,
-                                     stateBenefitsConnector: GetStateBenefitsConnector,
+                                 stateBenefitsConnector: StateBenefitsConnector,
+                                     stateBenfitService: StateBenefitService,
                                      pensionIncomeConnector: PensionIncomeConnector,
                                      employmentService: EmploymentService,
                                      statusService: JourneyStatusService,
@@ -141,6 +144,23 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
 
     for {
       _ <- employmentService.upsertUkPensionIncome(ctx, answers)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] =
+    for {
+      stateBenefits  <- stateBenfitService.getStateBenefit(ctx)
+      maybeDbAnswers <- repository.getAnswers[IncomeFromPensionsStatePensionStorageAnswers](ctx.toJourneyContext(Journey.StatePension))
+    } yield stateBenefits.toIncomeFromPensionsStatePensionAnswers(maybeDbAnswers)
+
+  def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = IncomeFromPensionsStatePensionStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.StatePension)
+
+    for {
+//      _ <- employmentService.upsertUkPensionIncome(ctx, answers)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

@@ -31,7 +31,7 @@ import utils.StateBenefitsDataBuilder.aStateBenefitsDataJsValue
 
 class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
-  lazy val connector: GetStateBenefitsConnector = app.injector.instanceOf[GetStateBenefitsConnector]
+  lazy val connector: StateBenefitsConnector = app.injector.instanceOf[StateBenefitsConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -57,7 +57,7 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
       for ((intExtHost, intExt) <- Seq((internalHost, "Internal"), (externalHost, "External")))
         s"the host for DES is '$intExt'" in {
           implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-          val connector                  = new GetStateBenefitsConnector(httpClient, appConfig(intExtHost))
+          val connector                  = new StateBenefitsConnector(httpClient, appConfig(intExtHost))
           val expectedResult             = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
 
           stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString(), headersSentToBenefits)

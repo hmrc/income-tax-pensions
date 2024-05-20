@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package models.frontend
+package models.statebenefit
 
-import models.frontend.statepension.StateBenefitAnswers
 import play.api.libs.json.{Json, OFormat}
 
-final case class IncomeFromPensionsStatePensionAnswers(
-    statePension: Option[StateBenefitAnswers],
-    statePensionLumpSum: Option[StateBenefitAnswers]
+import java.time.{Instant, LocalDate}
+import java.util.UUID
+
+final case class Claim(
+    benefitId: Option[UUID],
+    startDate: LocalDate,
+    endDateQuestion: Option[Boolean],
+    endDate: Option[LocalDate],
+    dateIgnored: Option[Instant],
+    submittedOn: Option[Instant],
+    amount: Option[BigDecimal],
+    taxPaidQuestion: Option[Boolean],
+    taxPaid: Option[BigDecimal]
 )
 
-object IncomeFromPensionsStatePensionAnswers {
-  implicit val format: OFormat[IncomeFromPensionsStatePensionAnswers] = Json.format[IncomeFromPensionsStatePensionAnswers]
-
+object Claim {
+  implicit val format: OFormat[Claim] = Json.format[Claim]
 }

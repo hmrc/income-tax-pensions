@@ -16,14 +16,30 @@
 
 package models
 
+import connectors.OptionalContentHttpReads
+import models.database.IncomeFromPensionsStatePensionStorageAnswers
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.{JsPath, OWrites, Reads}
+import play.api.libs.json.{JsPath, Json, OFormat, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
-                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None)
+                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
+  def toIncomeFromPensionsStatePensionAnswers(maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
+    val statePension =
+
+    IncomeFromPensionsStatePensionAnswers(
+      statePension = statePension,
+      statePensionLumpSum = statePensionLumpSum
+    )
+  }
+}
 
 object AllStateBenefitsData {
+  implicit val format: OFormat[AllStateBenefitsData]                  = Json.format[AllStateBenefitsData]
+  implicit val optRds: OptionalContentHttpReads[AllStateBenefitsData] = new OptionalContentHttpReads[AllStateBenefitsData]
+
+  val empty: AllStateBenefitsData = AllStateBenefitsData(None, None)
 
   implicit val allStateBenefitsDataWrites: OWrites[AllStateBenefitsData] = (data: AllStateBenefitsData) =>
     jsonObjNoNulls(

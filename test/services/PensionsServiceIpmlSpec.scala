@@ -63,7 +63,8 @@ class PensionsServiceIpmlSpec
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
-  val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
+  val stateBenefitsConnector: StateBenefitsConnector = mock[StateBenefitsConnector]
+  val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
   val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
   val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
   val stubStatusService                                 = StubJourneyStatusService()

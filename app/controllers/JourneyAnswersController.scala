@@ -18,6 +18,8 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import models.common._
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.frontend._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PensionsService
@@ -54,11 +56,13 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
   }
 
   def getStatePension(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    ???
+    handleOptionalApiResult(pensionsService.getStatePension(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
   def saveStatePension(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    ???
+    getBodyWithCtx[IncomeFromPensionsStatePensionAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertStatePension(ctx, value).map(_ => NoContent)
+    }
   }
 
   def getAnnualAllowances(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>

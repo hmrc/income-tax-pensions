@@ -19,7 +19,7 @@ package controllers
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import connectors.{GetStateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
+import connectors.{StateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
 import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel, ServiceErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 class GetAllPensionsControllerSpec extends TestUtils {
   val reliefsConnector: PensionReliefsConnector         = mock[PensionReliefsConnector]
   val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
-  val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
+  val stateBenefitsConnector: StateBenefitsConnector = mock[StateBenefitsConnector]
   val pensionsService: PensionsService                  = mock[PensionsService]
   val controller: GetAllPensionsController              = new GetAllPensionsController(pensionsService, authorisedAction, mockControllerComponents)
 
