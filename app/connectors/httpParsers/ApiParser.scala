@@ -33,7 +33,7 @@ import utils.PagerDutyHelper.PagerDutyKeys.{
 }
 import utils.PagerDutyHelper.pagerDutyLog
 
-trait APIParser extends Logging {
+trait APIParserTrait extends Logging {
 
   val parserName: String
   val service: String
@@ -75,7 +75,7 @@ object ApiParser {
       CommonDownstreamParser(method, url, response, service).logPagerDutyAlertOnError
   }
 
-  case class CommonDownstreamParser(method: String, url: String, response: HttpResponse, service: String = "") extends APIParser {
+  case class CommonDownstreamParser(method: String, url: String, response: HttpResponse, service: String = "") extends APIParserTrait {
     val parserName: String    = "CommonDownstreamParser"
     val targetUrl: String     = url
     val requestMethod: String = method

@@ -82,16 +82,18 @@ object PensionContributions {
   implicit val format: OFormat[PensionContributions] = Json.format[PensionContributions]
 }
 
-case class OverseasSchemeProvider(providerName: String,
-                                  providerAddress: String,
-                                  providerCountryCode: String,
-                                  qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]],
-                                  pensionSchemeTaxReference: Option[Seq[String]]) {
+case class OverseasSchemeProvider(
+    providerName: String,
+    providerAddress: String,
+    providerCountryCode: String,
+    qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]], // This starts with a 'Q' but does not in the FE model (TransferPensionScheme)
+    pensionSchemeTaxReference: Option[Seq[String]]) {
+
   def toTransferPensionScheme: TransferPensionScheme = TransferPensionScheme(
     ukTransferCharge = Some(providerCountryCode == "GBR"),
     name = Some(providerName),
-    pstr = pensionSchemeTaxReference.map(_.head).map(_.replace("Q", "")),
-    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head),
+    pstr = pensionSchemeTaxReference.map(_.head),
+    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head.replace("Q", "")),
     providerAddress = Some(providerAddress),
     alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(Some(providerCountryCode)),
     alphaThreeCountryCode = Some(providerCountryCode)
