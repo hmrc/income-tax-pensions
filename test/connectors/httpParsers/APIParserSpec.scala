@@ -24,7 +24,7 @@ import utils.TestUtils
 
 class APIParserSpec extends TestUtils {
 
-  object FakeParser extends APIParser {
+  object FakeParser extends APIParserTrait {
     override val service: String    = "service"
     override val parserName: String = "TestParser"
   }

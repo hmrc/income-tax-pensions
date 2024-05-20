@@ -21,12 +21,10 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
+import models.database._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository

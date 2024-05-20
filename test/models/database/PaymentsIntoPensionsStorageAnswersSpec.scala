@@ -16,9 +16,8 @@
 
 package models.database
 
-import models.frontend.PaymentsIntoPensionsAnswers
+import models.database.PaymentsIntoPensionsStorageAnswers._
 import org.scalatest.wordspec.AnyWordSpecLike
-import PaymentsIntoPensionsStorageAnswers._
 import testdata.paymentsIntoPensions
 
 class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
