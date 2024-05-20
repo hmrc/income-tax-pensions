@@ -23,7 +23,6 @@ import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
-import models.error.ServiceError
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -107,7 +106,26 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   }
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
-    EitherT.rightT[Future, ServiceError](None)
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[UnauthorisedPaymentsStorageAnswers](ctx.toJourneyContext(Journey.UnauthorisedPayments))
+      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionSchemeUnauthorisedPayments.map(_.toUnauthorisedPayments(maybeDbAnswers)))
+    } yield annualAllowancesAnswers
+
+  def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino, answers: UnauthorisedPaymentsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UnauthorisedPayments)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      pensionSchemeUnauthorisedPayments = answers.toPensionCharges.some
+      updatedCharges                    = existingCharges.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =

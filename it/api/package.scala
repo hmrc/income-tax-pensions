@@ -145,7 +145,7 @@ package object api {
         )),
       pensionSchemeUnauthorisedPayments = Some(
         PensionSchemeUnauthorisedPayments(
-          pensionSchemeTaxReference = Some(Seq("00123456RA")),
+          pensionSchemeTaxReference = Some(List("00123456RA")),
           surcharge = Some(
             Charge(
               amount = 123.45,
