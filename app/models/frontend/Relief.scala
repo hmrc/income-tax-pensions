@@ -16,6 +16,7 @@
 
 package models.frontend
 
+import models.OverseasPensionContribution
 import play.api.libs.json.{Json, OFormat}
 
 case class Relief(
@@ -29,7 +30,10 @@ case class Relief(
     doubleTaxationReliefAmount: Option[BigDecimal] = None,
     qopsReference: Option[String] = None,
     sf74Reference: Option[String] = None
-)
+) {
+  def toOverseasPensionsContributions: OverseasPensionContribution = OverseasPensionContribution(
+    customerReference = customerReference, exemptEmployersPensionContribs = ???, migrantMemReliefQopsRefNo = ???, dblTaxationRelief = ???, dblTaxationCountry = ???, dblTaxationArticle = ???, dblTaxationTreaty = ???, sf74Reference = ???)
+}
 
 object Relief {
   implicit val format: OFormat[Relief] = Json.format[Relief]

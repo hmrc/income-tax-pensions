@@ -21,19 +21,12 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoOverseasPensionsStorageAnswer, PaymentsIntoPensionsStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
 import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
 import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{
-  AnnualAllowancesAnswers,
-  PaymentsIntoOverseasPensionsAnswers,
-  PaymentsIntoPensionsAnswers,
-  TransfersIntoOverseasPensionsAnswers,
-  UnauthorisedPaymentsAnswers
-}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -121,6 +114,22 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
+
+  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoOverseasPensionsAnswers)(
+    implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = answers.toStorageAnswers
+    val journeyCtx = ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions)
+
+    for {
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      updatedReliefs = existingRelief.getOrElse(GetPensionReliefsModel.empty).pensionReliefs.copy(
+        overseasPensionSchemeContributions = answers.paymentsIntoOverseasPensionsAmount)
+      _ <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
+      existingIncomes <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      updatedIncomes = existingIncomes.getOrElse(GetPensionIncomeModel.empty).copy(overseasPensionContribution = answers.reliefs.some)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
