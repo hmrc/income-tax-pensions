@@ -44,10 +44,13 @@ object transfersIntoOverseasPensions {
     TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some(qopsReference), Some("Address"), Some("FR"), Some("FRA"))
 
   val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
-    PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
+    PensionSchemeOverseasTransfers(List(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
 
-  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(Seq(pstrReference)))
-  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq(qopsReference)), None)
+  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(List(pstrReference)))
+  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(List(qopsReference)), None)
+
+  val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
+    PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
 
   val transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
     TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))
