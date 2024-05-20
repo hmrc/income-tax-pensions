@@ -23,4 +23,7 @@ case class CreateUpdatePensionIncomeModel(foreignPension: Option[Seq[ForeignPens
 
 object CreateUpdatePensionIncomeModel {
   implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
+
+  def empty: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(None, None)
+
 }

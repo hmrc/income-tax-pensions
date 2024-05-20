@@ -28,6 +28,10 @@ case object Country {
   def get2AlphaCodeFrom3AlphaCode(alphaThreeCode: Option[String]): Option[String] =
     countriesFromFile.find(country => alphaThreeCode.contains(country.alphaThreeCode)).map(_.alphaTwoCode)
 
+  def get3AlphaCodeFrom2AlphaCode(alphaTwoCode: String): String =
+    countriesFromFile.filter(countryNamesWithCodes => alphaTwoCode == countryNamesWithCodes.alphaTwoCode).map(_.alphaThreeCode).head
+
+
   lazy private val countriesFromFile: List[Country] = {
     def fromJsonFile: List[Country] =
       Json.parse(getClass.getResourceAsStream("/location-autocomplete-canonical-list.json")) match {
