@@ -43,9 +43,6 @@ object transfersIntoOverseasPensions {
   def transferPensionSchemeNonUK: TransferPensionScheme =
     TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some(qopsReference), Some("Address"), Some("FR"), Some("FRA"))
 
-  val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
-    PensionSchemeOverseasTransfers(List(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
-
   val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(List(pstrReference)))
   val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(List(qopsReference)), None)
 

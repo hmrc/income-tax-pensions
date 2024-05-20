@@ -23,7 +23,6 @@ import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
-import models.error.ServiceError
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
