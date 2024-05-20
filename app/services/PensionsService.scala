@@ -23,6 +23,16 @@ import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
+import models.error.ServiceError
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{
+  AnnualAllowancesAnswers,
+  PaymentsIntoOverseasPensionsAnswers,
+  PaymentsIntoPensionsAnswers,
+  TransfersIntoOverseasPensionsAnswers,
+  UnauthorisedPaymentsAnswers
+}
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -126,6 +136,10 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
+
+  def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
+    EitherT.rightT[Future, ServiceError](None)
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
