@@ -22,8 +22,18 @@ import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
+import models.database._
 import models.domain.ApiResultT
 import models.error.ServiceError
+import models.frontend._
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
+import models.frontend.{
+  AnnualAllowancesAnswers,
+  PaymentsIntoOverseasPensionsAnswers,
+  PaymentsIntoPensionsAnswers,
+  TransfersIntoOverseasPensionsAnswers,
+  UnauthorisedPaymentsAnswers
+}
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -123,7 +133,12 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       existingIncome                    = getIncome.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
       updatedIncomeFromOverseasPensions = answers.toForeignPension.some
       updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
-      _ <- pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncome)
+
+      // TODO permit the submission of an empty foreginPension array (now forbidden by business) without having to wipe out the
+      //  entire Income array, i.e. when paymentsFromOverseasPensionsQuestion is changed from Yes to No after submission
+      _ <- answers.overseasIncomePensionSchemes.headOption.fold(EitherT.rightT[Future, ServiceError](()))(_ =>
+        pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncome))
+
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

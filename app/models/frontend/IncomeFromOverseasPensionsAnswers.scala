@@ -25,14 +25,14 @@ final case class IncomeFromOverseasPensionsAnswers(
     overseasIncomePensionSchemes: Seq[PensionScheme] = Nil
 ) {
   def toForeignPension: Seq[ForeignPension] =
-    overseasIncomePensionSchemes.map { pensionScheme =>
+    overseasIncomePensionSchemes.map { scheme =>
       ForeignPension(
-        countryCode = Country.get3AlphaCodeFrom2AlphaCode(pensionScheme.alphaTwoCode.get),
-        taxableAmount = pensionScheme.taxableAmount.getOrElse(0.0),
-        amountBeforeTax = pensionScheme.pensionPaymentAmount,
-        taxTakenOff = pensionScheme.pensionPaymentTaxPaid,
-        specialWithholdingTax = pensionScheme.specialWithholdingTaxAmount,
-        foreignTaxCreditRelief = pensionScheme.foreignTaxCreditReliefQuestion
+        countryCode = Country.get3AlphaCodeFrom2AlphaCode(scheme.alphaTwoCode.get),
+        taxableAmount = scheme.taxableAmount.getOrElse(0.0),
+        amountBeforeTax = scheme.pensionPaymentAmount,
+        taxTakenOff = scheme.pensionPaymentTaxPaid,
+        specialWithholdingTax = scheme.specialWithholdingTaxAmount,
+        foreignTaxCreditRelief = scheme.foreignTaxCreditReliefQuestion
       )
     }
 }
