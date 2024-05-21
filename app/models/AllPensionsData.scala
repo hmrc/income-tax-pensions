@@ -16,6 +16,7 @@
 
 package models
 
+import models.charges.GetPensionChargesRequestModel
 import models.submission.EmploymentPensions
 import play.api.libs.json.{Json, OFormat}
 

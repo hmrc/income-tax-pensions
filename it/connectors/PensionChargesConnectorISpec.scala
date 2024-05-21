@@ -21,6 +21,7 @@ import config.AppConfig
 import connectors.PensionChargesConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, PensionContributions}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json

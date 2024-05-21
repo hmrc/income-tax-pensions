@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package testdata
+package models.charges
 
-import models.charges.PensionSchemeOverseasTransfers
-import testdata.transfersIntoOverseasPensions.{nonUkOverseasSchemeProvider, ukOverseasSchemeProvider}
+import play.api.libs.json.{Json, OFormat}
 
-object pensionSchemeOverseasTransfers {
+case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]], surcharge: Option[Charge], noSurcharge: Option[Charge])
 
-  val pensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider), 1, 2)
+case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
 
+object Charge {
+  implicit val format: OFormat[Charge] = Json.format[Charge]
+}
+
+object PensionSchemeUnauthorisedPayments {
+  implicit val format: OFormat[PensionSchemeUnauthorisedPayments] = Json.format[PensionSchemeUnauthorisedPayments]
 }

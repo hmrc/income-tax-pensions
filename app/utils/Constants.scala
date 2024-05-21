@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package models.database
+package utils
 
-import models.database.PaymentsIntoPensionsStorageAnswers._
-import org.scalatest.wordspec.AnyWordSpecLike
-import testdata.paymentsIntoPensions
+object Constants {
 
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
-
-  "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = paymentsIntoPensions.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
-    }
-  }
+  val zero: BigDecimal = BigDecimal(0.00)
+  val GBAlpha3Code     = "GBR"
+  val GBAlpha2Code     = "GB"
 }

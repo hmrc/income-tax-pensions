@@ -16,7 +16,7 @@
 
 package testdata
 
-import models.PensionContributions
+import models.charges.PensionContributions
 import models.database.AnnualAllowancesStorageAnswers
 import models.frontend.AnnualAllowancesAnswers
 

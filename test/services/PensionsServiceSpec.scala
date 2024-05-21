@@ -25,6 +25,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import mocks.{MockPensionChargesConnector, MockPensionReliefsConnector}
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
 import models.employment.AllEmploymentData
@@ -393,7 +394,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       assert(result === None)
     }
 
-    "return answers" ignore { // TODO 8251 fix this test
+    "return answers" in {
       mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, Some(pensionSchemeOverseasTransfers), None, None, None))))
       val result = (for {
         _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))

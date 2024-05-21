@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package models.database
+package models
 
-import models.database.PaymentsIntoPensionsStorageAnswers._
-import org.scalatest.wordspec.AnyWordSpecLike
-import testdata.paymentsIntoPensions
-
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
-
-  "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = paymentsIntoPensions.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
-    }
-  }
+package object charges {
+  def addQopsSubmissionPrefix(qops: String): String = if (qops.startsWith("Q")) qops else s"Q$qops"
+  def removeQopsPrefix(qops: String): String        = qops.replace("Q", "")
 }

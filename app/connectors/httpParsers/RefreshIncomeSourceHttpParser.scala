@@ -23,7 +23,7 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object RefreshIncomeSourceHttpParser extends APIParser {
+object RefreshIncomeSourceHttpParser extends APIParserTrait {
   override val parserName: String = "RefreshIncomeHttpParser"
   override val service: String    = "income-tax-submission"
 

@@ -20,6 +20,7 @@ import cats.data.EitherT
 import cats.implicits._
 import connectors._
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
@@ -125,9 +126,9 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
 
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
-      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
-      updatedContributions: Option[PensionSchemeOverseasTransfers] = answers.toPensionSchemeOverseasTransfers.some
-      updatedCharges                                               = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
+      existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      updatedContributions = answers.toPensionSchemeOverseasTransfers.some
+      updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
       _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()

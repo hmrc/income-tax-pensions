@@ -16,11 +16,16 @@
 
 package testdata
 
+import models.charges.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
 import models.database.TransfersIntoOverseasPensionsStorageAnswers
 import models.frontend.{TransferPensionScheme, TransfersIntoOverseasPensionsAnswers}
-import models.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
+import utils.Constants.{GBAlpha2Code, GBAlpha3Code}
 
 object transfersIntoOverseasPensions {
+
+  val pstrReference           = "12345678RA"
+  val qopsReference           = "123456"
+  val qopsReferenceWithPrefix = "Q123456"
 
   def transfersIntoOverseasPensionsAnswers: TransfersIntoOverseasPensionsAnswers =
     TransfersIntoOverseasPensionsAnswers(
@@ -30,22 +35,19 @@ object transfersIntoOverseasPensions {
       Some(true),
       Some(2.0),
       Seq(transferPensionSchemeUK, transferPensionSchemeNonUK))
-  val annualAllowancesEmptyAnswers: TransfersIntoOverseasPensionsAnswers =
-    TransfersIntoOverseasPensionsAnswers(None, None, None, None, None, Seq.empty)
-  val annualAllowancesAnswersNoJourney: TransfersIntoOverseasPensionsAnswers =
-    TransfersIntoOverseasPensionsAnswers(Some(false), None, None, None, None, Seq.empty)
 
   def transferPensionSchemeUK: TransferPensionScheme =
-    TransferPensionScheme(Some(true), Some("UK Scheme"), Some("PSTR"), None, Some("Address"), Some("GB"), Some("GBR"))
+    TransferPensionScheme(Some(true), Some("UK Scheme"), Some(pstrReference), Some("Address"), Some(GBAlpha2Code), Some(GBAlpha3Code))
   def transferPensionSchemeNonUK: TransferPensionScheme =
-    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some("QOPS"), Some("Address"), Some("FR"), Some("FRA"))
+    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), Some(qopsReference), Some("Address"), Some("FR"), Some("FRA"))
 
-  val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
-    PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
+  def pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
+    PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
 
-  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(Seq("PSTR")))
-  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq("QOPS")), None)
+  def ukOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("UK Scheme", "Address", GBAlpha3Code, None, Some(Seq(pstrReference)))
+  def nonUkOverseasSchemeProvider: OverseasSchemeProvider =
+    OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq(qopsReferenceWithPrefix)), None)
 
-  val transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
+  def transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
     TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))
 }

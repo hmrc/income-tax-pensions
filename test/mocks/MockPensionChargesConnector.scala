@@ -21,7 +21,7 @@ import connectors.PensionChargesConnector
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import models.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import org.scalamock.handlers.CallHandler3
 import org.scalamock.matchers.MockParameter
 import org.scalamock.scalatest.MockFactory
