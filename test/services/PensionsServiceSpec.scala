@@ -375,6 +375,16 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
     }
   }
 
+  "getPaymentsIntoOverseasPensions" should {
+
+    "get None if no answers" in {
+      mockGetPensionChargesT(Right(None))
+      val result = service.getPaymentsIntoOverseasPensions(sampleCtx).value.futureValue
+      assert(result.value === None)
+    }
+
+  }
+
   "getTransfersIntoOverseasPensions" should {
     val transferIntoOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.TransferIntoOverseasPensions)
 

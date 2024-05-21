@@ -155,7 +155,7 @@ class PensionChargesServiceSpec extends TestUtils {
   private def createUserData() = {
     val pensionSchemeUnauthorisedPayments = Some(
       PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Some(Seq("00543216RA", "00123456RB")),
+        pensionSchemeTaxReference = Some(List("00543216RA", "00123456RB")),
         surcharge = Some(
           Charge(
             amount = 124.44,

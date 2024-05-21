@@ -51,12 +51,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
         .toPaymentsIntoPensions(maybeDbAnswers)
     } yield paymentsIntoPensionsAnswers
 
-  private def createOrDeleteWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit hc: HeaderCarrier) =
-    if (updatedReliefs.nonEmpty)
-      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
-    else
-      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
-
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
@@ -108,6 +102,29 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   }
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[UnauthorisedPaymentsStorageAnswers](ctx.toJourneyContext(Journey.UnauthorisedPayments))
+      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionSchemeUnauthorisedPayments.map(_.toUnauthorisedPayments(maybeDbAnswers)))
+    } yield annualAllowancesAnswers
+
+  def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino, answers: UnauthorisedPaymentsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UnauthorisedPayments)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      pensionSchemeUnauthorisedPayments = answers.toPensionCharges.some
+      updatedCharges                    = existingCharges.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
     EitherT.rightT[Future, ServiceError](None)
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
@@ -133,6 +150,12 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
+
+  private def createOrDeleteWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit hc: HeaderCarrier) =
+    if (updatedReliefs.nonEmpty)
+      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+    else
+      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions

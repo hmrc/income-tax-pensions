@@ -16,9 +16,28 @@
 
 package models.charges
 
+import models.database.UnauthorisedPaymentsStorageAnswers
+import models.frontend.UnauthorisedPaymentsAnswers
 import play.api.libs.json.{Json, OFormat}
 
-case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]], surcharge: Option[Charge], noSurcharge: Option[Charge])
+case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[List[String]],
+                                             surcharge: Option[Charge],
+                                             noSurcharge: Option[Charge]) {
+  // TODO Determine what we should send on selecting No - if None, the below logic should only consider db answers for Questions
+  def toUnauthorisedPayments(maybeDbAnswers: Option[UnauthorisedPaymentsStorageAnswers]): UnauthorisedPaymentsAnswers =
+    UnauthorisedPaymentsAnswers(
+      surchargeQuestion = surcharge.map(_.amount != 0).orElse(maybeDbAnswers.flatMap(_.surchargeQuestion)),
+      noSurchargeQuestion = noSurcharge.map(_.amount != 0).orElse(maybeDbAnswers.flatMap(_.noSurchargeQuestion)),
+      surchargeAmount = surcharge.map(_.amount),
+      surchargeTaxAmountQuestion = surcharge.map(_.foreignTaxPaid != 0).orElse(maybeDbAnswers.flatMap(_.surchargeTaxAmountQuestion)),
+      surchargeTaxAmount = surcharge.map(_.foreignTaxPaid),
+      noSurchargeAmount = noSurcharge.map(_.amount),
+      noSurchargeTaxAmountQuestion = noSurcharge.map(_.foreignTaxPaid != 0).orElse(maybeDbAnswers.flatMap(_.noSurchargeTaxAmountQuestion)),
+      noSurchargeTaxAmount = noSurcharge.map(_.foreignTaxPaid),
+      ukPensionSchemesQuestion = pensionSchemeTaxReference.map(_.nonEmpty).orElse(maybeDbAnswers.flatMap(_.ukPensionSchemesQuestion)),
+      pensionSchemeTaxReference = pensionSchemeTaxReference
+    )
+}
 
 case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
 

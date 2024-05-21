@@ -13,6 +13,9 @@ GET           /:taxYear/annual-allowances/:nino/answers                        c
 PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
 GET           /:taxYear/unauthorised-payments/:nino/answers                    controllers.JourneyAnswersController.getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/unauthorised-payments/:nino/answers                    controllers.JourneyAnswersController.saveUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
+
+GET           /:taxYear/payments-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 
 GET           /:taxYear/transfer-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.getTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/transfer-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.saveTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)

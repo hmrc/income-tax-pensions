@@ -256,7 +256,7 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
   val shortServiceRefund: BigDecimal           = 1.11
   val shortServiceRefundTaxPaid: BigDecimal    = 2.22
 
-  val pensionSchemeTaxRef: Option[Seq[String]]                       = Some(Seq("00123456RA", "00123456RB"))
+  val pensionSchemeTaxRef: Option[List[String]]                      = Some(List("00123456RA", "00123456RB"))
   val qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]] = Some(Seq("Q100000", "Q100002"))
 
   val pensionContributions: PensionContributions = PensionContributions(

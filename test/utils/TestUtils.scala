@@ -180,7 +180,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       )),
     pensionSchemeUnauthorisedPayments = Some(
       PensionSchemeUnauthorisedPayments(
-        pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
+        pensionSchemeTaxReference = Some(List("00123456RA", "00123456RB")),
         surcharge = Some(
           Charge(
             amount = 124.44,

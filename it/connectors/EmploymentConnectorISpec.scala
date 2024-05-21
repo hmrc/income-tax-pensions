@@ -30,10 +30,10 @@ import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.TestUtils._
 
 class EmploymentConnectorISpec extends WiremockSpec {
-  val httpClient     = app.injector.instanceOf[HttpClient]
-  val configuration  = app.injector.instanceOf[Configuration]
-  val servicesConfig = app.injector.instanceOf[ServicesConfig]
-  implicit val hc    = HeaderCarrier()
+  val httpClient                 = app.injector.instanceOf[HttpClient]
+  val configuration              = app.injector.instanceOf[Configuration]
+  val servicesConfig             = app.injector.instanceOf[ServicesConfig]
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val appConfig = new AppConfig(configuration, servicesConfig) {
     override val employmentBaseUrl: String = s"http://localhost:$wireMockPort"

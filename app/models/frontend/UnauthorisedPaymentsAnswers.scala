@@ -16,6 +16,8 @@
 
 package models.frontend
 
+import cats.implicits.catsSyntaxOptionId
+import models.charges.{Charge, PensionSchemeUnauthorisedPayments}
 import play.api.libs.json.{Json, OFormat}
 
 case class UnauthorisedPaymentsAnswers(
@@ -29,7 +31,27 @@ case class UnauthorisedPaymentsAnswers(
     noSurchargeTaxAmount: Option[BigDecimal],
     ukPensionSchemesQuestion: Option[Boolean],
     pensionSchemeTaxReference: Option[List[String]]
-)
+) {
+  def toPensionCharges: PensionSchemeUnauthorisedPayments =
+    PensionSchemeUnauthorisedPayments(
+      pensionSchemeTaxReference = pensionSchemeTaxReference,
+      surcharge = determineCharge(surchargeQuestion, surchargeAmount, surchargeTaxAmount).some,
+      noSurcharge = determineCharge(noSurchargeQuestion, noSurchargeAmount, noSurchargeTaxAmount).some
+    )
+
+  // TODO Decide if we need to send 0 - it was copied from Frontend. Maybe we should send None?
+  private def determineCharge(maybeBaseQ: Option[Boolean], maybeAmount: Option[BigDecimal], maybeTaxAmount: Option[BigDecimal]): Charge = {
+    val blankSubmission = Charge(amount = 0.00, foreignTaxPaid = 0.00)
+
+    (maybeBaseQ, maybeAmount, maybeTaxAmount) match {
+      case (Some(_), Some(am), taxAm) =>
+        taxAm.fold(ifEmpty = Charge(am, 0.00)) { t =>
+          Charge(am, t)
+        }
+      case _ => blankSubmission
+    }
+  }
+}
 
 object UnauthorisedPaymentsAnswers {
   implicit val format: OFormat[UnauthorisedPaymentsAnswers] = Json.format[UnauthorisedPaymentsAnswers]
