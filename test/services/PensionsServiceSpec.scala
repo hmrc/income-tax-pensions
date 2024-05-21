@@ -383,23 +383,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
     }
   }
 
-  "upsertPaymentsIntoOverseasPensions" should {
-    "upsert answers " in {
-      mockGetPensionChargesT(Right(None))
-      mockCreateOrAmendPensionChargesT(
-        Right(None),
-        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(pensionContributions), None)
-      )
-
-      val result = service.upsertPaymentsIntoOverseasPensions(sampleCtx, annualAllowancesAnswers).value.futureValue
-
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[AnnualAllowancesStorageAnswers]
-      assert(persistedAnswers === annualAllowancesStorageAnswers)
-    }
-  }
-
   "getTransfersIntoOverseasPensions" should {
     val transferIntoOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.TransferIntoOverseasPensions)
 

@@ -18,8 +18,8 @@ package models
 
 import cats.implicits.catsSyntaxOptionId
 import models.common.Country
-import models.database.{AnnualAllowancesStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers}
-import models.frontend.{AnnualAllowancesAnswers, TransferPensionScheme, TransfersIntoOverseasPensionsAnswers}
+import models.database.{AnnualAllowancesStorageAnswers, TransfersIntoOverseasPensionsStorageAnswers, UnauthorisedPaymentsStorageAnswers}
+import models.frontend.{AnnualAllowancesAnswers, TransferPensionScheme, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
 import play.api.libs.json.{Json, OFormat}
 
 case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
@@ -60,7 +60,6 @@ case class PensionContributions(pensionSchemeTaxReference: Seq[String],
                                 isAnnualAllowanceReduced: Option[Boolean],
                                 taperedAnnualAllowance: Option[Boolean],
                                 moneyPurchasedAllowance: Option[Boolean]) {
-  // noinspection ScalaStyle
   def toAnnualAllowances(maybeDbAnswers: Option[AnnualAllowancesStorageAnswers]): Option[AnnualAllowancesAnswers] =
     maybeDbAnswers.map { dbAnswers =>
       val aboveAllowanceGateway: Boolean = inExcessOfTheAnnualAllowance != 0
@@ -82,16 +81,18 @@ object PensionContributions {
   implicit val format: OFormat[PensionContributions] = Json.format[PensionContributions]
 }
 
-case class OverseasSchemeProvider(providerName: String,
-                                  providerAddress: String,
-                                  providerCountryCode: String,
-                                  qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]],
-                                  pensionSchemeTaxReference: Option[Seq[String]]) {
+case class OverseasSchemeProvider(
+    providerName: String,
+    providerAddress: String,
+    providerCountryCode: String,
+    qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]], // This starts with a 'Q' but does not in the FE model (TransferPensionScheme)
+    pensionSchemeTaxReference: Option[Seq[String]]) {
+
   def toTransferPensionScheme: TransferPensionScheme = TransferPensionScheme(
     ukTransferCharge = Some(providerCountryCode == "GBR"),
     name = Some(providerName),
-    pstr = pensionSchemeTaxReference.map(_.head).map(_.replace("Q", "")),
-    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head),
+    pstr = pensionSchemeTaxReference.map(_.head),
+    qops = qualifyingRecognisedOverseasPensionScheme.map(_.head.replace("Q", "")),
     providerAddress = Some(providerAddress),
     alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(Some(providerCountryCode)),
     alphaThreeCountryCode = Some(providerCountryCode)
@@ -123,7 +124,26 @@ object PensionSavingsTaxCharges {
   implicit val format: OFormat[PensionSavingsTaxCharges] = Json.format[PensionSavingsTaxCharges]
 }
 
-case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[Seq[String]], surcharge: Option[Charge], noSurcharge: Option[Charge])
+case class PensionSchemeUnauthorisedPayments(
+    pensionSchemeTaxReference: Option[List[String]],
+    surcharge: Option[Charge],
+    noSurcharge: Option[Charge]
+) {
+  // TODO Determine what we should send on selecting No - if None, the below logic should only consider db answers for Questions
+  def toUnauthorisedPayments(maybeDbAnswers: Option[UnauthorisedPaymentsStorageAnswers]): UnauthorisedPaymentsAnswers =
+    UnauthorisedPaymentsAnswers(
+      surchargeQuestion = surcharge.map(_.amount != 0).orElse(maybeDbAnswers.flatMap(_.surchargeQuestion)),
+      noSurchargeQuestion = noSurcharge.map(_.amount != 0).orElse(maybeDbAnswers.flatMap(_.noSurchargeQuestion)),
+      surchargeAmount = surcharge.map(_.amount),
+      surchargeTaxAmountQuestion = surcharge.map(_.foreignTaxPaid != 0).orElse(maybeDbAnswers.flatMap(_.surchargeTaxAmountQuestion)),
+      surchargeTaxAmount = surcharge.map(_.foreignTaxPaid),
+      noSurchargeAmount = noSurcharge.map(_.amount),
+      noSurchargeTaxAmountQuestion = noSurcharge.map(_.foreignTaxPaid != 0).orElse(maybeDbAnswers.flatMap(_.noSurchargeTaxAmountQuestion)),
+      noSurchargeTaxAmount = noSurcharge.map(_.foreignTaxPaid),
+      ukPensionSchemesQuestion = pensionSchemeTaxReference.map(_.nonEmpty).orElse(maybeDbAnswers.flatMap(_.ukPensionSchemesQuestion)),
+      pensionSchemeTaxReference = pensionSchemeTaxReference
+    )
+}
 
 object PensionSchemeUnauthorisedPayments {
   implicit val format: OFormat[PensionSchemeUnauthorisedPayments] = Json.format[PensionSchemeUnauthorisedPayments]

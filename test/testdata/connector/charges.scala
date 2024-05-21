@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-package models.database
+package testdata.connector
 
-import models.database.PaymentsIntoPensionsStorageAnswers._
-import org.scalatest.wordspec.AnyWordSpecLike
-import testdata.paymentsIntoPensions
+import models.{Charge, PensionSchemeUnauthorisedPayments}
 
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
+object charges {
+  val sampleCharges = PensionSchemeUnauthorisedPayments(
+    pensionSchemeTaxReference = Some(List("00123456RA")),
+    surcharge = Some(
+      Charge(
+        amount = 1.0,
+        foreignTaxPaid = 2.0
+      )),
+    noSurcharge = Some(
+      Charge(
+        amount = 3.0,
+        foreignTaxPaid = 4.0
+      ))
+  )
 
-  "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = paymentsIntoPensions.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
-    }
-  }
+  val sampleChargesWithNones = PensionSchemeUnauthorisedPayments(
+    pensionSchemeTaxReference = Some(List("00123456RA")),
+    surcharge = None,
+    noSurcharge = None
+  )
+
 }

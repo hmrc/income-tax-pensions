@@ -16,17 +16,14 @@
 
 package models.database
 
-import models.database.PaymentsIntoPensionsStorageAnswers._
 import org.scalatest.wordspec.AnyWordSpecLike
-import testdata.paymentsIntoPensions
+import testdata.unauthorisedPayments.unauthorisedPaymentsAnswers
 
-class PaymentsIntoPensionsStorageAnswersSpec extends AnyWordSpecLike {
-
+class UnauthorisedPaymentsStorageAnswersSpec extends AnyWordSpecLike {
   "fromJourneyAnswers" should {
-    "convert answers to a storage model" in {
-      val answers = paymentsIntoPensions.paymentsIntoPensionsAnswers
-      val result  = fromJourneyAnswers(answers)
-      assert(result === PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(true), Some(true)))
+    "create UnauthorisedPaymentsStorageAnswers" in {
+      val result = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(unauthorisedPaymentsAnswers)
+      assert(result === UnauthorisedPaymentsStorageAnswers(Some(true), Some(true), Some(true), Some(true), Some(true)))
     }
   }
 }

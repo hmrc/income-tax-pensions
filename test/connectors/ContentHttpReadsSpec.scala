@@ -17,7 +17,7 @@
 package connectors
 
 import models.ServiceErrorModel
-import models.error.ServiceError.{CannotParseJsonError, CannotReadJsonError}
+import models.error.ServiceError.CannotReadJsonError
 import models.frontend.PaymentsIntoPensionsAnswers
 import org.scalatest.EitherValues._
 import org.scalatest.matchers.should.Matchers

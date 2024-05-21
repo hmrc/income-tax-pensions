@@ -22,6 +22,9 @@ import models.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
 
 object transfersIntoOverseasPensions {
 
+  val pstrReference = "12345678RA"
+  val qopsReference = "123456"
+
   def transfersIntoOverseasPensionsAnswers: TransfersIntoOverseasPensionsAnswers =
     TransfersIntoOverseasPensionsAnswers(
       Some(true),
@@ -36,15 +39,15 @@ object transfersIntoOverseasPensions {
     TransfersIntoOverseasPensionsAnswers(Some(false), None, None, None, None, Seq.empty)
 
   def transferPensionSchemeUK: TransferPensionScheme =
-    TransferPensionScheme(Some(true), Some("UK Scheme"), Some("PSTR"), None, Some("Address"), Some("GB"), Some("GBR"))
+    TransferPensionScheme(Some(true), Some("UK Scheme"), Some(pstrReference), None, Some("Address"), Some("GB"), Some("GBR"))
   def transferPensionSchemeNonUK: TransferPensionScheme =
-    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some("QOPS"), Some("Address"), Some("FR"), Some("FRA"))
+    TransferPensionScheme(Some(false), Some("Non-UK Scheme"), None, Some(qopsReference), Some("Address"), Some("FR"), Some("FRA"))
+
+  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(List(pstrReference)))
+  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(List(qopsReference)), None)
 
   val pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
     PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
-
-  val ukOverseasSchemeProvider: OverseasSchemeProvider    = OverseasSchemeProvider("UK Scheme", "Address", "GBR", None, Some(Seq("PSTR")))
-  val nonUkOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq("QOPS")), None)
 
   val transfersIntoOverseasPensionsStorageAnswers: TransfersIntoOverseasPensionsStorageAnswers =
     TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))

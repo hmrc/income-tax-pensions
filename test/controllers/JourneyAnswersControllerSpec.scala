@@ -21,7 +21,7 @@ import cats.implicits.catsSyntaxEitherId
 import models.common.JourneyContextWithNino
 import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import services.PensionsService
@@ -33,6 +33,7 @@ import utils.EitherTTestOps.convertScalaFuture
 import utils.TestUtils
 
 import scala.concurrent.Future
+import testdata.unauthorisedPayments._
 
 class JourneyAnswersControllerSpec extends TestUtils {
 
@@ -135,6 +136,34 @@ class JourneyAnswersControllerSpec extends TestUtils {
           .expects(*, *)
           .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[AnnualAllowancesAnswers]]))
         underTest.getAnnualAllowances(currentTaxYear, validNino)(fakeRequest)
+      }.futureValue.header
+
+      assert(result.status == INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  "getUnauthorisedPaymentsFromPensions" should {
+    "return any UnauthorisedPayments journey answers from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getUnauthorisedPaymentsFromPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](Some(unauthorisedPaymentsAnswers).asRight[ServiceError]))
+        underTest.getUnauthorisedPaymentsFromPensions(currentTaxYear, validNino)(fakeRequest)
+      }
+
+      status(result) mustBe OK
+      bodyOf(result) mustBe Json.toJson(Some(unauthorisedPaymentsAnswers)).toString()
+    }
+    "return an Error from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getUnauthorisedPaymentsFromPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[UnauthorisedPaymentsAnswers]]))
+        underTest.getUnauthorisedPaymentsFromPensions(currentTaxYear, validNino)(fakeRequest)
       }.futureValue.header
 
       assert(result.status == INTERNAL_SERVER_ERROR)

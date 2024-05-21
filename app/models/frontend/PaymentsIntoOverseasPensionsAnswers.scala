@@ -23,7 +23,7 @@ case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuest
                                                paymentsIntoOverseasPensionsAmount: Option[BigDecimal] = None,
                                                employerPaymentsQuestion: Option[Boolean] = None,
                                                taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None,
-                                               reliefs: Seq[Relief] = Seq.empty[Relief]) {
+                                               schemes: List[OverseasPensionScheme] = List.empty[OverseasPensionScheme]) {
 
   def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer =
     PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)

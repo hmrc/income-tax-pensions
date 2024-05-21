@@ -21,24 +21,10 @@ import cats.implicits._
 import connectors._
 import models._
 import models.common.{Journey, JourneyContextWithNino}
-import models.database.{
-  AnnualAllowancesStorageAnswers,
-  PaymentsIntoOverseasPensionsStorageAnswer,
-  PaymentsIntoPensionsStorageAnswers,
-  TransfersIntoOverseasPensionsStorageAnswers,
-  UkPensionIncomeStorageAnswers
-}
+import models.database._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{
-  AnnualAllowancesAnswers,
-  PaymentsIntoOverseasPensionsAnswers,
-  PaymentsIntoPensionsAnswers,
-  TransfersIntoOverseasPensionsAnswers,
-  UnauthorisedPaymentsAnswers
-}
+import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -121,7 +107,26 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
   }
 
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
-    EitherT.rightT[Future, ServiceError](None)
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[UnauthorisedPaymentsStorageAnswers](ctx.toJourneyContext(Journey.UnauthorisedPayments))
+      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionSchemeUnauthorisedPayments.map(_.toUnauthorisedPayments(maybeDbAnswers)))
+    } yield annualAllowancesAnswers
+
+  def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino, answers: UnauthorisedPaymentsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.UnauthorisedPayments)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      pensionSchemeUnauthorisedPayments = answers.toPensionCharges.some
+      updatedCharges                    = existingCharges.copy(pensionSchemeUnauthorisedPayments = pensionSchemeUnauthorisedPayments)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
@@ -142,7 +147,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       existingIncomes <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       updatedIncomes = CreateUpdatePensionIncomeModel(
         foreignPension = existingIncomes.flatMap(_.foreignPension),
-        overseasPensionContribution = answers.reliefs.map(_.toOverseasPensionsContributions).some)
+        overseasPensionContribution = answers.schemes.map(_.toOverseasPensionsContributions).some)
       _ <- pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
