@@ -110,7 +110,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       maybeIncome    <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[IncomeFromOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.IncomeFromOverseasPensions))
-      incomeFromOverseasPensions = maybeIncome.flatMap(_.toIncomeFromOverseasPensions(maybeDbAnswers))
+      incomeFromOverseasPensions = maybeIncome.getOrElse(GetPensionIncomeModel.empty).toIncomeFromOverseasPensions(maybeDbAnswers)
     } yield incomeFromOverseasPensions
 
   def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, answers: IncomeFromOverseasPensionsAnswers)(implicit
