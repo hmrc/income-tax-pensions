@@ -57,7 +57,7 @@ case class OverseasPensionContribution(customerReference: Option[String],
     sf74Reference = sf74Reference
   )
 
-  private def getReliefType: String =
+  def getReliefType: String =
     (sf74Reference, dblTaxationRelief, migrantMemReliefQopsRefNo) match {
       case (Some(_), _, _) => TransitionalCorrespondingRelief
       case (_, Some(_), _) => DoubleTaxationRelief

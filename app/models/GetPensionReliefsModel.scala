@@ -70,7 +70,7 @@ case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String]
       maybeDbAnswers: Option[PaymentsIntoOverseasPensionsStorageAnswers]): Option[PaymentsIntoOverseasPensionsAnswers] = {
     val apiHasAmount: Boolean                                           = pensionReliefs.overseasPensionSchemeContributions.nonEmpty
     val overseasPensionContributions: List[OverseasPensionContribution] = maybeSeqToList(maybeIncomes.flatMap(_.overseasPensionContribution))
-    if (apiHasAmount && maybeDbAnswers.isEmpty) None
+    if (!apiHasAmount && maybeDbAnswers.isEmpty) None
     else
       PaymentsIntoOverseasPensionsAnswers(
         paymentsIntoOverseasPensionsQuestions = apiHasAmount.some,
