@@ -78,4 +78,6 @@ case class GetPensionIncomeModel(
 )
 object GetPensionIncomeModel {
   implicit val format: OFormat[GetPensionIncomeModel] = Json.format[GetPensionIncomeModel]
+
+  def empty: GetPensionIncomeModel = GetPensionIncomeModel("", None, None, None)
 }

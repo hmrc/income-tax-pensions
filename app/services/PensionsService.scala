@@ -137,6 +137,27 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
         _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeDbAnswers))
     } yield paymentsIntoOverseasPensionsAnswers
 
+  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = answers.toStorageAnswers
+    val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions)
+
+    for {
+      existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      updatedReliefs = existingRelief
+        .getOrElse(GetPensionReliefsModel.empty)
+        .pensionReliefs
+        .copy(overseasPensionSchemeContributions = answers.paymentsIntoOverseasPensionsAmount)
+      _               <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
+      existingIncomes <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      updatedIncomes = CreateUpdatePensionIncomeModel(
+        foreignPension = existingIncomes.flatMap(_.foreignPension),
+        overseasPensionContribution = answers.schemes.map(_.toOverseasPensionsContributions).some)
+      _ <- pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
     for {
