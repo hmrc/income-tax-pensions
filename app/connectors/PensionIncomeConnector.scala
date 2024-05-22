@@ -16,12 +16,15 @@
 
 package connectors
 
+import cats.data.EitherT
 import config.AppConfig
 import connectors.PensionIncomeConnector.PensionIncomeBaseApi
 import connectors.httpParsers.CreateOrAmendPensionIncomeHttpParser.{CreateOrAmendPensionIncomeHttpReads, CreateOrAmendPensionIncomeResponse}
 import connectors.httpParsers.DeletePensionIncomeHttpParser.{DeletePensionIncomeHttpReads, DeletePensionIncomeResponse}
 import connectors.httpParsers.GetPensionIncomeHttpParser.{GetPensionIncomeHttpReads, GetPensionIncomeResponse}
-import models.CreateUpdatePensionIncomeModel
+import models.{CreateOrUpdatePensionReliefsModel, CreateUpdatePensionIncomeModel, GetPensionChargesRequestModel, GetPensionIncomeModel}
+import models.common.{JourneyContextWithNino, Nino, TaxYear}
+import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.TaxYearHelper
@@ -33,6 +36,11 @@ class PensionIncomeConnector @Inject() (val http: HttpClient, val appConfig: App
   private def pensionIncomeSourceUri(nino: String, taxYear: Int, apiNum: String): String =
     appConfig.ifBaseUrl + s"/income-tax/income/pensions/${TaxYearHelper.apiPath(nino, taxYear, apiNum)}"
 
+  def getPensionIncomeT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionIncomeModel]] = {
+    val ans = getPensionIncome(nino.value, taxYear.endYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
   def getPensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] = {
     val incomeSourceUri: String = pensionIncomeSourceUri(nino, taxYear, PensionIncomeBaseApi.Get)
     val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionIncomeBaseApi.Get)
@@ -43,6 +51,12 @@ class PensionIncomeConnector @Inject() (val http: HttpClient, val appConfig: App
     }
 
     integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
+  }
+
+  def createOrAmendPensionIncomeT(ctx: JourneyContextWithNino, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = createOrAmendPensionIncome(ctx.nino.value, ctx.taxYear.endYear, pensionIncome)
+    EitherT(ans).leftMap(err => err.toServiceError)
   }
 
   def createOrAmendPensionIncome(nino: String, taxYear: Int, pensionIncome: CreateUpdatePensionIncomeModel)(implicit

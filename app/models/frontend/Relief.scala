@@ -19,7 +19,7 @@ package models.frontend
 import models.OverseasPensionContribution
 import play.api.libs.json.{Json, OFormat}
 
-case class OverseasPensionScheme(
+case class Relief(
     customerReference: Option[String] = None,
     employerPaymentsAmount: Option[BigDecimal] = None,
     reliefType: Option[String] = None,
@@ -43,6 +43,6 @@ case class OverseasPensionScheme(
   )
 }
 
-object OverseasPensionScheme {
-  implicit val format: OFormat[OverseasPensionScheme] = Json.format[OverseasPensionScheme]
+object Relief {
+  implicit val format: OFormat[Relief] = Json.format[Relief]
 }

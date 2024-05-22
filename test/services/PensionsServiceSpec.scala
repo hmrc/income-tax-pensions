@@ -381,7 +381,6 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
       val result = service.getPaymentsIntoOverseasPensions(sampleCtx).value.futureValue
       assert(result.value === None)
     }
-
   }
 
   "getTransfersIntoOverseasPensions" should {
