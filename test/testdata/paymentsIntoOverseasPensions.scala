@@ -18,7 +18,7 @@ package testdata
 
 import models.OverseasPensionContribution
 import models.database.PaymentsIntoOverseasPensionsStorageAnswers
-import models.frontend.OverseasPensionScheme.{MigrantMemberRelief, TransitionalCorrespondingRelief}
+import models.frontend.OverseasPensionScheme.{DoubleTaxationRelief, MigrantMemberRelief, TransitionalCorrespondingRelief}
 import models.frontend.{OverseasPensionScheme, PaymentsIntoOverseasPensionsAnswers}
 
 object paymentsIntoOverseasPensions {
@@ -52,7 +52,20 @@ object paymentsIntoOverseasPensions {
     qopsReference = None,
     sf74Reference = Some("sf74Reference")
   )
+  def dblOverseasPensionScheme: OverseasPensionScheme = OverseasPensionScheme(
+    customerReference = Some("reference"),
+    employerPaymentsAmount = Some(100),
+    reliefType = Some(DoubleTaxationRelief),
+    alphaTwoCountryCode = Some("GB"),
+    alphaThreeCountryCode = Some("GBR"),
+    doubleTaxationArticle = Some("AB3211-1"),
+    doubleTaxationTreaty = Some("Munich"),
+    doubleTaxationReliefAmount = Some(100),
+    qopsReference = None,
+    sf74Reference = None
+  )
   def mmrOverseasPensionContribution: OverseasPensionContribution = mmrOverseasPensionScheme.toOverseasPensionsContributions
   def tcrOverseasPensionContribution: OverseasPensionContribution = tcrOverseasPensionScheme.toOverseasPensionsContributions
+  def dblOverseasPensionContribution: OverseasPensionContribution = dblOverseasPensionScheme.toOverseasPensionsContributions
 
 }

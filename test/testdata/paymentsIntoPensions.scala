@@ -16,11 +16,20 @@
 
 package testdata
 
+import models.database.PaymentsIntoPensionsStorageAnswers
 import models.frontend.PaymentsIntoPensionsAnswers
 
 object paymentsIntoPensions {
 
   val paymentsIntoPensionsAnswers: PaymentsIntoPensionsAnswers =
     PaymentsIntoPensionsAnswers(true, Some(1.0), Some(true), Some(2.0), true, Some(true), Some(3.0), Some(true), Some(4.0))
+
+  val paymentsIntoPensionsStorageAnswers: PaymentsIntoPensionsStorageAnswers =
+    PaymentsIntoPensionsStorageAnswers(
+      rasPensionPaymentQuestion = true,
+      Some(true),
+      pensionTaxReliefNotClaimedQuestion = true,
+      Some(true),
+      Some(true))
 
 }
