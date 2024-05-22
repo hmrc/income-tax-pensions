@@ -23,16 +23,6 @@ import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
-import models.error.ServiceError
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, TransfersIntoOverseasPensionsAnswers, UnauthorisedPaymentsAnswers}
-import models.frontend.{
-  AnnualAllowancesAnswers,
-  PaymentsIntoOverseasPensionsAnswers,
-  PaymentsIntoPensionsAnswers,
-  TransfersIntoOverseasPensionsAnswers,
-  UnauthorisedPaymentsAnswers
-}
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -139,7 +129,13 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
-    EitherT.rightT[Future, ServiceError](None)
+    for {
+      maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      maybeIncomes   <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[PaymentsIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions))
+      paymentsIntoOverseasPensionsAnswers: Option[PaymentsIntoOverseasPensionsAnswers] = maybeReliefs.flatMap(
+        _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeDbAnswers))
+    } yield paymentsIntoOverseasPensionsAnswers
 
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
