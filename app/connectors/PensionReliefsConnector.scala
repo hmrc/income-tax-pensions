@@ -72,7 +72,7 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
       hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
 
     def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
-      ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, pensionReliefs)
+      ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, pensionReliefs, "Reliefs")
       http.PUT[CreateOrUpdatePensionReliefsModel, CreateOrAmendPensionReliefsResponse](incomeSourceUri, pensionReliefs)(
         reliefs => CreateOrUpdatePensionReliefsModel.format.writes(reliefs),
         CreateOrAmendPensionReliefsHttpReads,

@@ -19,9 +19,7 @@ package models
 import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
 import play.api.libs.json.{JsObject, Json}
-import testdata.connector.getPensionIncomeModel._
 import testdata.connector.getPensionReliefsModel._
-import testdata.paymentsIntoOverseasPensions.{paymentsIntoOverseasPensionsAnswers, piopStorageAnswers}
 import testdata.paymentsIntoPensions.{paymentsIntoPensionsAnswers, paymentsIntoPensionsStorageAnswers}
 import utils.TestUtils
 
@@ -71,20 +69,6 @@ class GetPensionReliefsModelSpec extends TestUtils {
     "return None when Database answers are empty and reliefs has no PaymentIntoPension answers" in {
       val emptyGetPensionReliefsModel = getPensionReliefsModel.copy(pensionReliefs = PensionReliefs.empty)
       val result                      = emptyGetPensionReliefsModel.toPaymentsIntoPensions(None)
-
-      assert(result == None)
-    }
-  }
-
-  "toPaymentsIntoOverseasPensionsAnswers" should {
-    "convert model to a PaymentsIntoOverseasPensionsAnswers when supplied valid Relief, Income and Database answers" in {
-      val result = getPensionReliefsModel.toPaymentsIntoOverseasPensionsAnswers(getPensionIncomeModel.some, piopStorageAnswers.some)
-
-      assert(result == paymentsIntoOverseasPensionsAnswers.some)
-    }
-    "return None when Database answers are empty and there is no amount returned from the API" in {
-      val emptyGetPensionReliefsModel = getPensionReliefsModel.copy(pensionReliefs = PensionReliefs.empty)
-      val result                      = emptyGetPensionReliefsModel.toPaymentsIntoOverseasPensionsAnswers(getPensionIncomeModel.some, None)
 
       assert(result == None)
     }

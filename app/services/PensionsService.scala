@@ -23,6 +23,7 @@ import models._
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
+import models.error.ServiceError
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -40,6 +41,21 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
                                  employmentService: EmploymentService,
                                  repository: JourneyAnswersRepository)(implicit ec: ExecutionContext) {
 
+  private def createOrDeleteReliefsWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
+    if (updatedReliefs.nonEmpty)
+      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
+    else
+      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
+
+  private def createOrDeleteIncomesWhenEmpty(ctx: JourneyContextWithNino, updatedIncomes: CreateUpdatePensionIncomeModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
+    // foreignPension or overseasPensionContribution must be None if value/sequence is empty. If both are empty -> delete
+    if (updatedIncomes.foreignPension.nonEmpty || updatedIncomes.overseasPensionContribution.nonEmpty)
+      pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
+    else
+      pensionIncomeConnector.deletePensionIncomeT(ctx.nino, ctx.taxYear)
+
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     for {
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
@@ -49,12 +65,6 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
         .toPaymentsIntoPensions(maybeDbAnswers)
     } yield paymentsIntoPensionsAnswers
 
-  private def createOrDeleteWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit hc: HeaderCarrier) =
-    if (updatedReliefs.nonEmpty)
-      reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
-    else
-      reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
-
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
     val journeyCtx     = ctx.toJourneyContext(Journey.PaymentsIntoPensions)
@@ -63,7 +73,7 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
       updatedReliefs: PensionReliefs          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
-      _ <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
+      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
@@ -105,6 +115,33 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     } yield ()
   }
 
+  def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromOverseasPensionsAnswers]] =
+    for {
+      maybeIncome    <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[IncomeFromOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.IncomeFromOverseasPensions))
+      incomeFromOverseasPensions = maybeIncome.getOrElse(GetPensionIncomeModel.empty).toIncomeFromOverseasPensions(maybeDbAnswers)
+    } yield incomeFromOverseasPensions
+
+  def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, answers: IncomeFromOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = IncomeFromOverseasPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.IncomeFromOverseasPensions)
+
+    for {
+      getIncome <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      existingIncome                    = getIncome.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
+      updatedIncomeFromOverseasPensions = answers.toForeignPension.some
+      updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
+
+      // TODO permit the submission of an empty foreginPension array (now forbidden by business) without having to wipe out the
+      //  entire Income array, i.e. when paymentsFromOverseasPensionsQuestion is changed from Yes to No after submission
+      _ <- answers.overseasIncomePensionSchemes.headOption.fold(EitherT.rightT[Future, ServiceError](()))(_ =>
+        pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncome))
+
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
@@ -133,8 +170,8 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeIncomes   <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[PaymentsIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions))
-      paymentsIntoOverseasPensionsAnswers: Option[PaymentsIntoOverseasPensionsAnswers] = maybeReliefs.flatMap(
-        _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeDbAnswers))
+      paymentsIntoOverseasPensionsAnswers: Option[PaymentsIntoOverseasPensionsAnswers] = maybeDbAnswers.flatMap(
+        _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeReliefs))
     } yield paymentsIntoOverseasPensionsAnswers
 
   def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoOverseasPensionsAnswers)(implicit
@@ -148,12 +185,13 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
         .getOrElse(GetPensionReliefsModel.empty)
         .pensionReliefs
         .copy(overseasPensionSchemeContributions = answers.paymentsIntoOverseasPensionsAmount)
-      _               <- createOrDeleteWhenEmpty(ctx, updatedReliefs)
       existingIncomes <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       updatedIncomes = CreateUpdatePensionIncomeModel(
         foreignPension = existingIncomes.flatMap(_.foreignPension),
-        overseasPensionContribution = answers.schemes.map(_.toOverseasPensionsContributions).some)
-      _ <- pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
+        overseasPensionContribution = emptySeqToNone(answers.schemes.map(_.toOverseasPensionsContributions))
+      )
+      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs)
+      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncomes)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

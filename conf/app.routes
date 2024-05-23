@@ -20,6 +20,9 @@ PUT           /:taxYear/payments-into-overseas-pensions/:nino/answers           
 
 GET           /:taxYear/transfer-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.getTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 
+GET           /:taxYear/income-from-overseas-pensions/:nino/answers              controllers.JourneyAnswersController.getIncomeFromOverseasPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/income-from-overseas-pensions/:nino/answers              controllers.JourneyAnswersController.saveIncomeFromOverseasPensions(taxYear: TaxYear, nino: Nino)
+
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                                 controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 

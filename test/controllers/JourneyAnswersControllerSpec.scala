@@ -26,6 +26,7 @@ import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import services.PensionsService
 import testdata.annualAllowances.annualAllowancesAnswers
+import testdata.incomeFromOverseasPensions.incomeFromOverseasPensionsAnswers
 import testdata.paymentsIntoOverseasPensions.paymentsIntoOverseasPensionsAnswers
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions.transfersIntoOverseasPensionsAnswers
@@ -227,4 +228,31 @@ class JourneyAnswersControllerSpec extends TestUtils {
     }
   }
 
+  "getIncomeFromOverseasPensions" should {
+    "return any IncomeFromOverseasPensions journey answers from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getIncomeFromOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](Some(incomeFromOverseasPensionsAnswers).asRight[ServiceError]))
+        underTest.getIncomeFromOverseasPensions(currentTaxYear, validNino)(fakeRequest)
+      }
+
+      status(result) mustBe OK
+      bodyOf(result) mustBe Json.toJson(Some(incomeFromOverseasPensionsAnswers)).toString()
+    }
+    "return an Error from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getIncomeFromOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[IncomeFromOverseasPensionsAnswers]]))
+        underTest.getIncomeFromOverseasPensions(currentTaxYear, validNino)(fakeRequest)
+      }.futureValue.header
+
+      assert(result.status == INTERNAL_SERVER_ERROR)
+    }
+  }
 }
