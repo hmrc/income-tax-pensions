@@ -56,12 +56,13 @@ import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
-class PensionsServiceSpec
+class PensionsServiceIpmlSpec
     extends TestUtils
     with MockPensionReliefsConnector
     with MockPensionChargesConnector
     with MockPensionIncomeConnector
     with BeforeAndAfterEach {
+
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
@@ -70,7 +71,7 @@ class PensionsServiceSpec
   val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
-    new PensionsService(
+    new PensionsServiceImpl(
       mockReliefsConnector,
       mockChargesConnector,
       stateBenefitsConnector,

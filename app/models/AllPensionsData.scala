@@ -35,4 +35,6 @@ case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
 object AllPensionsData {
   implicit val formats: OFormat[AllPensionsData] = Json.format[AllPensionsData]
 
+  def empty: AllPensionsData = AllPensionsData(None, None, None, None, None)
+
 }
