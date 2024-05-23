@@ -106,6 +106,33 @@ class PensionsService @Inject() (reliefsConnector: PensionReliefsConnector,
     } yield ()
   }
 
+  def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromOverseasPensionsAnswers]] =
+    for {
+      maybeIncome    <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[IncomeFromOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.IncomeFromOverseasPensions))
+      incomeFromOverseasPensions = maybeIncome.getOrElse(GetPensionIncomeModel.empty).toIncomeFromOverseasPensions(maybeDbAnswers)
+    } yield incomeFromOverseasPensions
+
+  def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, answers: IncomeFromOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = IncomeFromOverseasPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.IncomeFromOverseasPensions)
+
+    for {
+      getIncome <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      existingIncome                    = getIncome.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
+      updatedIncomeFromOverseasPensions = answers.toForeignPension.some
+      updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
+
+      // TODO permit the submission of an empty foreginPension array (now forbidden by business) without having to wipe out the
+      //  entire Income array, i.e. when paymentsFromOverseasPensionsQuestion is changed from Yes to No after submission
+      _ <- answers.overseasIncomePensionSchemes.headOption.fold(EitherT.rightT[Future, ServiceError](()))(_ =>
+        pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncome))
+
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]] =
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)

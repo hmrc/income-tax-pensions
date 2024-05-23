@@ -23,10 +23,15 @@ import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesRespo
 import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import mocks.{MockPensionChargesConnector, MockPensionReliefsConnector}
+import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
-import models.database.{AnnualAllowancesStorageAnswers, PaymentsIntoPensionsStorageAnswers, UkPensionIncomeStorageAnswers}
+import models.database.{
+  AnnualAllowancesStorageAnswers,
+  IncomeFromOverseasPensionsStorageAnswers,
+  PaymentsIntoPensionsStorageAnswers,
+  UkPensionIncomeStorageAnswers
+}
 import models.employment.AllEmploymentData
 import models.frontend.{PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
@@ -38,6 +43,7 @@ import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.StubEmploymentService
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
+import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions._
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
@@ -50,21 +56,25 @@ import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
-class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector with MockPensionChargesConnector with BeforeAndAfterEach {
+class PensionsServiceSpec
+    extends TestUtils
+    with MockPensionReliefsConnector
+    with MockPensionChargesConnector
+    with MockPensionIncomeConnector
+    with BeforeAndAfterEach {
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
-  val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
   val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
-  val stubEmploymentService                             = StubEmploymentService()
+  val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
     new PensionsService(
       mockReliefsConnector,
       mockChargesConnector,
       stateBenefitsConnector,
-      pensionIncomeConnector,
+      mockIncomeConnector,
       stubEmploymentService,
       stubRepository
     )
@@ -101,7 +111,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedStateBenefitsResult))
 
-      (pensionIncomeConnector
+      (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedPensionIncomeResult))
@@ -128,7 +138,7 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (pensionIncomeConnector
+      (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
@@ -413,4 +423,40 @@ class PensionsServiceSpec extends TestUtils with MockPensionReliefsConnector wit
     }
   }
 
+  "getIncomeFromOverseasPensions" should {
+    val incomeFromOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.IncomeFromOverseasPensions)
+
+    "get None if no answers" in {
+      mockGetPensionIncomeT(Right(None))
+      val result = service.getIncomeFromOverseasPensions(sampleCtx).value.futureValue
+      assert(result.value === None)
+    }
+
+    "return answers" in {
+      mockGetPensionIncomeT(Right(Some(GetPensionIncomeModel("date", None, Some(Seq(foreignPension)), None))))
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(incomeFromOverseasPensionsCtx, Json.toJson(incomeFromOverseasPensionsStorageAnswers))
+        res <- service.getIncomeFromOverseasPensions(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result.value === incomeFromOverseasPensionsAnswers)
+    }
+  }
+
+  "upsertIncomeFromOverseasPensions" should {
+    "upsert answers " in {
+      mockGetPensionIncomeT(Right(None))
+      mockCreateOrAmendPensionIncomeT(
+        Right(None),
+        expectedModel = CreateUpdatePensionIncomeModel(Some(List(foreignPension)), None)
+      )
+
+      val result = service.upsertIncomeFromOverseasPensions(sampleCtx, incomeFromOverseasPensionsAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[IncomeFromOverseasPensionsStorageAnswers]
+      assert(persistedAnswers === incomeFromOverseasPensionsStorageAnswers)
+    }
+  }
 }
