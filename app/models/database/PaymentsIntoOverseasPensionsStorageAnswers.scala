@@ -16,11 +16,34 @@
 
 package models.database
 
+import cats.implicits.catsSyntaxOptionId
+import models.frontend.PaymentsIntoOverseasPensionsAnswers
+import models.{GetPensionIncomeModel, GetPensionReliefsModel, OverseasPensionContribution, maybeSeqToList}
 import play.api.libs.json.{Json, OFormat}
 
 final case class PaymentsIntoOverseasPensionsStorageAnswers(paymentsIntoOverseasPensionsQuestions: Option[Boolean] = None,
                                                             employerPaymentsQuestion: Option[Boolean] = None,
-                                                            taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None)
+                                                            taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None) {
+
+  private def isEmpty: Boolean =
+    paymentsIntoOverseasPensionsQuestions.isEmpty && employerPaymentsQuestion.isEmpty && taxPaidOnEmployerPaymentsQuestion.isEmpty
+
+  def toPaymentsIntoOverseasPensionsAnswers(maybeIncomes: Option[GetPensionIncomeModel],
+                                            maybeReliefs: Option[GetPensionReliefsModel]): Option[PaymentsIntoOverseasPensionsAnswers] = {
+    val apiHasAmount: Boolean = maybeReliefs.exists(_.pensionReliefs.overseasPensionSchemeContributions.nonEmpty)
+    val overseasPensionContributions: List[OverseasPensionContribution] = maybeSeqToList(maybeIncomes.flatMap(_.overseasPensionContribution))
+    if (!apiHasAmount && isEmpty) None
+    else
+      PaymentsIntoOverseasPensionsAnswers(
+        paymentsIntoOverseasPensionsQuestions = apiHasAmount.some,
+        paymentsIntoOverseasPensionsAmount = maybeReliefs.flatMap(_.pensionReliefs.overseasPensionSchemeContributions),
+        employerPaymentsQuestion = if (!apiHasAmount) None else if (overseasPensionContributions.nonEmpty) true.some else employerPaymentsQuestion,
+        taxPaidOnEmployerPaymentsQuestion =
+          if (!apiHasAmount) None else if (overseasPensionContributions.nonEmpty) false.some else taxPaidOnEmployerPaymentsQuestion,
+        schemes = overseasPensionContributions.map(_.toOverseasPensionScheme)
+      ).some
+  }
+}
 
 object PaymentsIntoOverseasPensionsStorageAnswers {
   implicit val format: OFormat[PaymentsIntoOverseasPensionsStorageAnswers] = Json.format[PaymentsIntoOverseasPensionsStorageAnswers]

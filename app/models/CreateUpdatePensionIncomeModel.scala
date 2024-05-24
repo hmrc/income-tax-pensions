@@ -25,5 +25,4 @@ object CreateUpdatePensionIncomeModel {
   implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
 
   def empty: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(None, None)
-
 }

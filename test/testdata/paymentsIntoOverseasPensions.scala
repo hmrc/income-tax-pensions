@@ -27,6 +27,7 @@ object paymentsIntoOverseasPensions {
     PaymentsIntoOverseasPensionsAnswers(Some(true), Some(2.0), Some(true), Some(false), List(mmrOverseasPensionScheme, tcrOverseasPensionScheme))
 
   val piopStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswers = PaymentsIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(false))
+  val emptyPiopStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswers = PaymentsIntoOverseasPensionsStorageAnswers(None, None, None)
 
   def mmrOverseasPensionScheme: OverseasPensionScheme = OverseasPensionScheme(
     customerReference = Some("reference"),

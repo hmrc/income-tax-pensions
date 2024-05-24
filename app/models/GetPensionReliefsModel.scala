@@ -16,9 +16,8 @@
 
 package models
 
-import cats.implicits.catsSyntaxOptionId
-import models.database.{PaymentsIntoOverseasPensionsStorageAnswers, PaymentsIntoPensionsStorageAnswers}
-import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers}
+import models.database.PaymentsIntoPensionsStorageAnswers
+import models.frontend.PaymentsIntoPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class PensionReliefs(regularPensionContributions: Option[BigDecimal],
@@ -64,23 +63,6 @@ case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String]
         )
       )
     }
-
-  def toPaymentsIntoOverseasPensionsAnswers(
-      maybeIncomes: Option[GetPensionIncomeModel],
-      maybeDbAnswers: Option[PaymentsIntoOverseasPensionsStorageAnswers]): Option[PaymentsIntoOverseasPensionsAnswers] = {
-    val apiHasAmount: Boolean                                           = pensionReliefs.overseasPensionSchemeContributions.nonEmpty
-    val overseasPensionContributions: List[OverseasPensionContribution] = maybeSeqToList(maybeIncomes.flatMap(_.overseasPensionContribution))
-    if (!apiHasAmount && maybeDbAnswers.isEmpty) None
-    else
-      PaymentsIntoOverseasPensionsAnswers(
-        paymentsIntoOverseasPensionsQuestions = apiHasAmount.some,
-        paymentsIntoOverseasPensionsAmount = pensionReliefs.overseasPensionSchemeContributions,
-        employerPaymentsQuestion = if (overseasPensionContributions.nonEmpty) true.some else maybeDbAnswers.flatMap(_.employerPaymentsQuestion),
-        taxPaidOnEmployerPaymentsQuestion =
-          if (overseasPensionContributions.nonEmpty) false.some else maybeDbAnswers.flatMap(_.taxPaidOnEmployerPaymentsQuestion),
-        schemes = overseasPensionContributions.map(_.toOverseasPensionScheme)
-      ).some
-  }
 
 }
 

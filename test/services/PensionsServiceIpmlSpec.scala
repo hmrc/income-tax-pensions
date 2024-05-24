@@ -16,7 +16,7 @@
 
 package services
 
-import cats.implicits.catsSyntaxEitherId
+import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
@@ -28,7 +28,7 @@ import models._
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
-import models.frontend.{PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
+import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._
@@ -392,16 +392,19 @@ class PensionsServiceIpmlSpec
       assert(result.value === None)
     }
 
-    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+    "return a 'No' journey if IFS returns None but DB answers exist (regardless of the DB answers' values)" in {
       mockGetPensionReliefsT(Right(None))
       mockGetPensionIncomeT(Right(None))
 
+      val storageAnswers = PaymentsIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(piopStorageAnswers))
+        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(storageAnswers))
         res <- service.getPaymentsIntoOverseasPensions(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result === None)
+      val expectedResult = PaymentsIntoOverseasPensionsAnswers(Some(false), None, None, None, List.empty).some
+
+      assert(result === expectedResult)
     }
 
     "return answers" in {
