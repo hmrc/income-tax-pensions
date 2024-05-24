@@ -16,8 +16,11 @@
 
 package models
 
+import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
 import play.api.libs.json.{JsObject, Json}
+import testdata.connector.getPensionReliefsModel._
+import testdata.paymentsIntoPensions.{paymentsIntoPensionsAnswers, paymentsIntoPensionsStorageAnswers}
 import utils.TestUtils
 
 class GetPensionReliefsModelSpec extends TestUtils {
@@ -54,6 +57,20 @@ class GetPensionReliefsModelSpec extends TestUtils {
 
     "parse from Json" in {
       jsonModel.as[PensionReliefs]
+    }
+  }
+
+  "toPaymentsIntoPensions" should {
+    "convert model to a PaymentsIntoPensionsAnswers when supplied valid Reliefs and Database answers" in {
+      val result = getPensionReliefsModel.toPaymentsIntoPensions(paymentsIntoPensionsStorageAnswers.some)
+
+      assert(result == paymentsIntoPensionsAnswers.some)
+    }
+    "return None when Database answers are empty and reliefs has no PaymentIntoPension answers" in {
+      val emptyGetPensionReliefsModel = getPensionReliefsModel.copy(pensionReliefs = PensionReliefs.empty)
+      val result                      = emptyGetPensionReliefsModel.toPaymentsIntoPensions(None)
+
+      assert(result == None)
     }
   }
 

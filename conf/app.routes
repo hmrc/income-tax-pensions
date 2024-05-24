@@ -4,18 +4,16 @@ GET           /income-tax/nino/:nino/sources                                    
 GET           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/pension-income/uk-pension-income/:nino/answers           controllers.JourneyAnswersController.getUkPensionIncome(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/pension-income/uk-pension-income/:nino/answers           controllers.JourneyAnswersController.saveUkPensionIncome(taxYear: TaxYear, nino: Nino)
-GET           /:taxYear/pension-income/state-pension/:nino/answers               controllers.JourneyAnswersController.getStatePension(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/pension-income/state-pension/:nino/answers               controllers.JourneyAnswersController.saveStatePension(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/uk-pension-income/:nino/answers                          controllers.JourneyAnswersController.getUkPensionIncome(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/uk-pension-income/:nino/answers                          controllers.JourneyAnswersController.saveUkPensionIncome(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/state-pension/:nino/answers                              controllers.JourneyAnswersController.getStatePension(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/state-pension/:nino/answers                              controllers.JourneyAnswersController.saveStatePension(taxYear: TaxYear, nino: Nino)
 
 GET           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
 GET           /:taxYear/unauthorised-payments-from-pensions/:nino/answers        controllers.JourneyAnswersController.getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/unauthorised-payments-from-pensions/:nino/answers        controllers.JourneyAnswersController.saveUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
-
-GET           /:taxYear/payments-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 
 GET           /:taxYear/payments-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.savePaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)

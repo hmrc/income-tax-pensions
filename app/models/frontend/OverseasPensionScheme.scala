@@ -19,18 +19,17 @@ package models.frontend
 import models.OverseasPensionContribution
 import play.api.libs.json.{Json, OFormat}
 
-case class OverseasPensionScheme(
-    customerReference: Option[String] = None,
-    employerPaymentsAmount: Option[BigDecimal] = None,
-    reliefType: Option[String] = None,
-    alphaTwoCountryCode: Option[String] = None,
-    alphaThreeCountryCode: Option[String] = None,
-    doubleTaxationArticle: Option[String] = None,
-    doubleTaxationTreaty: Option[String] = None,
-    doubleTaxationReliefAmount: Option[BigDecimal] = None,
-    qopsReference: Option[String] = None,
-    sf74Reference: Option[String] = None
-) {
+case class OverseasPensionScheme(customerReference: Option[String] = None,
+                                 employerPaymentsAmount: Option[BigDecimal] = None,
+                                 reliefType: Option[String] = None,
+                                 alphaTwoCountryCode: Option[String] = None,
+                                 alphaThreeCountryCode: Option[String] = None,
+                                 doubleTaxationArticle: Option[String] = None,
+                                 doubleTaxationTreaty: Option[String] = None,
+                                 doubleTaxationReliefAmount: Option[BigDecimal] = None,
+                                 qopsReference: Option[String] = None,
+                                 sf74Reference: Option[String] = None) {
+
   def toOverseasPensionsContributions: OverseasPensionContribution = OverseasPensionContribution(
     customerReference = customerReference,
     exemptEmployersPensionContribs = employerPaymentsAmount.getOrElse(0),
@@ -45,4 +44,9 @@ case class OverseasPensionScheme(
 
 object OverseasPensionScheme {
   implicit val format: OFormat[OverseasPensionScheme] = Json.format[OverseasPensionScheme]
+
+  val NoTaxRelief                     = "No tax relief"
+  val TransitionalCorrespondingRelief = "Transitional corresponding relief"
+  val DoubleTaxationRelief            = "Double taxation relief"
+  val MigrantMemberRelief             = "Migrant member relief"
 }

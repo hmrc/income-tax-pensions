@@ -30,4 +30,7 @@ package object models {
         err => InvalidJsonFormatError(ct.runtimeClass.getName, jsObj.toString(), err.toList).asLeft,
         answers => answers.asRight
       )
+
+  def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A]     = maybeSeq.fold(List.empty[A])(_.toList)
+  def emptySeqToNone[A](maybeEmptySeq: Seq[A]): Option[Seq[A]] = if (maybeEmptySeq.isEmpty) None else maybeEmptySeq.some
 }

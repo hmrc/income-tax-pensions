@@ -36,7 +36,7 @@ class SubmissionConnector @Inject() (val http: HttpClient, val config: AppConfig
   private def refreshPensionsResponse(taxYear: Int, nino: String)(implicit hc: HeaderCarrier): DownstreamOutcome[Unit] = {
     val url   = config.submissionBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"
     val model = RefreshIncomeSourceRequest("pensions")
-    ConnectorRequestInfo("PUT", url, "income-tax-submission").logRequestWithBody(logger, model)
+    ConnectorRequestInfo("PUT", url, "income-tax-submission").logRequestWithBody(logger, model, "Submission")
     http.PUT[RefreshIncomeSourceRequest, DownstreamErrorOr[Unit]](url, model)
   }
 }

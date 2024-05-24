@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package models
+package testdata.connector
 
-import play.api.libs.json.{Json, OFormat}
+import models.{GetPensionReliefsModel, PensionReliefs}
 
-case class CreateUpdatePensionIncomeModel(foreignPension: Option[Seq[ForeignPension]],
-                                          overseasPensionContribution: Option[Seq[OverseasPensionContribution]])
+object getPensionReliefsModel {
 
-object CreateUpdatePensionIncomeModel {
-  implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
+  def getPensionReliefsModel = GetPensionReliefsModel(
+    "2020-01-04T05:01:01Z",
+    Some("2020-01-04T05:01:01Z"),
+    pensionReliefs
+  )
 
-  def empty: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(None, None)
+  def pensionReliefs = PensionReliefs(
+    Some(1),
+    Some(2),
+    Some(3),
+    Some(4),
+    overseasPensionSchemeContributions = Some(2)
+  )
+
 }

@@ -63,6 +63,7 @@ case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String]
         )
       )
     }
+
 }
 
 object GetPensionReliefsModel {
