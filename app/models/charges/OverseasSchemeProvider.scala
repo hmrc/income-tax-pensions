@@ -24,7 +24,7 @@ import utils.Constants.GBAlpha3Code
 case class OverseasSchemeProvider(
     providerName: String,
     providerAddress: String,
-    providerCountryCode: String,
+    providerCountryCode: String, // API does not accept "" or 'GBR' -> change request: https://confluence.tools.tax.service.gov.uk/pages/viewpage.action?pageId=839975439
     qualifyingRecognisedOverseasPensionScheme: Option[Seq[String]], // This starts with a 'Q' but does not in the FE model (TransferPensionScheme)
     pensionSchemeTaxReference: Option[Seq[String]]) {
 

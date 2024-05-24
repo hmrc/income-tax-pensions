@@ -29,13 +29,13 @@ case class TransferPensionScheme(ukTransferCharge: Option[Boolean] = None,
                                  alphaThreeCountryCode: Option[String] = None) {
 
   def toOverseasSchemeProvider: OverseasSchemeProvider = {
-    val isUkScheme = alphaThreeCountryCode.contains(GBAlpha3Code)
+    val isUkScheme = ukTransferCharge.contains(true)
     val pstr       = if (isUkScheme) schemeReference.map(Seq(_)) else none[Seq[String]]
     val qops       = if (isUkScheme) none[Seq[String]] else schemeReference.map(qops => Seq(addQopsSubmissionPrefix(qops)))
     OverseasSchemeProvider(
       providerName = name.getOrElse(""),
       providerAddress = providerAddress.getOrElse(""),
-      providerCountryCode = alphaThreeCountryCode.getOrElse(""),
+      providerCountryCode = if (isUkScheme) GBAlpha3Code else alphaThreeCountryCode.getOrElse(""),
       qualifyingRecognisedOverseasPensionScheme = qops,
       pensionSchemeTaxReference = pstr
     )

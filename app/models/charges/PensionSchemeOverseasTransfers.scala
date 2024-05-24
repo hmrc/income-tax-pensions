@@ -21,9 +21,10 @@ import models.database.TransfersIntoOverseasPensionsStorageAnswers
 import models.frontend.TransfersIntoOverseasPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
-case class PensionSchemeOverseasTransfers(overseasSchemeProvider: Seq[OverseasSchemeProvider],
-                                          transferCharge: BigDecimal,
-                                          transferChargeTaxPaid: BigDecimal) {
+case class PensionSchemeOverseasTransfers(
+    overseasSchemeProvider: Seq[OverseasSchemeProvider], // TODO journey does not have compulsory schemes but these are compulsory to API
+    transferCharge: BigDecimal,
+    transferChargeTaxPaid: BigDecimal) {
 
   def isEmpty: Boolean = this.overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
 
