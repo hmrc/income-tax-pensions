@@ -27,6 +27,7 @@ import play.api.libs.json.Json
 import services.PensionsService
 import testdata.annualAllowances.annualAllowancesAnswers
 import testdata.incomeFromOverseasPensions.incomeFromOverseasPensionsAnswers
+import testdata.paymentsIntoOverseasPensions.paymentsIntoOverseasPensionsAnswers
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions.transfersIntoOverseasPensionsAnswers
 import testdata.unauthorisedPayments._
@@ -171,8 +172,36 @@ class JourneyAnswersControllerSpec extends TestUtils {
     }
   }
 
+  "getPaymentsIntoOverseasPensions" should {
+    "return any PaymentsIntoOverseasPensions journey answers from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getPaymentsIntoOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](Some(paymentsIntoOverseasPensionsAnswers).asRight[ServiceError]))
+        underTest.getPaymentsIntoOverseasPensions(currentTaxYear, validNino)(fakeRequest)
+      }
+
+      status(result) mustBe OK
+      bodyOf(result) mustBe Json.toJson(Some(paymentsIntoOverseasPensionsAnswers)).toString()
+    }
+    "return an Error from downstream" in {
+      val result = {
+        mockAuth()
+        (pensionsService
+          .getPaymentsIntoOverseasPensions(_: JourneyContextWithNino)(_: HeaderCarrier))
+          .expects(*, *)
+          .returning(EitherT.fromEither[Future](errorResult.asLeft[Option[PaymentsIntoOverseasPensionsAnswers]]))
+        underTest.getPaymentsIntoOverseasPensions(currentTaxYear, validNino)(fakeRequest)
+      }.futureValue.header
+
+      assert(result.status == INTERNAL_SERVER_ERROR)
+    }
+  }
+
   "getTransfersIntoOverseasPensions" should {
-    "return any AnnualAllowances journey answers from downstream" in {
+    "return any TransfersIntoOverseasPensions journey answers from downstream" in {
       val result = {
         mockAuth()
         (pensionsService

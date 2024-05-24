@@ -16,9 +16,11 @@
 
 package models
 
+import cats.implicits.catsSyntaxOptionId
 import models.common.Country
 import models.database.IncomeFromOverseasPensionsStorageAnswers
-import models.frontend.{IncomeFromOverseasPensionsAnswers, PensionScheme}
+import models.frontend.OverseasPensionScheme.{DoubleTaxationRelief, MigrantMemberRelief, NoTaxRelief, TransitionalCorrespondingRelief}
+import models.frontend.{IncomeFromOverseasPensionsAnswers, OverseasPensionScheme, PensionScheme}
 import play.api.libs.json.{Json, OFormat}
 
 case class ForeignPension(countryCode: String,
@@ -43,16 +45,36 @@ object ForeignPension {
   implicit val format: OFormat[ForeignPension] = Json.format[ForeignPension]
 }
 
-case class OverseasPensionContribution(
-    customerReference: Option[String],
-    exemptEmployersPensionContribs: BigDecimal,
-    migrantMemReliefQopsRefNo: Option[String],
-    dblTaxationRelief: Option[BigDecimal],
-    dblTaxationCountry: Option[String],
-    dblTaxationArticle: Option[String],
-    dblTaxationTreaty: Option[String],
-    sf74Reference: Option[String]
-)
+case class OverseasPensionContribution(customerReference: Option[String],
+                                       exemptEmployersPensionContribs: BigDecimal,
+                                       migrantMemReliefQopsRefNo: Option[String],
+                                       dblTaxationRelief: Option[BigDecimal],
+                                       dblTaxationCountry: Option[String],
+                                       dblTaxationArticle: Option[String],
+                                       dblTaxationTreaty: Option[String],
+                                       sf74Reference: Option[String]) {
+
+  def toOverseasPensionScheme: OverseasPensionScheme = OverseasPensionScheme(
+    customerReference = customerReference,
+    employerPaymentsAmount = exemptEmployersPensionContribs.some,
+    reliefType = getReliefType.some,
+    alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(dblTaxationCountry),
+    alphaThreeCountryCode = dblTaxationCountry,
+    doubleTaxationArticle = dblTaxationArticle,
+    doubleTaxationTreaty = dblTaxationTreaty,
+    doubleTaxationReliefAmount = dblTaxationRelief,
+    qopsReference = migrantMemReliefQopsRefNo,
+    sf74Reference = sf74Reference
+  )
+
+  private def getReliefType: String =
+    (sf74Reference, dblTaxationRelief, migrantMemReliefQopsRefNo) match {
+      case (Some(_), _, _) => TransitionalCorrespondingRelief
+      case (_, Some(_), _) => DoubleTaxationRelief
+      case (_, _, Some(_)) => MigrantMemberRelief
+      case _               => NoTaxRelief
+    }
+}
 
 object OverseasPensionContribution {
   implicit val format: OFormat[OverseasPensionContribution] = Json.format[OverseasPensionContribution]

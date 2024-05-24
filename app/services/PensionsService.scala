@@ -180,7 +180,13 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoOverseasPensionsAnswers]] =
-    EitherT.rightT[Future, ServiceError](None)
+    for {
+      maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
+      maybeIncomes   <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[PaymentsIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions))
+      paymentsIntoOverseasPensionsAnswers: Option[PaymentsIntoOverseasPensionsAnswers] = maybeReliefs.flatMap(
+        _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeDbAnswers))
+    } yield paymentsIntoOverseasPensionsAnswers
 
   def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {

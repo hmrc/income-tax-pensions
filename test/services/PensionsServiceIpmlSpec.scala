@@ -26,12 +26,7 @@ import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsRespons
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
-import models.database.{
-  AnnualAllowancesStorageAnswers,
-  IncomeFromOverseasPensionsStorageAnswers,
-  PaymentsIntoPensionsStorageAnswers,
-  UkPensionIncomeStorageAnswers
-}
+import models.database._
 import models.employment.AllEmploymentData
 import models.frontend.{PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
@@ -44,6 +39,7 @@ import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.StubEmploymentService
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
+import testdata.paymentsIntoOverseasPensions._
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.transfersIntoOverseasPensions._
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
@@ -386,11 +382,40 @@ class PensionsServiceIpmlSpec
   }
 
   "getPaymentsIntoOverseasPensions" should {
+    val piopCtx = sampleCtx.toJourneyContext(Journey.PaymentsIntoOverseasPensions)
 
     "get None if no answers" in {
-      mockGetPensionChargesT(Right(None))
+      mockGetPensionReliefsT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+
       val result = service.getPaymentsIntoOverseasPensions(sampleCtx).value.futureValue
       assert(result.value === None)
+    }
+
+    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+      mockGetPensionReliefsT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(piopStorageAnswers))
+        res <- service.getPaymentsIntoOverseasPensions(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result === None)
+    }
+
+    "return answers" in {
+      mockGetPensionReliefsT(
+        Right(Some(GetPensionReliefsModel("unused", None, PensionReliefs.empty.copy(overseasPensionSchemeContributions = Some(2))))))
+      mockGetPensionIncomeT(
+        Right(Some(GetPensionIncomeModel("unused", None, None, Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution))))))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(piopStorageAnswers))
+        res <- service.getPaymentsIntoOverseasPensions(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result.value === paymentsIntoOverseasPensionsAnswers)
     }
   }
 
