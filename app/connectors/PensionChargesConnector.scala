@@ -60,6 +60,11 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
     desIfCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
   }
 
+  def deletePensionChargesT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val ans = deletePensionCharges(nino.value, taxYear.endYear)
+    EitherT(ans).leftMap(err => err.toServiceError)
+  }
+
   def deletePensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeletePensionChargesResponse] = {
     val incomeSourceUri: String = pensionChargesIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Delete)
     val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionChargesBaseApi.Delete)
