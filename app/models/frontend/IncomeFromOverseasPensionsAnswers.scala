@@ -16,6 +16,7 @@
 
 package models.frontend
 
+import cats.data.NonEmptyList
 import models.ForeignPension
 import models.common.Country
 import play.api.libs.json.{Json, OFormat}
@@ -24,10 +25,10 @@ final case class IncomeFromOverseasPensionsAnswers(
     paymentsFromOverseasPensionsQuestion: Option[Boolean] = None,
     overseasIncomePensionSchemes: Seq[PensionScheme] = Nil
 ) {
-  def toForeignPension: Seq[ForeignPension] =
-    overseasIncomePensionSchemes.map { scheme =>
+  def toForeignPension: Option[NonEmptyList[ForeignPension]] = {
+    val foreignPensions = overseasIncomePensionSchemes.toList.map { scheme =>
       ForeignPension(
-        countryCode = Country.get3AlphaCodeFrom2AlphaCode(scheme.alphaTwoCode.get),
+        countryCode = Country.get3AlphaCodeFrom2AlphaCode(scheme.alphaTwoCode.get), // TODO unsafe use of get. Fix me
         taxableAmount = scheme.taxableAmount.getOrElse(0.0),
         amountBeforeTax = scheme.pensionPaymentAmount,
         taxTakenOff = scheme.pensionPaymentTaxPaid,
@@ -35,6 +36,9 @@ final case class IncomeFromOverseasPensionsAnswers(
         foreignTaxCreditRelief = scheme.foreignTaxCreditReliefQuestion
       )
     }
+
+    NonEmptyList.fromList(foreignPensions)
+  }
 }
 
 case class PensionScheme(alphaThreeCode: Option[String] = None,

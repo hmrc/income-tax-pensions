@@ -16,6 +16,7 @@
 
 package models.frontend
 
+import org.scalactic.anyvals.NonEmptyList
 import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.incomeFromOverseasPensions._
 
@@ -23,7 +24,15 @@ class IncomeFromOverseasPensionsAnswersSpec extends AnyWordSpecLike {
 
   "toForeignPension" should {
     "convert answers to a ForeignPension" in {
-      assert(incomeFromOverseasPensionsAnswers.toForeignPension === List(foreignPension))
+      assert(incomeFromOverseasPensionsAnswers.toForeignPension === Some(NonEmptyList(foreignPension)))
+    }
+
+    "convert an empty list to None" in {
+      assert(
+        IncomeFromOverseasPensionsAnswers(
+          Some(false),
+          Nil
+        ).toForeignPension === None)
     }
   }
 }
