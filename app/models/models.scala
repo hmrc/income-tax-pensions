@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import cats.data.NonEmptyList
 import cats.implicits._
 import models.error.ServiceError.InvalidJsonFormatError
 import play.api.libs.json._
@@ -32,14 +31,5 @@ package object models {
         answers => answers.asRight
       )
 
-  def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A]     = maybeSeq.fold(List.empty[A])(_.toList)
-
-  implicit def nonEmptyListFormat[A: Format]: Format[NonEmptyList[A]] = new Format[NonEmptyList[A]] {
-    def reads(json: JsValue): JsResult[NonEmptyList[A]] = json.validate[List[A]].flatMap {
-      case Nil          => JsError("List is empty")
-      case head :: tail => JsSuccess(NonEmptyList(head, tail))
-    }
-
-    def writes(nonEmptyList: NonEmptyList[A]): JsValue = Json.toJson(nonEmptyList.toList)
-  }
+  def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A] = maybeSeq.fold(List.empty[A])(_.toList)
 }
