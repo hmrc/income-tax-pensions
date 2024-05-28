@@ -26,16 +26,16 @@ class PensionSavingsTaxChargesSpec extends AnyWordSpecLike {
     }
 
     "return true when pensionSchemeTaxReference defined" in {
-      assert(PensionSavingsTaxCharges.empty.copy(pensionSchemeTaxReference = Some(List("str"))).nonEmpty === false)
+      assert(PensionSavingsTaxCharges.empty.copy(pensionSchemeTaxReference = Some(List("str"))).nonEmpty === true)
     }
 
     "return true when lumpSumBenefitTakenInExcessOfLifetimeAllowance defined" in {
       assert(
-        PensionSavingsTaxCharges.empty.copy(lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(1.0, 2.0))).nonEmpty === false)
+        PensionSavingsTaxCharges.empty.copy(lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(1.0, 2.0))).nonEmpty === true)
     }
 
     "return true when benefitInExcessOfLifetimeAllowance defined" in {
-      assert(PensionSavingsTaxCharges.empty.copy(benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(1.0, 2.0))).nonEmpty === false)
+      assert(PensionSavingsTaxCharges.empty.copy(benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(1.0, 2.0))).nonEmpty === true)
     }
 
   }
