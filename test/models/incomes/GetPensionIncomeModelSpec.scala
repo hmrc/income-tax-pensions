@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package models
+package models.incomes
 
+import models.{ForeignPension, GetPensionIncomeModel, OverseasPensionContribution}
 import play.api.libs.json.{JsValue, Json}
 import utils.TestUtils
 

@@ -16,6 +16,7 @@
 
 package controllers.testonly
 
+import connectors.IntegrationFrameworkConnectorImpl
 import controllers.handleApiUnitResultT
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.JourneyAnswersRepository
@@ -27,8 +28,9 @@ import scala.concurrent.ExecutionContext
 
 /** Contains operations used only by tests and environment with stubs.
   */
-class TestOnlyController @Inject() (journeyAnswersRepository: JourneyAnswersRepository, cc: MessagesControllerComponents)(implicit
-    ec: ExecutionContext)
+class TestOnlyController @Inject() (ifConnector: IntegrationFrameworkConnectorImpl,
+                                    journeyAnswersRepository: JourneyAnswersRepository,
+                                    cc: MessagesControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc)
     with Logging {
 
@@ -38,6 +40,15 @@ class TestOnlyController @Inject() (journeyAnswersRepository: JourneyAnswersRepo
 
   def clearAllData(): Action[AnyContent] = Action.async {
     handleApiUnitResultT(journeyAnswersRepository.testOnlyClearAllData())
+  }
+
+  def clearAllBEAndStubData(nino: String): Action[AnyContent] = Action.async { implicit request =>
+    val res = for {
+      _ <- journeyAnswersRepository.testOnlyClearAllData()
+      _ <- ifConnector.testClearData(nino)
+    } yield ()
+
+    handleApiUnitResultT(res)
   }
 
 }

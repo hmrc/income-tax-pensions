@@ -63,8 +63,11 @@ case class GetPensionReliefsModel(submittedOn: String, deletedOn: Option[String]
         )
       )
     }
+
 }
 
 object GetPensionReliefsModel {
   implicit val format: OFormat[GetPensionReliefsModel] = Json.format[GetPensionReliefsModel]
+
+  def empty: GetPensionReliefsModel = GetPensionReliefsModel("", None, PensionReliefs.empty)
 }

@@ -45,7 +45,7 @@ class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppCon
       ec: ExecutionContext): DownstreamOutcome[Unit] = {
     val url = appConfig.getEmploymentSourceUrl(nino, taxYear)
 
-    ConnectorRequestInfo("POST", url, downstreamServiceName).logRequestWithBody(logger, model)
+    ConnectorRequestInfo("POST", url, downstreamServiceName).logRequestWithBody(logger, model, "Employment")
     http.POST[CreateUpdateEmploymentRequest, DownstreamErrorOr[Unit]](url, model)(CreateUpdateEmploymentRequest.format, parser, hc, ec)
   }
 

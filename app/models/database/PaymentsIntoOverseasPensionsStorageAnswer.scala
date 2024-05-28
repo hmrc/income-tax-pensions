@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package models.database
 
 import play.api.libs.json.{Json, OFormat}
 
-case class CreateUpdatePensionIncomeModel(foreignPension: Option[Seq[ForeignPension]],
-                                          overseasPensionContribution: Option[Seq[OverseasPensionContribution]])
+case class PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions: Option[Boolean] = None,
+                                                     employerPaymentsQuestion: Option[Boolean] = None,
+                                                     taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None)
 
-object CreateUpdatePensionIncomeModel {
-  implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
-
-  def empty: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(None, None)
+object PaymentsIntoOverseasPensionsStorageAnswer {
+  implicit val format: OFormat[PaymentsIntoOverseasPensionsStorageAnswer] = Json.format[PaymentsIntoOverseasPensionsStorageAnswer]
 }

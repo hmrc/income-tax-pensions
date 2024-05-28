@@ -1,63 +1,67 @@
-GET           /income-tax/nino/:nino/sources                                   controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
+GET           /income-tax/nino/:nino/sources                                     controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
 # Journeys
-GET           /:taxYear/payments-into-pensions/:nino/answers                   controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/payments-into-pensions/:nino/answers                   controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/uk-pension-income/:nino/answers                        controllers.JourneyAnswersController.getUkPensionIncome(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/uk-pension-income/:nino/answers                        controllers.JourneyAnswersController.saveUkPensionIncome(taxYear: TaxYear, nino: Nino)
-GET           /:taxYear/state-pension/:nino/answers                            controllers.JourneyAnswersController.getStatePension(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/state-pension/:nino/answers                            controllers.JourneyAnswersController.saveStatePension(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/uk-pension-income/:nino/answers                          controllers.JourneyAnswersController.getUkPensionIncome(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/uk-pension-income/:nino/answers                          controllers.JourneyAnswersController.saveUkPensionIncome(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/state-pension/:nino/answers                              controllers.JourneyAnswersController.getStatePension(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/state-pension/:nino/answers                              controllers.JourneyAnswersController.saveStatePension(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/annual-allowances/:nino/answers                        controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.getAnnualAllowances(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/annual-allowances/:nino/answers                          controllers.JourneyAnswersController.saveAnnualAllowances(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/unauthorised-payments/:nino/answers                    controllers.JourneyAnswersController.getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/unauthorised-payments/:nino/answers                    controllers.JourneyAnswersController.saveUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/unauthorised-payments-from-pensions/:nino/answers        controllers.JourneyAnswersController.getUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/unauthorised-payments-from-pensions/:nino/answers        controllers.JourneyAnswersController.saveUnauthorisedPaymentsFromPensions(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/payments-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/payments-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/payments-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.savePaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
 
-GET           /:taxYear/transfer-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.getTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
-PUT           /:taxYear/transfer-into-overseas-pensions/:nino/answers          controllers.JourneyAnswersController.saveTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
+GET           /:taxYear/transfer-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.getTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/transfer-into-overseas-pensions/:nino/answers            controllers.JourneyAnswersController.saveTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino)
+
+GET           /:taxYear/income-from-overseas-pensions/:nino/answers              controllers.JourneyAnswersController.getIncomeFromOverseasPensions(taxYear: TaxYear, nino: Nino)
+PUT           /:taxYear/income-from-overseas-pensions/:nino/answers              controllers.JourneyAnswersController.saveIncomeFromOverseasPensions(taxYear: TaxYear, nino: Nino)
 
 # Journey Statuses
-GET           /journey-statuses/taxYear/:taxYear                               controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
+GET           /journey-statuses/taxYear/:taxYear                                 controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
 
-GET           /journey-status/:journey/taxYear/:taxYear                        controllers.JourneyStatusController.getJourneyStatus(taxYear: Int, journey: Journey)
+GET           /journey-status/:journey/taxYear/:taxYear                          controllers.JourneyStatusController.getJourneyStatus(taxYear: Int, journey: Journey)
 
-PUT           /journey-status/:journey/taxYear/:taxYear                        controllers.JourneyStatusController.saveJourneyStatus(taxYear: Int, journey: Journey)
+PUT           /journey-status/:journey/taxYear/:taxYear                          controllers.JourneyStatusController.saveJourneyStatus(taxYear: Int, journey: Journey)
 
 # Pension Charges
 
-GET           /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
+GET           /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
 
-DELETE        /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
+DELETE        /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
 
-PUT           /pension-charges/nino/:nino/taxYear/:taxYear                     controllers.PensionChargesController.createUpdatePensionCharges(nino:String, taxYear: Int)
+PUT           /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.createUpdatePensionCharges(nino:String, taxYear: Int)
 
-PUT           /pension-charges/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionChargesController.savePensionChargesData(nino:String, taxYear: Int)
+PUT           /pension-charges/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionChargesController.savePensionChargesData(nino:String, taxYear: Int)
 
-DELETE        /pension-charges/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionChargesController.deletePensionChargesData(nino:String, taxYear: Int)
+DELETE        /pension-charges/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionChargesController.deletePensionChargesData(nino:String, taxYear: Int)
 
 
 # Pension Reliefs
-GET           /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
+GET           /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
 
-PUT           /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.createOrAmendPensionReliefs(nino: String, taxYear: Int)
+PUT           /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.createOrAmendPensionReliefs(nino: String, taxYear: Int)
 
-DELETE        /pension-reliefs/nino/:nino/taxYear/:taxYear                     controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
+DELETE        /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
 
-PUT           /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionReliefsController.savePensionReliefsUserData(nino:String, taxYear: Int)
+PUT           /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionReliefsController.savePensionReliefsUserData(nino:String, taxYear: Int)
 
-DELETE        /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear        controllers.PensionReliefsController.deletePensionReliefsUserData(nino:String, taxYear: Int)
+DELETE        /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionReliefsController.deletePensionReliefsUserData(nino:String, taxYear: Int)
 
 # Pension Income
-GET           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.getPensionIncome(nino: String, taxYear: Int)
+GET           /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.getPensionIncome(nino: String, taxYear: Int)
 
-PUT           /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.createOrAmendPensionIncome(nino: String, taxYear: Int)
+PUT           /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.createOrAmendPensionIncome(nino: String, taxYear: Int)
 
-DELETE        /pension-income/nino/:nino/taxYear/:taxYear                      controllers.PensionIncomeController.deletePensionIncome(nino: String, taxYear: Int)
+DELETE        /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.deletePensionIncome(nino: String, taxYear: Int)
 
-PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
+PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
 
-DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear         controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
+DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package models.frontend
 
-import play.api.libs.json.{Json, OFormat}
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.incomeFromOverseasPensions._
 
-case class CreateUpdatePensionIncomeModel(foreignPension: Option[Seq[ForeignPension]],
-                                          overseasPensionContribution: Option[Seq[OverseasPensionContribution]])
+class IncomeFromOverseasPensionsAnswersSpec extends AnyWordSpecLike {
 
-object CreateUpdatePensionIncomeModel {
-  implicit val format: OFormat[CreateUpdatePensionIncomeModel] = Json.format[CreateUpdatePensionIncomeModel]
-
-  def empty: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(None, None)
+  "toForeignPension" should {
+    "convert answers to a ForeignPension" in {
+      assert(incomeFromOverseasPensionsAnswers.toForeignPension === List(foreignPension))
+    }
+  }
 }

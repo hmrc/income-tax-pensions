@@ -16,13 +16,18 @@
 
 package models.frontend
 
+import models.database.PaymentsIntoOverseasPensionsStorageAnswer
 import play.api.libs.json.{Json, OFormat}
 
 case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuestions: Option[Boolean] = None,
                                                paymentsIntoOverseasPensionsAmount: Option[BigDecimal] = None,
                                                employerPaymentsQuestion: Option[Boolean] = None,
                                                taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None,
-                                               schemes: List[OverseasPensionScheme] = List.empty[OverseasPensionScheme])
+                                               schemes: List[OverseasPensionScheme] = List.empty[OverseasPensionScheme]) {
+
+  def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer =
+    PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
+}
 
 object PaymentsIntoOverseasPensionsAnswers {
   implicit val format: OFormat[PaymentsIntoOverseasPensionsAnswers] = Json.format[PaymentsIntoOverseasPensionsAnswers]
