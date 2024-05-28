@@ -25,6 +25,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
@@ -422,6 +423,28 @@ class PensionsServiceIpmlSpec
     }
   }
 
+  "upsertPaymentsIntoOverseasPensions" should {
+    "upsert answers " in {
+      mockGetPensionReliefsT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+      mockCreateOrAmendPensionReliefsT(
+        Right(None),
+        expectedModel = CreateOrUpdatePensionReliefsModel(PensionReliefs.empty.copy(overseasPensionSchemeContributions = Some(2.0)))
+      )
+      mockCreateOrAmendPensionIncomeT(
+        Right(None),
+        expectedModel = CreateUpdatePensionIncomeModel(None, Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution)))
+      )
+
+      val result = service.upsertPaymentsIntoOverseasPensions(sampleCtx, paymentsIntoOverseasPensionsAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoOverseasPensionsStorageAnswers]
+      assert(persistedAnswers === piopStorageAnswers)
+    }
+  }
+
   "getTransfersIntoOverseasPensions" should {
     val transferIntoOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.TransferIntoOverseasPensions)
 
@@ -441,7 +464,7 @@ class PensionsServiceIpmlSpec
       assert(result === None)
     }
 
-    "return answers" ignore { // TODO 8251 fix this test
+    "return answers" in {
       mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, Some(pensionSchemeOverseasTransfers), None, None, None))))
       val result = (for {
         _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
@@ -449,6 +472,23 @@ class PensionsServiceIpmlSpec
       } yield res).value.futureValue.value
 
       assert(result.value === transfersIntoOverseasPensionsAnswers)
+    }
+  }
+
+  "upsertTransfersIntoOverseasPensions" should {
+    "upsert answers " in {
+      mockGetPensionChargesT(Right(None))
+      mockCreateOrAmendPensionChargesT(
+        Right(None),
+        expectedModel = CreateUpdatePensionChargesRequestModel.empty.copy(pensionSchemeOverseasTransfers = Some(pensionSchemeOverseasTransfers))
+      )
+
+      val result = service.upsertTransfersIntoOverseasPensions(sampleCtx, transfersIntoOverseasPensionsAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[TransfersIntoOverseasPensionsStorageAnswers]
+      assert(persistedAnswers === transfersIntoOverseasPensionsStorageAnswers)
     }
   }
 

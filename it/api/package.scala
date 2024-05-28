@@ -15,6 +15,17 @@
  */
 
 import models._
+import models.charges.{
+  Charge,
+  CreateUpdatePensionChargesRequestModel,
+  LifetimeAllowance,
+  OverseasPensionContributions,
+  OverseasSchemeProvider,
+  PensionContributions,
+  PensionSavingsTaxCharges,
+  PensionSchemeOverseasTransfers,
+  PensionSchemeUnauthorisedPayments
+}
 import play.api.libs.json.{JsObject, JsValue, Json}
 
 package object api {

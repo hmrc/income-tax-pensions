@@ -25,7 +25,7 @@ import connectors.httpParsers.GetPensionChargesHttpParser.{GetPensionChargesHttp
 import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
-import models.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.TaxYearHelper
 

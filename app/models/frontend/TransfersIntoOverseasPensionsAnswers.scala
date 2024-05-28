@@ -16,14 +16,23 @@
 
 package models.frontend
 
+import models.charges.PensionSchemeOverseasTransfers
 import play.api.libs.json.{Json, OFormat}
+import utils.Constants.zero
 
 case class TransfersIntoOverseasPensionsAnswers(transferPensionSavings: Option[Boolean] = None,
                                                 overseasTransferCharge: Option[Boolean] = None,
                                                 overseasTransferChargeAmount: Option[BigDecimal] = None,
                                                 pensionSchemeTransferCharge: Option[Boolean] = None,
                                                 pensionSchemeTransferChargeAmount: Option[BigDecimal] = None,
-                                                transferPensionScheme: Seq[TransferPensionScheme] = Nil)
+                                                transferPensionScheme: Seq[TransferPensionScheme] = Nil) {
+
+  def toPensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
+    overseasSchemeProvider = transferPensionScheme.map(_.toOverseasSchemeProvider),
+    transferCharge = overseasTransferChargeAmount.getOrElse(zero),
+    transferChargeTaxPaid = pensionSchemeTransferChargeAmount.getOrElse(zero)
+  )
+}
 
 object TransfersIntoOverseasPensionsAnswers {
   implicit val format: OFormat[TransfersIntoOverseasPensionsAnswers] = Json.format[TransfersIntoOverseasPensionsAnswers]

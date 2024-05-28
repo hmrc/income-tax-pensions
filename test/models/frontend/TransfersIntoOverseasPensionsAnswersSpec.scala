@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package testdata.connector
+package models.frontend
 
-import models.charges.{Charge, PensionSchemeUnauthorisedPayments}
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.pensionSchemeOverseasTransfers.pensionSchemeOverseasTransfers
+import testdata.transfersIntoOverseasPensions.transfersIntoOverseasPensionsAnswers
 
-object charges {
-  val sampleCharges = PensionSchemeUnauthorisedPayments(
-    pensionSchemeTaxReference = Some(List("00123456RA")),
-    surcharge = Some(
-      Charge(
-        amount = 1.0,
-        foreignTaxPaid = 2.0
-      )),
-    noSurcharge = Some(
-      Charge(
-        amount = 3.0,
-        foreignTaxPaid = 4.0
-      ))
-  )
+class TransfersIntoOverseasPensionsAnswersSpec extends AnyWordSpecLike {
 
-  val sampleChargesWithNones = PensionSchemeUnauthorisedPayments(
-    pensionSchemeTaxReference = Some(List("00123456RA")),
-    surcharge = None,
-    noSurcharge = None
-  )
-
+  "toPensionSchemeOverseasTransfers" should {
+    "create a PensionSchemeOverseasTransfers" in {
+      assert(transfersIntoOverseasPensionsAnswers.toPensionSchemeOverseasTransfers === pensionSchemeOverseasTransfers)
+    }
+  }
 }

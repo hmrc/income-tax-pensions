@@ -85,6 +85,12 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     handleOptionalApiResult(pensionsService.getTransfersIntoOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 
+  def saveTransfersIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    getBodyWithCtx[TransfersIntoOverseasPensionsAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertTransfersIntoOverseasPensions(ctx, value).map(_ => NoContent)
+    }
+  }
+
   def getIncomeFromOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     handleOptionalApiResult(pensionsService.getIncomeFromOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
@@ -94,6 +100,7 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
       pensionsService.upsertIncomeFromOverseasPensions(ctx, value).map(_ => NoContent)
     }
   }
+
   def getPaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     handleOptionalApiResult(pensionsService.getPaymentsIntoOverseasPensions(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
@@ -102,7 +109,6 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
     getBodyWithCtx[PaymentsIntoOverseasPensionsAnswers](taxYear, nino) { (ctx, value) =>
       pensionsService.upsertPaymentsIntoOverseasPensions(ctx, value).map(_ => NoContent)
     }
-
   }
 
 }

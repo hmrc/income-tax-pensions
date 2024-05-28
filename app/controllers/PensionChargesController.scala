@@ -18,7 +18,8 @@ package controllers
 
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import controllers.predicates.AuthorisedAction
-import models.{CreateUpdatePensionChargesRequestModel, DesErrorBodyModel, ServiceErrorModel}
+import models.charges.CreateUpdatePensionChargesRequestModel
+import models.{DesErrorBodyModel, ServiceErrorModel}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.PensionChargesService

@@ -16,8 +16,9 @@
 
 package connectors.httpParsers
 
+import models.charges.GetPensionChargesRequestModel
 import models.logging.ConnectorResponseInfo
-import models.{DesErrorBodyModel, DesErrorModel, GetPensionChargesRequestModel}
+import models.{DesErrorBodyModel, DesErrorModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._

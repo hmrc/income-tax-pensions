@@ -16,7 +16,7 @@
 
 package models.frontend
 
-import models.PensionContributions
+import models.charges.PensionContributions
 import play.api.libs.json.{Json, OFormat}
 
 final case class AnnualAllowancesAnswers(reducedAnnualAllowanceQuestion: Option[Boolean],

@@ -16,15 +16,31 @@
 
 package models.frontend
 
+import cats.implicits.none
+import models.charges.{OverseasSchemeProvider, addQopsSubmissionPrefix}
 import play.api.libs.json.{Json, OFormat}
+import utils.Constants.GBAlpha3Code
 
 case class TransferPensionScheme(ukTransferCharge: Option[Boolean] = None,
                                  name: Option[String] = None,
-                                 pstr: Option[String] = None,
-                                 qops: Option[String] = None,
+                                 schemeReference: Option[String] = None,
                                  providerAddress: Option[String] = None,
                                  alphaTwoCountryCode: Option[String] = None,
-                                 alphaThreeCountryCode: Option[String] = None)
+                                 alphaThreeCountryCode: Option[String] = None) {
+
+  def toOverseasSchemeProvider: OverseasSchemeProvider = {
+    val isUkScheme = ukTransferCharge.contains(true)
+    val pstr       = if (isUkScheme) schemeReference.map(Seq(_)) else none[Seq[String]]
+    val qops       = if (isUkScheme) none[Seq[String]] else schemeReference.map(qops => Seq(addQopsSubmissionPrefix(qops)))
+    OverseasSchemeProvider(
+      providerName = name.getOrElse(""),
+      providerAddress = providerAddress.getOrElse(""),
+      providerCountryCode = if (isUkScheme) GBAlpha3Code else alphaThreeCountryCode.getOrElse(""),
+      qualifyingRecognisedOverseasPensionScheme = qops,
+      pensionSchemeTaxReference = pstr
+    )
+  }
+}
 
 object TransferPensionScheme {
   implicit val format: OFormat[TransferPensionScheme] = Json.format[TransferPensionScheme]

@@ -21,6 +21,7 @@ import connectors._
 import connectors.httpParsers.CreateUpdatePensionChargesHttpParser.CreateUpdatePensionChargesResponse
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import models._
+import models.charges.{Charge, CreateUpdatePensionChargesRequestModel, PensionSchemeUnauthorisedPayments}
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils

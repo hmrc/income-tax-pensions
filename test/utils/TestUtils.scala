@@ -22,6 +22,7 @@ import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import controllers.predicates.AuthorisedAction
 import models._
+import models.charges._
 import models.common._
 import models.database.JourneyAnswers
 import org.apache.pekko.actor.ActorSystem
@@ -36,6 +37,7 @@ import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuild
 import play.api.test.{FakeRequest, Helpers}
 import play.libs.pekko.PekkoGuiceSupport
 import services.AuthService
+import testdata.transfersIntoOverseasPensions.{nonUkOverseasSchemeProvider, ukOverseasSchemeProvider}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
@@ -172,13 +174,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       )),
     pensionSchemeOverseasTransfers = Some(
       PensionSchemeOverseasTransfers(
-        overseasSchemeProvider = Seq(OverseasSchemeProvider(
-          providerName = "overseas providerName 1 qualifying scheme",
-          providerAddress = "overseas address 1",
-          providerCountryCode = "ESP",
-          qualifyingRecognisedOverseasPensionScheme = Some(Seq("Q100000", "Q100002")),
-          pensionSchemeTaxReference = None
-        )),
+        overseasSchemeProvider = Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider),
         transferCharge = 22.77,
         transferChargeTaxPaid = 33.88
       )),

@@ -14,29 +14,11 @@
  * limitations under the License.
  */
 
-package testdata.connector
+package utils
 
-import models.charges.{Charge, PensionSchemeUnauthorisedPayments}
+object Constants {
 
-object charges {
-  val sampleCharges = PensionSchemeUnauthorisedPayments(
-    pensionSchemeTaxReference = Some(List("00123456RA")),
-    surcharge = Some(
-      Charge(
-        amount = 1.0,
-        foreignTaxPaid = 2.0
-      )),
-    noSurcharge = Some(
-      Charge(
-        amount = 3.0,
-        foreignTaxPaid = 4.0
-      ))
-  )
-
-  val sampleChargesWithNones = PensionSchemeUnauthorisedPayments(
-    pensionSchemeTaxReference = Some(List("00123456RA")),
-    surcharge = None,
-    noSurcharge = None
-  )
-
+  val zero: BigDecimal = BigDecimal(0.00)
+  val GBAlpha3Code     = "GBR"
+  val GBAlpha2Code     = "GB"
 }

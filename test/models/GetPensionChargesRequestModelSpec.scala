@@ -16,6 +16,17 @@
 
 package models
 
+import models.charges.{
+  Charge,
+  GetPensionChargesRequestModel,
+  LifetimeAllowance,
+  OverseasPensionContributions,
+  OverseasSchemeProvider,
+  PensionContributions,
+  PensionSavingsTaxCharges,
+  PensionSchemeOverseasTransfers,
+  PensionSchemeUnauthorisedPayments
+}
 import play.api.libs.json.{JsValue, Json}
 import utils.TestUtils
 

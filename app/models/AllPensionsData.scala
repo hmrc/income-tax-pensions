@@ -16,6 +16,7 @@
 
 package models
 
+import models.charges.GetPensionChargesRequestModel
 import models.submission.EmploymentPensions
 import play.api.libs.json.{Json, OFormat}
 
@@ -36,5 +37,4 @@ object AllPensionsData {
   implicit val formats: OFormat[AllPensionsData] = Json.format[AllPensionsData]
 
   def empty: AllPensionsData = AllPensionsData(None, None, None, None, None)
-
 }

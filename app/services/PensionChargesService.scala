@@ -18,7 +18,8 @@ package services
 
 import connectors.{PensionChargesConnector, SubmissionConnector}
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
-import models.{CreateUpdatePensionChargesRequestModel, ServiceErrorModel}
+import models.ServiceErrorModel
+import models.charges.CreateUpdatePensionChargesRequestModel
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.FutureEitherOps
 

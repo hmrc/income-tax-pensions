@@ -43,7 +43,8 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
                                upsertAnnualAllowancesResult: Either[ServiceError, Unit] = Right(()),
                                upsertUnauthorisedPaymentsFromPensionsResult: Either[ServiceError, Unit] = Right(()),
                                upsertIncomeFromOverseasPensionsResult: Either[ServiceError, Unit] = Right(()),
-                               upsertPaymentsIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()))
+                               upsertPaymentsIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()),
+                               upsertTransfersIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()))
     extends PensionsService {
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     EitherT.fromEither(getPaymentsIntoPensionsResult)
@@ -76,6 +77,9 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]] =
     EitherT.fromEither(getTransfersIntoOverseasPensionsResult)
+  def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
+    EitherT.fromEither(upsertIncomeFromOverseasPensionsResult)
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
 }

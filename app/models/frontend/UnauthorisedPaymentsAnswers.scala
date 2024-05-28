@@ -17,7 +17,7 @@
 package models.frontend
 
 import cats.implicits.catsSyntaxOptionId
-import models.{Charge, PensionSchemeUnauthorisedPayments}
+import models.charges.{Charge, PensionSchemeUnauthorisedPayments}
 import play.api.libs.json.{Json, OFormat}
 
 case class UnauthorisedPaymentsAnswers(

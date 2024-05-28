@@ -20,6 +20,7 @@ import cats.data.{EitherT, NonEmptyList}
 import cats.implicits._
 import connectors._
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
@@ -53,6 +54,8 @@ trait PensionsService {
       hc: HeaderCarrier): ApiResultT[Unit]
   def getTransfersIntoOverseasPensions(ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]]
+  def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit]
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]]
 }
 
@@ -224,6 +227,21 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       transfersIntoOverseasPensionsAnswers = maybeCharges.flatMap(
         _.pensionSchemeOverseasTransfers.flatMap(_.toTransfersIntoOverseasPensions(maybeDbAnswers)))
     } yield transfersIntoOverseasPensionsAnswers
+
+  def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = TransfersIntoOverseasPensionsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.TransferIntoOverseasPensions)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      updatedContributions = answers.toPensionSchemeOverseasTransfers.some
+      updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
