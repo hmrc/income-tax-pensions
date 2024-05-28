@@ -24,7 +24,32 @@ class TransfersIntoOverseasPensionsAnswersSpec extends AnyWordSpecLike {
 
   "toPensionSchemeOverseasTransfers" should {
     "create a PensionSchemeOverseasTransfers" in {
-      assert(transfersIntoOverseasPensionsAnswers.toPensionSchemeOverseasTransfers === pensionSchemeOverseasTransfers)
+      assert(transfersIntoOverseasPensionsAnswers.toPensionSchemeOverseasTransfers === Some(pensionSchemeOverseasTransfers))
     }
+
+    "create a None when transferPensionSavings is false" in {
+      assert(
+        TransfersIntoOverseasPensionsAnswers(
+          Some(false),
+          Some(true),
+          Some(100),
+          Some(true),
+          Some(100),
+          Nil
+        ).toPensionSchemeOverseasTransfers === None)
+    }
+
+    "create a None when overseasTransferCharge is false" in {
+      assert(
+        TransfersIntoOverseasPensionsAnswers(
+          Some(true),
+          Some(false),
+          Some(100),
+          Some(true),
+          Some(100),
+          Nil
+        ).toPensionSchemeOverseasTransfers === None)
+    }
+
   }
 }

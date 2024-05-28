@@ -236,7 +236,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
-      updatedContributions = answers.toPensionSchemeOverseasTransfers.some
+      updatedContributions = answers.toPensionSchemeOverseasTransfers
       updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
       _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))

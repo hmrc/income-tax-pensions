@@ -27,11 +27,15 @@ case class TransfersIntoOverseasPensionsAnswers(transferPensionSavings: Option[B
                                                 pensionSchemeTransferChargeAmount: Option[BigDecimal] = None,
                                                 transferPensionScheme: Seq[TransferPensionScheme] = Nil) {
 
-  def toPensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
-    overseasSchemeProvider = transferPensionScheme.map(_.toOverseasSchemeProvider),
-    transferCharge = overseasTransferChargeAmount.getOrElse(zero),
-    transferChargeTaxPaid = pensionSchemeTransferChargeAmount.getOrElse(zero)
-  )
+  def toPensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers] =
+    if (transferPensionSavings.contains(true) && overseasTransferCharge.contains(true)) {
+      Some(
+        PensionSchemeOverseasTransfers(
+          overseasSchemeProvider = transferPensionScheme.map(_.toOverseasSchemeProvider),
+          transferCharge = overseasTransferChargeAmount.getOrElse(zero),
+          transferChargeTaxPaid = pensionSchemeTransferChargeAmount.getOrElse(zero)
+        ))
+    } else None
 }
 
 object TransfersIntoOverseasPensionsAnswers {
