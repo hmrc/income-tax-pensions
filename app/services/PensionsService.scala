@@ -71,10 +71,12 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     else
       reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
 
+  /** foreignPension or overseasPensionContribution can be None or defined but empty. For all of those case we treat it as not defined, as the schema
+    * requires min property 1. If we have both of them empty/not defined we call DELETE, otherwise PUT
+    */
   private def createOrDeleteIncomesWhenEmpty(ctx: JourneyContextWithNino, updatedIncomes: CreateUpdatePensionIncomeModel)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] =
-    // foreignPension or overseasPensionContribution must be None if value/sequence is empty. If both are empty -> delete
-    if (updatedIncomes.foreignPension.nonEmpty || updatedIncomes.overseasPensionContribution.nonEmpty)
+    if (updatedIncomes.nonEmpty)
       pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
     else
       pensionIncomeConnector.deletePensionIncomeT(ctx.nino, ctx.taxYear)
@@ -173,16 +175,11 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     val journeyCtx     = ctx.toJourneyContext(Journey.IncomeFromOverseasPensions)
 
     for {
-      getIncome <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
-      existingIncome                    = getIncome.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
+      incomeResponse <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
+      existingIncome                    = incomeResponse.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
       updatedIncomeFromOverseasPensions = answers.toForeignPension.some
       updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
-
-      // TODO permit the submission of an empty foreginPension array (now forbidden by business) without having to wipe out the
-      //  entire Income array, i.e. when paymentsFromOverseasPensionsQuestion is changed from Yes to No after submission
-      _ <- answers.overseasIncomePensionSchemes.headOption.fold(EitherT.rightT[Future, ServiceError](()))(_ =>
-        pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncome))
-
+      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncome)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
