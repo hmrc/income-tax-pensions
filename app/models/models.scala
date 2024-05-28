@@ -16,7 +16,7 @@
 
 import cats.implicits._
 import models.error.ServiceError.InvalidJsonFormatError
-import play.api.libs.json.{JsObject, Reads}
+import play.api.libs.json._
 
 import scala.reflect.ClassTag
 
@@ -31,6 +31,5 @@ package object models {
         answers => answers.asRight
       )
 
-  def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A]     = maybeSeq.fold(List.empty[A])(_.toList)
-  def emptySeqToNone[A](maybeEmptySeq: Seq[A]): Option[Seq[A]] = if (maybeEmptySeq.isEmpty) None else maybeEmptySeq.some
+  def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A] = maybeSeq.fold(List.empty[A])(_.toList)
 }

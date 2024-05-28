@@ -16,7 +16,7 @@
 
 package services
 
-import cats.data.EitherT
+import cats.data.{EitherT, NonEmptyList}
 import cats.implicits._
 import connectors._
 import models._
@@ -177,7 +177,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       incomeResponse <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       existingIncome                    = incomeResponse.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
-      updatedIncomeFromOverseasPensions = answers.toForeignPension.some
+      updatedIncomeFromOverseasPensions = answers.toForeignPension.map(_.toList)
       updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
       _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncome)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
@@ -208,7 +208,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       existingIncomes <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       updatedIncomes = CreateUpdatePensionIncomeModel(
         foreignPension = existingIncomes.flatMap(_.foreignPension),
-        overseasPensionContribution = emptySeqToNone(answers.schemes.map(_.toOverseasPensionsContributions))
+        overseasPensionContribution = NonEmptyList.fromList(answers.schemes.map(_.toOverseasPensionsContributions)).map(_.toList)
       )
       _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs)
       _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncomes)
