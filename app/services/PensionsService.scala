@@ -67,29 +67,38 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
                                      repository: JourneyAnswersRepository)(implicit ec: ExecutionContext)
     extends PensionsService {
 
-  private def createOrDeleteReliefsWhenEmpty(ctx: JourneyContextWithNino, updatedReliefs: PensionReliefs)(implicit
-      hc: HeaderCarrier): ApiResultT[Unit] =
+  private def createOrDeleteReliefsWhenEmpty(ctx: JourneyContextWithNino,
+                                             updatedReliefs: PensionReliefs,
+                                             existingRelief: Option[GetPensionReliefsModel])(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     if (updatedReliefs.nonEmpty)
       reliefsConnector.createOrAmendPensionReliefsT(ctx, CreateOrUpdatePensionReliefsModel(updatedReliefs))
-    else
+    else if (existingRelief.exists(_.pensionReliefs.nonEmpty))
       reliefsConnector.deletePensionReliefsT(ctx.nino, ctx.taxYear)
+    else
+      EitherT.rightT[Future, ServiceError](())
 
   /** foreignPension or overseasPensionContribution can be None or defined but empty. For all of those case we treat it as not defined, as the schema
     * requires min property 1. If we have both of them empty/not defined we call DELETE, otherwise PUT
     */
-  private def createOrDeleteIncomesWhenEmpty(ctx: JourneyContextWithNino, updatedIncomes: CreateUpdatePensionIncomeModel)(implicit
-      hc: HeaderCarrier): ApiResultT[Unit] =
+  private def createOrDeleteIncomesWhenEmpty(ctx: JourneyContextWithNino,
+                                             updatedIncomes: CreateUpdatePensionIncomeModel,
+                                             existingIncome: Option[CreateUpdatePensionIncomeModel])(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     if (updatedIncomes.nonEmpty)
       pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
-    else
+    else if (existingIncome.exists(_.nonEmpty))
       pensionIncomeConnector.deletePensionIncomeT(ctx.nino, ctx.taxYear)
+    else
+      EitherT.rightT[Future, ServiceError](())
 
-  private def createOrDeleteChargesWhenEmpty(ctx: JourneyContextWithNino, updatedCharges: CreateUpdatePensionChargesRequestModel)(implicit
-      hc: HeaderCarrier): ApiResultT[Unit] =
+  private def createOrDeleteChargesWhenEmpty(ctx: JourneyContextWithNino,
+                                             updatedCharges: CreateUpdatePensionChargesRequestModel,
+                                             existingCharges: CreateUpdatePensionChargesRequestModel)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     if (updatedCharges.nonEmpty)
       chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
-    else
+    else if (existingCharges.nonEmpty)
       chargesConnector.deletePensionChargesT(ctx.nino, ctx.taxYear)
+    else
+      EitherT.rightT[Future, ServiceError](())
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     for {
@@ -108,7 +117,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       existingRelief <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeOverseasPensionSchemeContributions = existingRelief.flatMap(_.pensionReliefs.overseasPensionSchemeContributions)
       updatedReliefs: PensionReliefs          = answers.toPensionReliefs(maybeOverseasPensionSchemeContributions)
-      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs)
+      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs, existingRelief)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
@@ -186,10 +195,10 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
 
     for {
       incomeResponse <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
-      existingIncome                    = incomeResponse.map(_.toCreateUpdatePensionIncomeModel).getOrElse(CreateUpdatePensionIncomeModel.empty)
+      existingIncome                    = incomeResponse.map(_.toCreateUpdatePensionIncomeModel)
       updatedIncomeFromOverseasPensions = answers.toForeignPension.map(_.toList)
-      updatedIncome                     = existingIncome.copy(foreignPension = updatedIncomeFromOverseasPensions)
-      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncome)
+      updatedIncome = existingIncome.getOrElse(CreateUpdatePensionIncomeModel.empty).copy(foreignPension = updatedIncomeFromOverseasPensions)
+      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncome, existingIncome)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
@@ -220,8 +229,8 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
         foreignPension = existingIncomes.flatMap(_.foreignPension),
         overseasPensionContribution = NonEmptyList.fromList(answers.schemes.map(_.toOverseasPensionsContributions)).map(_.toList)
       )
-      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs)
-      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncomes)
+      _ <- createOrDeleteReliefsWhenEmpty(ctx, updatedReliefs, existingRelief)
+      _ <- createOrDeleteIncomesWhenEmpty(ctx, updatedIncomes, existingIncomes.map(_.toCreateUpdatePensionIncomeModel))
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
@@ -245,7 +254,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
       updatedContributions = answers.toPensionSchemeOverseasTransfers
       updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
-      _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges)
+      _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges, existingCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
