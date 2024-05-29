@@ -79,7 +79,7 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
     EitherT.fromEither(getTransfersIntoOverseasPensionsResult)
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] =
-    EitherT.fromEither(upsertIncomeFromOverseasPensionsResult)
+    EitherT.fromEither(upsertTransfersIntoOverseasPensionsResult)
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
 }
