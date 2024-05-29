@@ -32,8 +32,8 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.libs.json.JsObject
-import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
+import play.api.libs.json.{JsObject, Json, Writes}
+import play.api.mvc._
 import play.api.test.{FakeRequest, Helpers}
 import play.libs.pekko.PekkoGuiceSupport
 import services.AuthService
@@ -144,6 +144,27 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future.failed(exception))
+
+  def buildRequest[A: Writes](body: A): FakeRequest[AnyContentAsJson] = FakeRequest()
+    .withHeaders("mtditid" -> "1234567890")
+    .withJsonBody(Json.toJson(body))
+
+  def testRoute(expectedStatus: Int, expectedBody: String, methodBlock: () => Action[AnyContent], request: Request[AnyContent] = fakeRequest): Unit =
+    runControllerSpec(request, expectedStatus, expectedBody, () => (), methodBlock)
+
+  private def runControllerSpec(request: Request[AnyContent],
+                                expectedStatus: Int,
+                                expectedBody: String,
+                                stubs: () => Unit,
+                                methodBlock: () => Action[AnyContent]): Unit = {
+    val result = {
+      mockAuth()
+      stubs()
+      methodBlock()(request)
+    }
+    status(result) mustBe expectedStatus
+    assert(bodyOf(result) contains expectedBody)
+  }
 
   val fullPensionReliefsModel = GetPensionReliefsModel(
     "2020-01-04T05:01:01Z",
