@@ -16,6 +16,7 @@
 
 package services
 
+import cats.data.EitherT
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
@@ -29,6 +30,7 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
+import models.error.ServiceError
 import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
@@ -63,10 +65,10 @@ class PensionsServiceIpmlSpec
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
-  val stateBenefitsConnector: StateBenefitsConnector = mock[StateBenefitsConnector]
-  val pensionIncomeConnector: PensionIncomeConnector    = mock[PensionIncomeConnector]
-  val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
-  val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
+  val mockStateBenefitsService: StateBenefitService  = mock[StateBenefitService]
+  val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
+  val stubRepository: StubJourneyAnswersRepository   = StubJourneyAnswersRepository()
+  val stubEmploymentService: StubEmploymentService   = StubEmploymentService()
   val stubStatusService                                 = StubJourneyStatusService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
@@ -74,7 +76,7 @@ class PensionsServiceIpmlSpec
       mockAppConfig,
       mockReliefsConnector,
       mockChargesConnector,
-      stateBenefitsConnector,
+      mockStateBenefitsService,
       mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
@@ -108,10 +110,10 @@ class PensionsServiceIpmlSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
 
-      (stateBenefitsConnector
-        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedStateBenefitsResult))
+      (mockStateBenefitsService
+        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT.rightT[Future, ServiceError](anAllStateBenefitsData))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -135,10 +137,10 @@ class PensionsServiceIpmlSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (stateBenefitsConnector
-        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(Right(None)))
+      (mockStateBenefitsService
+        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT.rightT[Future, ServiceError](AllStateBenefitsData.empty))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))

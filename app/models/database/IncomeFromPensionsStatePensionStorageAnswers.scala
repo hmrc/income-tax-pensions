@@ -20,16 +20,13 @@ import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromPensionsStatePensionStorageAnswers(
-    statePension: Option[StateBenefitStorageAnswers],
-    statePensionLumpSum: Option[StateBenefitStorageAnswers]
+    statePension: Option[Boolean],
+    statePensionLumpSum: Option[Boolean]
 )
 
 object IncomeFromPensionsStatePensionStorageAnswers {
   implicit val format: OFormat[IncomeFromPensionsStatePensionStorageAnswers] = Json.format[IncomeFromPensionsStatePensionStorageAnswers]
 
   def fromJourneyAnswers(answers: IncomeFromPensionsStatePensionAnswers): IncomeFromPensionsStatePensionStorageAnswers =
-    IncomeFromPensionsStatePensionStorageAnswers(
-      answers.statePension.map(StateBenefitStorageAnswers.fromJourneyAnswers),
-      answers.statePensionLumpSum.map(StateBenefitStorageAnswers.fromJourneyAnswers)
-    )
+    IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false))
 }

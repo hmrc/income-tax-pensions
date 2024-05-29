@@ -25,8 +25,10 @@ import utils.JsonUtils.jsonObjNoNulls
 
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
                                 customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
-  def toIncomeFromPensionsStatePensionAnswers(maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
-    val statePension =
+  def toIncomeFromPensionsStatePensionAnswers(
+      maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
+    val statePension        = None
+    val statePensionLumpSum = None
 
     IncomeFromPensionsStatePensionAnswers(
       statePension = statePension,

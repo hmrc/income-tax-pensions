@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.AppConfig
 import connectors.GetStateBenefitsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
+import models.common.{Nino, TaxYear}
 import models.{AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
@@ -40,8 +41,8 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
       override val stateBenefitsBaseUrl: String = s"http://$benefitsHost:$wireMockPort"
     }
 
-  val nino: String             = "123456789"
-  val taxYear: Int             = 2021
+  val nino                     = Nino("123456789")
+  val taxYear                  = TaxYear(2021)
   val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
 
   ".getStateBenefits" should {

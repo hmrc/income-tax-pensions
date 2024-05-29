@@ -48,7 +48,7 @@ class StateBenefitsConnector @Inject() (val http: HttpClient, val appConfig: App
 
     implicit val updatedHc: HeaderCarrier = headerCarrier(url)(hc)
 
-    ConnectorRequestInfo("PUT", url, downstreamServiceName)(updatedHc).logRequestWithBody(logger, model)
+    ConnectorRequestInfo("PUT", url, downstreamServiceName)(updatedHc).logRequestWithBody(logger, model, "StateBenefits")
     http.PUT[StateBenefitsUserData, DownstreamErrorOr[Unit]](url, model)(StateBenefitsUserData.format, parser, updatedHc, ec)
   }
 

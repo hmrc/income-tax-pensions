@@ -21,7 +21,8 @@ import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromPensionsStatePensionAnswers(
     statePension: Option[StateBenefitAnswers],
-    statePensionLumpSum: Option[StateBenefitAnswers]
+    statePensionLumpSum: Option[StateBenefitAnswers],
+    sessionId: String // it's a required by the income-tax-state-benefit service
 )
 
 object IncomeFromPensionsStatePensionAnswers {
@@ -29,10 +30,10 @@ object IncomeFromPensionsStatePensionAnswers {
 
   val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None)
 
-  def fromStateBenefitsResponse(stateBenefitsResponse: AllStateBenefitsData): IncomeFromPensionsStatePensionAnswers = {
+  def fromStateBenefitsResponse(stateBenefitsResponse: AllStateBenefitsData): IncomeFromPensionsStatePensionAnswers =
     IncomeFromPensionsStatePensionAnswers(
-      statePension = stateBenefitsResponse.statePension,
-      statePensionLumpSum = stateBenefitsResponse.statePensionLumpSum
+      statePension = None,
+      statePensionLumpSum = None,
+      sessionId = ""
     )
-  }
 }
