@@ -32,4 +32,6 @@ package object models {
       )
 
   def maybeSeqToList[A](maybeSeq: Option[Seq[A]]): List[A] = maybeSeq.fold(List.empty[A])(_.toList)
+
+  def isNonZero(value: BigDecimal): Boolean = value != BigDecimal(0)
 }

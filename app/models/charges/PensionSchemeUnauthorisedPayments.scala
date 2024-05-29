@@ -37,6 +37,8 @@ case class PensionSchemeUnauthorisedPayments(pensionSchemeTaxReference: Option[L
       ukPensionSchemesQuestion = pensionSchemeTaxReference.map(_.nonEmpty).orElse(maybeDbAnswers.flatMap(_.ukPensionSchemesQuestion)),
       pensionSchemeTaxReference = pensionSchemeTaxReference
     )
+
+  def nonEmpty: Boolean = pensionSchemeTaxReference.exists(_.nonEmpty) || surcharge.isDefined || noSurcharge.isDefined
 }
 
 case class Charge(amount: BigDecimal, foreignTaxPaid: BigDecimal)
@@ -47,4 +49,6 @@ object Charge {
 
 object PensionSchemeUnauthorisedPayments {
   implicit val format: OFormat[PensionSchemeUnauthorisedPayments] = Json.format[PensionSchemeUnauthorisedPayments]
+
+  def empty: PensionSchemeUnauthorisedPayments = PensionSchemeUnauthorisedPayments(None, None, None)
 }

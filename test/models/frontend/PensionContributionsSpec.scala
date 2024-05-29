@@ -16,7 +16,10 @@
 
 package models.frontend
 
+import models.charges.PensionContributions
 import models.database.AnnualAllowancesStorageAnswers
+import org.scalatest.prop.TableDrivenPropertyChecks.forAll
+import org.scalatest.prop.Tables.Table
 import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.annualAllowances.{annualAllowancesAnswers, pensionContributions}
 
@@ -35,6 +38,26 @@ class PensionContributionsSpec extends AnyWordSpecLike {
     }
     "return None when there are no database answers" in {
       assert(pensionContributions.toAnnualAllowances(maybeDbAnswers = None) === None)
+    }
+  }
+
+  "nonEmpty" should {
+    val cases = Table(
+      ("model", "expected"),
+      (PensionContributions.empty, false),
+      (PensionContributions.empty.copy(pensionSchemeTaxReference = List("str")), true),
+      (PensionContributions.empty.copy(isAnnualAllowanceReduced = Some(true)), true),
+      (PensionContributions.empty.copy(isAnnualAllowanceReduced = Some(false)), false),
+      (PensionContributions.empty.copy(taperedAnnualAllowance = Some(true)), true),
+      (PensionContributions.empty.copy(taperedAnnualAllowance = Some(false)), false),
+      (PensionContributions.empty.copy(moneyPurchasedAllowance = Some(true)), true),
+      (PensionContributions.empty.copy(moneyPurchasedAllowance = Some(false)), false)
+    )
+
+    forAll(cases) { (model, expected) =>
+      s"return $expected for $model" in {
+        assert(model.nonEmpty == expected)
+      }
     }
   }
 }

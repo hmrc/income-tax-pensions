@@ -24,7 +24,6 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common.{Journey, JourneyContextWithNino}
 import models.database._
 import models.domain.ApiResultT
-import models.error.ServiceError
 import models.frontend._
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
@@ -83,6 +82,13 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       pensionIncomeConnector.createOrAmendPensionIncomeT(ctx, updatedIncomes)
     else
       pensionIncomeConnector.deletePensionIncomeT(ctx.nino, ctx.taxYear)
+
+  private def createOrDeleteChargesWhenEmpty(ctx: JourneyContextWithNino, updatedCharges: CreateUpdatePensionChargesRequestModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
+    if (updatedCharges.nonEmpty)
+      chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+    else
+      chargesConnector.deletePensionChargesT(ctx.nino, ctx.taxYear)
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     for {
@@ -224,8 +230,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[TransfersIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.TransferIntoOverseasPensions))
-      transfersIntoOverseasPensionsAnswers = maybeCharges.flatMap(
-        _.pensionSchemeOverseasTransfers.flatMap(_.toTransfersIntoOverseasPensions(maybeDbAnswers)))
+      transfersIntoOverseasPensionsAnswers = maybeDbAnswers.flatMap(_.toTransfersIntoOverseasPensions(maybeCharges))
     } yield transfersIntoOverseasPensionsAnswers
 
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
@@ -236,9 +241,9 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
-      updatedContributions = answers.toPensionSchemeOverseasTransfers.some
+      updatedContributions = answers.toPensionSchemeOverseasTransfers
       updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
-      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

@@ -16,9 +16,6 @@
 
 package models.charges
 
-import cats.implicits.catsSyntaxOptionId
-import models.database.TransfersIntoOverseasPensionsStorageAnswers
-import models.frontend.TransfersIntoOverseasPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class PensionSchemeOverseasTransfers(
@@ -26,24 +23,13 @@ case class PensionSchemeOverseasTransfers(
     transferCharge: BigDecimal,
     transferChargeTaxPaid: BigDecimal) {
 
-  def isEmpty: Boolean = this.overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
+  def isEmpty: Boolean = overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
 
-  def toTransfersIntoOverseasPensions(
-      maybeDbAnswers: Option[TransfersIntoOverseasPensionsStorageAnswers]): Option[TransfersIntoOverseasPensionsAnswers] =
-    maybeDbAnswers.map { dbAnswers =>
-      val transferChargeGateway: Boolean    = transferCharge != 0
-      val transferChargeTaxGateway: Boolean = transferChargeTaxPaid != 0
-      TransfersIntoOverseasPensionsAnswers(
-        transferPensionSavings = if (transferChargeGateway || transferChargeTaxGateway) true.some else dbAnswers.transferPensionSavings,
-        overseasTransferCharge = if (transferChargeGateway) true.some else dbAnswers.overseasTransferCharge,
-        overseasTransferChargeAmount = if (transferChargeGateway) transferCharge.some else None,
-        pensionSchemeTransferCharge = if (transferChargeTaxGateway) true.some else dbAnswers.pensionSchemeTransferCharge,
-        pensionSchemeTransferChargeAmount = if (transferChargeTaxGateway) transferChargeTaxPaid.some else None,
-        transferPensionScheme = overseasSchemeProvider.map(_.toTransferPensionScheme)
-      )
-    }
+  def nonEmpty: Boolean = !isEmpty
 }
 
 object PensionSchemeOverseasTransfers {
   implicit val format: OFormat[PensionSchemeOverseasTransfers] = Json.format[PensionSchemeOverseasTransfers]
+
+  def empty: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(Nil, 0.0, 0.0)
 }
