@@ -37,6 +37,7 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
                                getIncomeFromOverseasPensionsResult: Either[ServiceError, Option[IncomeFromOverseasPensionsAnswers]] = Right(None),
                                getTransfersIntoOverseasPensionsResult: Either[ServiceError, Option[TransfersIntoOverseasPensionsAnswers]] = Right(
                                  None),
+                               getShortServiceRefunds: Either[ServiceError, Option[ShortServiceRefundsAnswers]] = Right(None),
                                getAllPensionsDataResult: Either[ServiceErrorModel, AllPensionsData] = Right(AllPensionsData.empty),
                                upsertPaymentsIntoPensionsResult: Either[ServiceError, Unit] = Right(()),
                                upsertUkPensionIncomeResult: Either[ServiceError, Unit] = Right(()),
@@ -44,7 +45,8 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
                                upsertUnauthorisedPaymentsFromPensionsResult: Either[ServiceError, Unit] = Right(()),
                                upsertIncomeFromOverseasPensionsResult: Either[ServiceError, Unit] = Right(()),
                                upsertPaymentsIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()),
-                               upsertTransfersIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()))
+                               upsertTransfersIntoOverseasPensionsResult: Either[ServiceError, Unit] = Right(()),
+                               upsertShortServiceRefunds: Either[ServiceError, Unit] = Right(()))
     extends PensionsService {
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     EitherT.fromEither(getPaymentsIntoPensionsResult)
@@ -80,6 +82,10 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] =
     EitherT.fromEither(upsertIncomeFromOverseasPensionsResult)
+  def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]] =
+    EitherT.fromEither(getShortServiceRefunds)
+  def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
+    EitherT.fromEither(upsertShortServiceRefunds)
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
 }

@@ -38,13 +38,16 @@ object transfersIntoOverseasPensions {
 
   def transferPensionSchemeUK: TransferPensionScheme =
     TransferPensionScheme(Some(true), Some("UK Scheme"), Some(pstrReference), Some("Address"), Some(GBAlpha2Code), Some(GBAlpha3Code))
+
   def transferPensionSchemeNonUK: TransferPensionScheme =
     TransferPensionScheme(Some(false), Some("Non-UK Scheme"), Some(qopsReference), Some("Address"), Some("FR"), Some("FRA"))
 
   def pensionSchemeOverseasTransfers: PensionSchemeOverseasTransfers =
     PensionSchemeOverseasTransfers(Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider), BigDecimal(1), BigDecimal(2))
 
-  def ukOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider("UK Scheme", "Address", GBAlpha3Code, None, Some(Seq(pstrReference)))
+  def ukOverseasSchemeProvider: OverseasSchemeProvider =
+    OverseasSchemeProvider("UK Scheme", "Address", GBAlpha3Code, None, Some(Seq(pstrReference)))
+
   def nonUkOverseasSchemeProvider: OverseasSchemeProvider =
     OverseasSchemeProvider("Non-UK Scheme", "Address", "FRA", Some(Seq(qopsReferenceWithPrefix)), None)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,8 @@ trait PensionsService {
       hc: HeaderCarrier): ApiResultT[Option[TransfersIntoOverseasPensionsAnswers]]
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit]
+  def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]]
+  def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]]
 }
 
@@ -255,6 +257,30 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       updatedContributions = answers.toPensionSchemeOverseasTransfers
       updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
       _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges, existingCharges)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]] =
+    for {
+      maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      maybeDbAnswers <- repository.getAnswers[ShortServiceRefundsStorageAnswers](ctx.toJourneyContext(Journey.ShortServiceRefunds))
+      shortServiceRefundsAnswers = maybeCharges.flatMap(
+        _.overseasPensionContributions.flatMap(
+          _.toShortServiceRefundsAnswers(maybeDbAnswers)
+        ))
+    } yield shortServiceRefundsAnswers
+
+  def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
+    val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
+    val journeyCtx     = ctx.toJourneyContext(Journey.ShortServiceRefunds)
+
+    for {
+      getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
+      existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
+      overseasPensionContributions = answers.toOverseasPensions.some
+      updatedCharges               = existingCharges.copy(overseasPensionContributions = overseasPensionContributions)
+      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
