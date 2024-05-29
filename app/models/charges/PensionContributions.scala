@@ -43,8 +43,14 @@ case class PensionContributions(pensionSchemeTaxReference: Seq[String],
         pensionSchemeTaxReferences = if (pensionSchemeTaxReference.isEmpty) None else pensionSchemeTaxReference.some
       )
     }
+
+  def nonEmpty: Boolean =
+    pensionSchemeTaxReference.nonEmpty || isAnnualAllowanceReduced.contains(true) || taperedAnnualAllowance.contains(true) ||
+      moneyPurchasedAllowance.contains(true)
 }
 
 object PensionContributions {
   implicit val format: OFormat[PensionContributions] = Json.format[PensionContributions]
+
+  def empty: PensionContributions = PensionContributions(Nil, 0.0, 0.0, None, None, None)
 }

@@ -26,7 +26,9 @@ case class PensionSchemeOverseasTransfers(
     transferCharge: BigDecimal,
     transferChargeTaxPaid: BigDecimal) {
 
-  def isEmpty: Boolean = this.overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
+  def isEmpty: Boolean = overseasSchemeProvider.isEmpty && transferCharge != 0 && transferChargeTaxPaid != 0
+
+  def nonEmpty: Boolean = !isEmpty
 
   def toTransfersIntoOverseasPensions(
       maybeDbAnswers: Option[TransfersIntoOverseasPensionsStorageAnswers]): Option[TransfersIntoOverseasPensionsAnswers] =
@@ -46,4 +48,6 @@ case class PensionSchemeOverseasTransfers(
 
 object PensionSchemeOverseasTransfers {
   implicit val format: OFormat[PensionSchemeOverseasTransfers] = Json.format[PensionSchemeOverseasTransfers]
+
+  def empty: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(Nil, 0.0, 0.0)
 }

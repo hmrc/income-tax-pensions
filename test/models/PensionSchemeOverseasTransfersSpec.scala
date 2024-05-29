@@ -18,6 +18,7 @@ package models
 
 import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
+import models.charges.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
 import models.database.TransfersIntoOverseasPensionsStorageAnswers
 import testdata.pensionSchemeOverseasTransfers._
 import testdata.transfersIntoOverseasPensions.{transfersIntoOverseasPensionsAnswers, transfersIntoOverseasPensionsStorageAnswers}
@@ -39,6 +40,16 @@ class PensionSchemeOverseasTransfersSpec extends TestUtils {
       assert(
         pensionSchemeOverseasTransfers.toTransfersIntoOverseasPensions(
           TransfersIntoOverseasPensionsStorageAnswers(Some(false), Some(false), Some(false)).some) == transfersIntoOverseasPensionsAnswers.some)
+    }
+  }
+
+  "nonEmpty" should {
+    "return true when there are transfers" in {
+      assert(pensionSchemeOverseasTransfers.nonEmpty)
+    }
+
+    "return false when there are no transfers" in {
+      assert(PensionSchemeOverseasTransfers(List(OverseasSchemeProvider("str1", "str2", "str3", None, None)), 0, 0).nonEmpty === true)
     }
   }
 

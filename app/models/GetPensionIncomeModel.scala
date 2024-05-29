@@ -78,6 +78,8 @@ case class OverseasPensionContribution(customerReference: Option[String],
 
 object OverseasPensionContribution {
   implicit val format: OFormat[OverseasPensionContribution] = Json.format[OverseasPensionContribution]
+
+  def empty: OverseasPensionContribution = OverseasPensionContribution(None, 0.0, None, None, None, None, None, None)
 }
 
 case class GetPensionIncomeModel(

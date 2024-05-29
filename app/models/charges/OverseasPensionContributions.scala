@@ -20,8 +20,12 @@ import play.api.libs.json.{Json, OFormat}
 
 case class OverseasPensionContributions(overseasSchemeProvider: Seq[OverseasSchemeProvider],
                                         shortServiceRefund: BigDecimal,
-                                        shortServiceRefundTaxPaid: BigDecimal)
+                                        shortServiceRefundTaxPaid: BigDecimal) {
+  def nonEmpty: Boolean = overseasSchemeProvider.nonEmpty
+}
 
 object OverseasPensionContributions {
   implicit val format: OFormat[OverseasPensionContributions] = Json.format[OverseasPensionContributions]
+
+  def empty: OverseasPensionContributions = OverseasPensionContributions(Nil, 0.0, 0.0)
 }

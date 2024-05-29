@@ -22,7 +22,15 @@ case class CreateUpdatePensionChargesRequestModel(pensionSavingsTaxCharges: Opti
                                                   pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
                                                   pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
                                                   pensionContributions: Option[PensionContributions],
-                                                  overseasPensionContributions: Option[OverseasPensionContributions])
+                                                  overseasPensionContributions: Option[OverseasPensionContributions]) {
+  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, None)
+
+  def nonEmpty: Boolean = pensionSavingsTaxCharges.exists(_.nonEmpty) ||
+    pensionSchemeOverseasTransfers.exists(_.nonEmpty) ||
+    pensionSchemeUnauthorisedPayments.exists(_.nonEmpty) ||
+    pensionContributions.exists(_.nonEmpty) ||
+    overseasPensionContributions.exists(_.nonEmpty)
+}
 
 object CreateUpdatePensionChargesRequestModel {
   implicit val format: OFormat[CreateUpdatePensionChargesRequestModel] = Json.format[CreateUpdatePensionChargesRequestModel]

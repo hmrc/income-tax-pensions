@@ -20,7 +20,11 @@ import play.api.libs.json.{Json, OFormat}
 
 case class PensionSavingsTaxCharges(pensionSchemeTaxReference: Option[Seq[String]],
                                     lumpSumBenefitTakenInExcessOfLifetimeAllowance: Option[LifetimeAllowance],
-                                    benefitInExcessOfLifetimeAllowance: Option[LifetimeAllowance])
+                                    benefitInExcessOfLifetimeAllowance: Option[LifetimeAllowance]) {
+  def nonEmpty: Boolean = pensionSchemeTaxReference.exists(_.nonEmpty) ||
+    lumpSumBenefitTakenInExcessOfLifetimeAllowance.isDefined ||
+    benefitInExcessOfLifetimeAllowance.isDefined
+}
 
 case class LifetimeAllowance(amount: BigDecimal, taxPaid: BigDecimal)
 
@@ -29,4 +33,6 @@ object LifetimeAllowance {
 }
 object PensionSavingsTaxCharges {
   implicit val format: OFormat[PensionSavingsTaxCharges] = Json.format[PensionSavingsTaxCharges]
+
+  def empty: PensionSavingsTaxCharges = PensionSavingsTaxCharges(None, None, None)
 }

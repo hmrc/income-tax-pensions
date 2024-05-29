@@ -84,6 +84,13 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     else
       pensionIncomeConnector.deletePensionIncomeT(ctx.nino, ctx.taxYear)
 
+  private def createOrDeleteChargesWhenEmpty(ctx: JourneyContextWithNino, updatedCharges: CreateUpdatePensionChargesRequestModel)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
+    if (updatedCharges.nonEmpty)
+      chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+    else
+      chargesConnector.deletePensionChargesT(ctx.nino, ctx.taxYear)
+
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]] =
     for {
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
@@ -236,9 +243,9 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       existingCharges      = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
-      updatedContributions = answers.toPensionSchemeOverseasTransfers.some
+      updatedContributions = answers.toPensionSchemeOverseasTransfers
       updatedCharges       = existingCharges.copy(pensionSchemeOverseasTransfers = updatedContributions)
-      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
