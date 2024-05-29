@@ -16,32 +16,13 @@
 
 package models
 
-import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
 import models.charges.{OverseasSchemeProvider, PensionSchemeOverseasTransfers}
-import models.database.TransfersIntoOverseasPensionsStorageAnswers
 import testdata.pensionSchemeOverseasTransfers._
-import testdata.transfersIntoOverseasPensions.{transfersIntoOverseasPensionsAnswers, transfersIntoOverseasPensionsStorageAnswers}
 import utils.TestUtils
 
 class PensionSchemeOverseasTransfersSpec extends TestUtils {
   SharedMetricRegistries.clear()
-
-  "toTransfersIntoOverseasPensions" should {
-    "return None when there are no DB answers" in {
-      assert(pensionSchemeOverseasTransfers.toTransfersIntoOverseasPensions(None) == None)
-    }
-    "return full journey answers, combining API and DB answers" in {
-      assert(
-        pensionSchemeOverseasTransfers.toTransfersIntoOverseasPensions(
-          transfersIntoOverseasPensionsStorageAnswers.some) == transfersIntoOverseasPensionsAnswers.some)
-    }
-    "return full journey answers, overruling DB answers when API answers are different" in {
-      assert(
-        pensionSchemeOverseasTransfers.toTransfersIntoOverseasPensions(
-          TransfersIntoOverseasPensionsStorageAnswers(Some(false), Some(false), Some(false)).some) == transfersIntoOverseasPensionsAnswers.some)
-    }
-  }
 
   "nonEmpty" should {
     "return true when there are transfers" in {
