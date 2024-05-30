@@ -280,7 +280,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       existingCharges = getCharges.map(_.toCreateUpdatePensionChargesRequestModel).getOrElse(CreateUpdatePensionChargesRequestModel.empty)
       overseasPensionContributions = answers.toOverseasPensions.some
       updatedCharges               = existingCharges.copy(overseasPensionContributions = overseasPensionContributions)
-      _ <- chargesConnector.createUpdatePensionChargesT(ctx, updatedCharges)
+      _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges, existingCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
