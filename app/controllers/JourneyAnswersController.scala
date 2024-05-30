@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,16 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
   def savePaymentsIntoOverseasPensions(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
     getBodyWithCtx[PaymentsIntoOverseasPensionsAnswers](taxYear, nino) { (ctx, value) =>
       pensionsService.upsertPaymentsIntoOverseasPensions(ctx, value).map(_ => NoContent)
+    }
+  }
+
+  def getShortServiceRefunds(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    handleOptionalApiResult(pensionsService.getShortServiceRefunds(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+  }
+
+  def saveShortServiceRefunds(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
+    getBodyWithCtx[ShortServiceRefundsAnswers](taxYear, nino) { (ctx, answers) =>
+      pensionsService.upsertShortServiceRefunds(ctx, answers).map(_ => NoContent)
     }
   }
 

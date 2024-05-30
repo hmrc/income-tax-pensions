@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
-import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, OverseasPensionContributions}
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
@@ -42,6 +42,7 @@ import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStora
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
+import testdata.shortServiceRefunds.{overseasPensionContributions, shortServiceRefundsAnswers, shortServiceRefundsCtxStorageAnswers}
 import testdata.transfersIntoOverseasPensions._
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
 import uk.gov.hmrc.http.HeaderCarrier
@@ -516,6 +517,80 @@ class PensionsServiceIpmlSpec
       assert(stubRepository.upsertAnswersList.size === 1)
       val persistedAnswers = stubRepository.upsertAnswersList.head.as[IncomeFromOverseasPensionsStorageAnswers]
       assert(persistedAnswers === incomeFromOverseasPensionsStorageAnswers)
+    }
+  }
+
+  "getShortServiceRefunds" should {
+    val getShortServiceRefundsCtx = sampleCtx.toJourneyContext(Journey.ShortServiceRefunds)
+
+    "get None if no answers" in {
+      mockGetPensionChargesT(Right(None))
+      val result = service.getShortServiceRefunds(sampleCtx).value.futureValue
+      assert(result.value === None)
+    }
+
+    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+      mockGetPensionChargesT(Right(None))
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(getShortServiceRefundsCtx, Json.toJson(shortServiceRefundsCtxStorageAnswers))
+        res <- service.getShortServiceRefunds(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result === None)
+    }
+
+    "return answers" in {
+      mockGetPensionChargesT(
+        Right(Some(GetPensionChargesRequestModel("unused", None, None, None, None, Some(overseasPensionContributions))))
+      )
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(getShortServiceRefundsCtx, Json.toJson(shortServiceRefundsCtxStorageAnswers))
+        res <- service.getShortServiceRefunds(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(result.value === shortServiceRefundsAnswers)
+    }
+  }
+
+  "upsertShortServiceRefunds" should {
+    "insert answers if overseasPensionContributions does not exist" in {
+      mockGetPensionChargesT(Right(None))
+      mockCreateOrAmendPensionChargesT(
+        Right(None),
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, Some(overseasPensionContributions))
+      )
+
+      val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[ShortServiceRefundsStorageAnswers]
+      assert(persistedAnswers === shortServiceRefundsCtxStorageAnswers)
+    }
+
+    "update answers if overseasPensionContributions exist" in {
+      mockGetPensionChargesT(
+        Right(
+          Some(
+            GetPensionChargesRequestModel(
+              "unused",
+              None,
+              None,
+              None,
+              None,
+              Some(OverseasPensionContributions(Seq(), BigDecimal(0.0), BigDecimal(0.0))))))
+      )
+      mockCreateOrAmendPensionChargesT(
+        Right(None),
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, Some(overseasPensionContributions))
+      )
+
+      val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
+
+      assert(result.isRight)
+      assert(stubRepository.upsertAnswersList.size === 1)
+      val persistedAnswers = stubRepository.upsertAnswersList.head.as[ShortServiceRefundsStorageAnswers]
+      assert(persistedAnswers === shortServiceRefundsCtxStorageAnswers)
     }
   }
 }
