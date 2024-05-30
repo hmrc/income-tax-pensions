@@ -18,24 +18,26 @@ package services
 
 import cats.data.EitherT
 import cats.implicits.{catsSyntaxList, toFunctorOps, toTraverseOps}
-import connectors.{StateBenefitsConnector, _}
+import connectors.StateBenefitsConnector
+import models.AllStateBenefitsData
 import models.common.{JourneyContextWithNino, Nino, TaxYear}
 import models.domain.ApiResultT
-import models.error.ServiceError
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.statebenefit.StateBenefitsUserData
-import models.{APIErrorModel, AllStateBenefitsData, IncomeTaxUserData, StateBenefit, StateBenefitsData, User}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 trait StateBenefitService {
   def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData]
-  def upsertStateBenefits(ctx: JourneyContextWithNino, stateBenefits: List[StateBenefitsUserData])(implicit hc: HeaderCarrier): ApiResultT[Unit]
+  def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
 }
 
+@Singleton
 class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(implicit ec: ExecutionContext) extends StateBenefitService {
 
   def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData] = {
@@ -46,33 +48,41 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
       .map(_.getOrElse(AllStateBenefitsData.empty))
   }
 
-  def upsertStateBenefits(ctx: JourneyContextWithNino, stateBenefits: List[StateBenefitsUserData])(implicit hc: HeaderCarrier): ApiResultT[Unit] =
-    stateBenefits.traverse { stateBenefit =>
-      for {
-        _ <- runDeleteIfRequired(stateBenefit, ctx)
-        _ <- runSaveIfRequired(stateBenefit, ctx)
-      } yield ()
-    }.void
+  def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    implicit val updatedHc: HeaderCarrier = hc.withInternalId(ctx.mtditid.value)
 
-  private def runSaveIfRequired(answers: StateBenefitsUserData, ctx: JourneyContextWithNino)(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): ApiResultT[Unit] =
-    if (answers.claim.exists(_.amount.nonEmpty))
-      EitherT(connector.saveClaim(ctx.nino, answers)).leftMap(err => err.toServiceError)
-    else
-      EitherT.pure[Future, ServiceError](())
+    val updatedAnswers = answers.removeEmptyAmounts
 
-  private def runDeleteIfRequired(stateBenefitsData: StateBenefitsData, ctx: JourneyContextWithNino)(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext): ApiResultT[Unit] =
+    for {
+      _ <- runDeleteIfRequired(updatedAnswers, ctx)(updatedHc)
+      _ <- runSaveIfRequired(updatedAnswers, ctx)(updatedHc)
+    } yield ()
+  }
+
+  private def runSaveIfRequired(answers: IncomeFromPensionsStatePensionAnswers, ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+    val lastUpdated      = ZonedDateTime.now(ZoneOffset.UTC)
+    val answerBenefitIds = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, lastUpdated)
+
+    val response = answerBenefitIds.traverse { benefit =>
+      EitherT(connector.saveClaim(ctx.nino, benefit)).leftMap(err => err.toServiceError)
+    }
+
+    response.void
+  }
+
+  private def runDeleteIfRequired(answers: IncomeFromPensionsStatePensionAnswers, ctx: JourneyContextWithNino)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] =
     for {
       priorBenefitIds <- obtainExistingBenefitIds(ctx)
-      answerBenefitIds = obtainAnswersBenefitIds(stateBenefitsData)
+      answerBenefitIds = obtainAnswersBenefitIds(answers)
       ids              = priorBenefitIds.diff(answerBenefitIds).toNel
-      _ <- doDelete(ids.flatMap(_.toList).toList, ctx.nino, ctx.taxYear)
+      uuids            = ids.map(_.toList).getOrElse(Nil)
+      _ <- doDelete(uuids, ctx.nino, ctx.taxYear)
     } yield ()
 
-  private def obtainAnswersBenefitIds(answers: StateBenefitsData) = {
+  private def obtainAnswersBenefitIds(answers: IncomeFromPensionsStatePensionAnswers) = {
     val maybeSpId        = answers.statePension.map(_.benefitId)
     val maybeSpLumpSumId = answers.statePensionLumpSum.map(_.benefitId)
 

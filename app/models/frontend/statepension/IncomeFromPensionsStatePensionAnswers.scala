@@ -16,24 +16,22 @@
 
 package models.frontend.statepension
 
-import models.AllStateBenefitsData
 import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromPensionsStatePensionAnswers(
     statePension: Option[StateBenefitAnswers],
     statePensionLumpSum: Option[StateBenefitAnswers],
-    sessionId: String // it's a required by the income-tax-state-benefit service
-)
+    sessionId: Option[String]
+) {
+  def removeEmptyAmounts: IncomeFromPensionsStatePensionAnswers =
+    copy(
+      statePension = if (statePension.exists(_.amount.isEmpty)) None else statePension,
+      statePensionLumpSum = if (statePensionLumpSum.exists(_.amount.isEmpty)) None else statePensionLumpSum
+    )
+}
 
 object IncomeFromPensionsStatePensionAnswers {
   implicit val format: OFormat[IncomeFromPensionsStatePensionAnswers] = Json.format[IncomeFromPensionsStatePensionAnswers]
 
-  val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None)
-
-  def fromStateBenefitsResponse(stateBenefitsResponse: AllStateBenefitsData): IncomeFromPensionsStatePensionAnswers =
-    IncomeFromPensionsStatePensionAnswers(
-      statePension = None,
-      statePensionLumpSum = None,
-      sessionId = ""
-    )
+  val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None, None)
 }

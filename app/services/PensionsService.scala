@@ -156,19 +156,17 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       stateBenefits  <- stateBenfitService.getStateBenefits(ctx)
       maybeDbAnswers <- repository.getAnswers[IncomeFromPensionsStatePensionStorageAnswers](ctx.toJourneyContext(Journey.StatePension))
-    } yield Some(stateBenefits.toIncomeFromPensionsStatePensionAnswers(maybeDbAnswers))
+    } yield Some(stateBenefits.toIncomeFromPensionsStatePensionAnswers(sessionId = None, maybeDbAnswers))
 
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
 
     val storageAnswers = IncomeFromPensionsStatePensionStorageAnswers.fromJourneyAnswers(answers)
-    val lastUpdated    = ZonedDateTime.now(ZoneOffset.UTC)
-    val request        = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, lastUpdated)
 
     val journeyCtx = ctx.toJourneyContext(Journey.StatePension)
 
     for {
-      _ <- stateBenfitService.upsertUkPensionIncome()
+      _ <- stateBenfitService.upsertStateBenefits(ctx, answers)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }

@@ -18,21 +18,25 @@ package models
 
 import connectors.OptionalContentHttpReads
 import models.database.IncomeFromPensionsStatePensionStorageAnswers
-import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, Json, OFormat, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
                                 customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
+
+  // TODO dbAnswers not used
   def toIncomeFromPensionsStatePensionAnswers(
-      maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
-    val statePension        = None
-    val statePensionLumpSum = None
+      sessionId: Option[String],
+      dbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
+    val statePension        = stateBenefitsData.flatMap(_.statePension).map(StateBenefitAnswers.fromStateBenefit)
+    val statePensionLumpSum = stateBenefitsData.flatMap(_.statePensionLumpSum).map(StateBenefitAnswers.fromStateBenefit)
 
     IncomeFromPensionsStatePensionAnswers(
       statePension = statePension,
-      statePensionLumpSum = statePensionLumpSum
+      statePensionLumpSum = statePensionLumpSum,
+      sessionId = sessionId
     )
   }
 }

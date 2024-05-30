@@ -63,7 +63,7 @@ object StateBenefitsUserData {
       StateBenefitsUserData(
         benefitType = benefitType.value,
         sessionDataId = None,
-        sessionId = answers.sessionId,
+        sessionId = answers.sessionId.getOrElse(""),
         mtdItId = ctx.mtditid.value,
         nino = ctx.nino.value,
         taxYear = ctx.taxYear.endYear,

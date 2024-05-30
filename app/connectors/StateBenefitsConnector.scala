@@ -18,7 +18,6 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.ApiParser
-import connectors.httpParsers.GetStateBenefitsHttpParser.{GetStateBenefitsHttpReads, GetStateBenefitsResponse}
 import models.AllStateBenefitsData
 import models.common.{Nino, TaxYear}
 import models.logging.ConnectorRequestInfo
@@ -27,7 +26,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class StateBenefitsConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
   private val downstreamServiceName = "income-tax-state-benefits"

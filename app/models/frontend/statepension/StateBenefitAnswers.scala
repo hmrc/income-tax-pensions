@@ -16,6 +16,7 @@
 
 package models.frontend.statepension
 
+import models.StateBenefit
 import play.api.libs.json.{Json, OFormat}
 
 import java.time.{Instant, LocalDate}
@@ -39,4 +40,21 @@ case class StateBenefitAnswers(
 
 object StateBenefitAnswers {
   implicit val format: OFormat[StateBenefitAnswers] = Json.format[StateBenefitAnswers]
+
+  def fromStateBenefit(benefit: StateBenefit): StateBenefitAnswers =
+    StateBenefitAnswers(
+      benefitId = Some(benefit.benefitId),
+      startDateQuestion = Some(true), // TODO is it correct to set to true?
+      startDate = Some(benefit.startDate),
+      endDateQuestion = Some(benefit.endDate.isDefined),
+      endDate = benefit.endDate,
+      submittedOnQuestion = Some(benefit.submittedOn.isDefined),
+      submittedOn = benefit.submittedOn,
+      dateIgnoredQuestion = Some(benefit.dateIgnored.isDefined),
+      dateIgnored = benefit.dateIgnored,
+      amountPaidQuestion = Some(benefit.amount.isDefined),
+      amount = benefit.amount,
+      taxPaidQuestion = Some(benefit.taxPaid.isDefined),
+      taxPaid = benefit.taxPaid
+    )
 }
