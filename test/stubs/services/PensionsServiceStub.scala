@@ -81,7 +81,7 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
     EitherT.fromEither(getTransfersIntoOverseasPensionsResult)
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] =
-    EitherT.fromEither(upsertIncomeFromOverseasPensionsResult)
+    EitherT.fromEither(upsertTransfersIntoOverseasPensionsResult)
   def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]] =
     EitherT.fromEither(getShortServiceRefunds)
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =

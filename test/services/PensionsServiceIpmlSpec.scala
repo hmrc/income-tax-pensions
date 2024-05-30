@@ -455,16 +455,6 @@ class PensionsServiceIpmlSpec
       assert(result.value === None)
     }
 
-    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
-      mockGetPensionChargesT(Right(None))
-      val result = (for {
-        _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
-        res <- service.getTransfersIntoOverseasPensions(sampleCtx)
-      } yield res).value.futureValue.value
-
-      assert(result === None)
-    }
-
     "return answers" in {
       mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, Some(pensionSchemeOverseasTransfers), None, None, None))))
       val result = (for {

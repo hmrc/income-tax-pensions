@@ -22,10 +22,15 @@ import models.common.JourneyContextWithNino
 import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
 import models.frontend._
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
-import play.api.libs.json.Json
+import org.scalacheck.Gen
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NO_CONTENT, OK}
+import play.api.libs.json.{Json, Writes}
+import play.api.mvc.{Action, AnyContent}
 import services.PensionsService
+import stubs.services.PensionsServiceStub
 import testdata.annualAllowances.annualAllowancesAnswers
+import testdata.gens.JourneyAnswersGen._
 import testdata.incomeFromOverseasPensions.incomeFromOverseasPensionsAnswers
 import testdata.paymentsIntoOverseasPensions.paymentsIntoOverseasPensionsAnswers
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
@@ -37,14 +42,16 @@ import utils.TestUtils
 
 import scala.concurrent.Future
 
-class JourneyAnswersControllerSpec extends TestUtils {
+class JourneyAnswersControllerSpec extends TestUtils with ScalaCheckPropertyChecks {
 
-  private val pensionsService           = mock[PensionsService]
-  private val underTest                 = new JourneyAnswersController(pensionsService, authorisedAction, mockControllerComponents)
-  private val errorResult: ServiceError = DownstreamError("ERROR")
+  private val pensionsService         = mock[PensionsService]
+  private val underTest               = new JourneyAnswersController(pensionsService, authorisedAction, mockControllerComponents)
+  private val errorResult             = DownstreamError("ERROR")
+  private val invalidJsonErrorMessage = "Cannot read JSON"
+  private val downstreamErrorMessage  = "Downstream error: ERROR"
 
-//  private def fakePutRequestWithBody(body: JsValue, url: String): FakeRequest[_] =
-//    FakeRequest("PUT", url, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost", "mtditid" -> mtditid)), body = body)
+  private def underTestStubbed(service: PensionsServiceStub = PensionsServiceStub()) =
+    new JourneyAnswersController(service, authorisedAction, mockControllerComponents)
 
   "getPaymentsIntoPensions" should {
     "return any PaymentsIntoPensions journey answers from downstream" in {
@@ -74,47 +81,14 @@ class JourneyAnswersControllerSpec extends TestUtils {
     }
   }
 
-  // TODO add/fix PUT tests, FakeRequest contains AnyContentAsEmpty rather than the body being passed
-//  "savePaymentsIntoPensions" should {
-//    val url = s"/update-and-submit-income-tax-return/pensions/${currentTaxYear.endYear}/payments-into-pensions/$nino/answers"
-//
-//    def request(body: JsValue): FakeRequest[_] = fakePutRequestWithBody(body, url)
-//    "return a Unit when journey answers are saved downstream" in {
-//      val result = {
-//        mockAuth()
-//        (pensionsService
-//          .upsertPaymentsIntoPensions(_: JourneyContextWithNino, _: PaymentsIntoPensionsAnswers)(_: HeaderCarrier))
-//          .expects(sampleCtx, paymentsIntoPensionsAnswers, *)
-//          .returning(EitherT.fromEither[Future](().asRight[ServiceError]))
-//
-//        underTest.savePaymentsIntoPensions(currentTaxYear, validNino)(request(Json.toJson(paymentsIntoPensionsAnswers)))
-//      }.run().futureValue.header
-//
-//      assert(result.status == NO_CONTENT)
-//    }
-//    "return an Error" when {
-//      "service returns an error" in {
-//        val result = {
-//          mockAuth()
-//          (pensionsService
-//            .upsertPaymentsIntoPensions(_: JourneyContextWithNino, _: PaymentsIntoPensionsAnswers)(_: HeaderCarrier))
-//            .expects(sampleCtx, paymentsIntoPensionsAnswers, *)
-//            .returning(EitherT.fromEither[Future](errorResult.asLeft[Unit]))
-//          underTest.savePaymentsIntoPensions(currentTaxYear, validNino)(request(Json.toJson(paymentsIntoPensionsAnswers)))
-//        }.run().futureValue.header
-//
-//        assert(result.status == INTERNAL_SERVER_ERROR)
-//      }
-//      "request contains invalid journey answers" in {
-//        val result = {
-//          mockAuth()
-//          underTest.savePaymentsIntoPensions(currentTaxYear, validNino)(request(Json.toJson("Invalid")))
-//        }.run().futureValue.header
-//
-//        assert(result.status == BAD_REQUEST)
-//      }
-//    }
-//  }
+  "savePaymentsIntoPensions" should {
+    def errorServiceResponse = PensionsServiceStub(upsertPaymentsIntoPensionsResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      paymentsIntoPensionsAnswersGen,
+      underTestStubbed().savePaymentsIntoPensions(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).savePaymentsIntoPensions(currentTaxYear, validNino)
+    )
+  }
 
   "getAnnualAllowances" should {
     "return any AnnualAllowances journey answers from downstream" in {
@@ -142,6 +116,15 @@ class JourneyAnswersControllerSpec extends TestUtils {
 
       assert(result.status == INTERNAL_SERVER_ERROR)
     }
+  }
+
+  "saveAnnualAllowances" should {
+    def errorServiceResponse = PensionsServiceStub(upsertAnnualAllowancesResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      annualAllowancesAnswersGen,
+      underTestStubbed().saveAnnualAllowances(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).saveAnnualAllowances(currentTaxYear, validNino)
+    )
   }
 
   "getUnauthorisedPaymentsFromPensions" should {
@@ -172,6 +155,15 @@ class JourneyAnswersControllerSpec extends TestUtils {
     }
   }
 
+  "saveUnauthorisedPaymentsFromPensions" should {
+    def errorServiceResponse = PensionsServiceStub(upsertUnauthorisedPaymentsFromPensionsResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      unauthorisedPaymentsAnswersGen,
+      underTestStubbed().saveUnauthorisedPaymentsFromPensions(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).saveUnauthorisedPaymentsFromPensions(currentTaxYear, validNino)
+    )
+  }
+
   "getPaymentsIntoOverseasPensions" should {
     "return any PaymentsIntoOverseasPensions journey answers from downstream" in {
       val result = {
@@ -198,6 +190,15 @@ class JourneyAnswersControllerSpec extends TestUtils {
 
       assert(result.status == INTERNAL_SERVER_ERROR)
     }
+  }
+
+  "savePaymentsIntoOverseasPensions" should {
+    def errorServiceResponse = PensionsServiceStub(upsertPaymentsIntoOverseasPensionsResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      paymentsIntoOverseasPensionsAnswersGen,
+      underTestStubbed().savePaymentsIntoOverseasPensions(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).savePaymentsIntoOverseasPensions(currentTaxYear, validNino)
+    )
   }
 
   "getTransfersIntoOverseasPensions" should {
@@ -228,6 +229,15 @@ class JourneyAnswersControllerSpec extends TestUtils {
     }
   }
 
+  "saveTransfersIntoOverseasPensions" should {
+    def errorServiceResponse = PensionsServiceStub(upsertTransfersIntoOverseasPensionsResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      transfersIntoOverseasPensionsAnswersGen,
+      underTestStubbed().saveTransfersIntoOverseasPensions(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).saveTransfersIntoOverseasPensions(currentTaxYear, validNino)
+    )
+  }
+
   "getIncomeFromOverseasPensions" should {
     "return any IncomeFromOverseasPensions journey answers from downstream" in {
       val result = {
@@ -253,6 +263,47 @@ class JourneyAnswersControllerSpec extends TestUtils {
       }.futureValue.header
 
       assert(result.status == INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  "saveIncomeFromOverseasPensions" should {
+    def errorServiceResponse = PensionsServiceStub(upsertIncomeFromOverseasPensionsResult = errorResult.asLeft[Unit])
+    returnCorrectResponsesToSaveJourneyAnswers(
+      incomeFromOverseasPensionsAnswersGen,
+      underTestStubbed().saveIncomeFromOverseasPensions(currentTaxYear, validNino),
+      underTestStubbed(errorServiceResponse).saveIncomeFromOverseasPensions(currentTaxYear, validNino)
+    )
+  }
+
+  private def returnCorrectResponsesToSaveJourneyAnswers[A: Writes](genData: Gen[A],
+                                                                    methodBlock: Action[AnyContent],
+                                                                    errorResponseBlock: Action[AnyContent]): Unit = {
+    s"return a $NO_CONTENT when successful" in forAll(genData) { data =>
+      behave like testRoute(
+        request = buildRequest(data),
+        expectedStatus = NO_CONTENT,
+        expectedBody = "",
+        methodBlock = () => methodBlock
+      )
+    }
+
+    "return an Error" when {
+      "service returns an error" in forAll(genData) { data =>
+        behave like testRoute(
+          request = buildRequest(data),
+          expectedStatus = INTERNAL_SERVER_ERROR,
+          expectedBody = downstreamErrorMessage,
+          methodBlock = () => errorResponseBlock
+        )
+      }
+      "request contains invalid journey answers" in {
+        behave like testRoute(
+          request = buildRequest(Json.toJson("Invalid")),
+          expectedStatus = BAD_REQUEST,
+          expectedBody = invalidJsonErrorMessage,
+          methodBlock = () => methodBlock
+        )
+      }
     }
   }
 }
