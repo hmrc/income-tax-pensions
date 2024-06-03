@@ -25,22 +25,10 @@ import testdata.transfersIntoOverseasPensions.{
 }
 import utils.TestUtils
 
-class OverseasSchemeProviderSpec extends TestUtils {
-
-  "toTransferPensionScheme" should {
-    "transform the OverseasSchemeProvider into a TransferPensionScheme" when {
-      "it is a UK scheme" in {
-        assert(ukOverseasSchemeProvider.toTransferPensionScheme == transferPensionSchemeUK)
-      }
-      "it is a non-UK scheme" in {
-        assert(nonUkOverseasSchemeProvider.toTransferPensionScheme == transferPensionSchemeNonUK)
-      }
-    }
-  }
-
-  "toOverseasRefundPensionScheme" should {
-    "transform the OverseasSchemeProvider into a OverseasRefundPensionScheme" in {
-      assert(overseasSchemeProvider.toOverseasRefundPensionScheme == overseasRefundPensionScheme)
+class OverseasRefundPensionSchemeSpec extends TestUtils {
+  "toOverseasSchemeProvider" should {
+    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
+      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
     }
   }
 }

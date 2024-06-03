@@ -29,7 +29,7 @@ class ShortServiceRefundsAnswersSpec extends AnyWordSpecLike {
       assert(result == overseasPensionContributions)
       assert(result.shortServiceRefund == BigDecimal(1.0))
       assert(result.shortServiceRefundTaxPaid == BigDecimal(2.0))
-      assert(result.overseasSchemeProvider == Seq(ukOverseasSchemeProvider))
+      assert(result.overseasSchemeProvider == Seq(overseasSchemeProvider))
     }
   }
 

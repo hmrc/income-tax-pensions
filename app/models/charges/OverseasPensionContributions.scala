@@ -32,10 +32,10 @@ case class OverseasPensionContributions(overseasSchemeProvider: Seq[OverseasSche
 
       ShortServiceRefundsAnswers(
         shortServiceRefund = if (sSRGateway || sSRTaxGateway) Some(true) else dbAnswers.shortServiceRefunds,
-        shortServiceRefundAmount = if (sSRGateway) Some(shortServiceRefund) else None,
+        shortServiceRefundCharge = if (sSRGateway) Some(shortServiceRefund) else None,
         shortServiceRefundTaxPaid = if (sSRTaxGateway) Some(true) else dbAnswers.nonUKTaxOnShortServiceRefunds,
-        shortServiceRefundTaxPaidAmount = if (sSRTaxGateway) Some(shortServiceRefundTaxPaid) else None,
-        overseasSchemeProvider = Some(overseasSchemeProvider)
+        shortServiceRefundTaxPaidCharge = if (sSRTaxGateway) Some(shortServiceRefundTaxPaid) else None,
+        refundPensionScheme = if (nonEmpty) overseasSchemeProvider.map(_.toOverseasRefundPensionScheme) else Seq[OverseasRefundPensionScheme]()
       )
     }
 }
