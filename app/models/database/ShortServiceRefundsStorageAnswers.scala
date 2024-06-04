@@ -16,10 +16,36 @@
 
 package models.database
 
+import models.charges.{GetPensionChargesRequestModel, OverseasPensionContributions, OverseasRefundPensionScheme}
 import models.frontend.ShortServiceRefundsAnswers
 import play.api.libs.json.{Json, OFormat}
 
-final case class ShortServiceRefundsStorageAnswers(shortServiceRefunds: Option[Boolean] = None, nonUKTaxOnShortServiceRefunds: Option[Boolean] = None)
+final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Boolean] = None, nonUKTaxOnShortServiceRefund: Option[Boolean] = None) {
+
+  def isEmpty: Boolean = shortServiceRefund.isEmpty && nonUKTaxOnShortServiceRefund.isEmpty
+
+  def toShortServiceRefundsAnswers(maybeCharges: Option[GetPensionChargesRequestModel]): Option[ShortServiceRefundsAnswers] = {
+    val OPC: Option[OverseasPensionContributions] = maybeCharges.flatMap(_.overseasPensionContributions)
+    val noEmptyAPIAnswers                         = OPC.getOrElse(OverseasPensionContributions.empty).isEmpty
+    println(noEmptyAPIAnswers)
+    val sSRGateway: Boolean    = OPC.map(_.shortServiceRefund).exists(_ != 0)
+    val sSRTaxGateway: Boolean = OPC.map(_.shortServiceRefundTaxPaid).exists(_ != 0)
+
+    val schemes: Seq[OverseasRefundPensionScheme] = OPC.map(_.overseasSchemeProvider.map(_.toOverseasRefundPensionScheme)).getOrElse(Seq())
+
+    if (noEmptyAPIAnswers && isEmpty) None
+    else
+      Some(
+        ShortServiceRefundsAnswers(
+          shortServiceRefund = if (sSRGateway) Some(true) else shortServiceRefund,
+          shortServiceRefundCharge = if (sSRGateway) OPC.map(_.shortServiceRefund) else None,
+          shortServiceRefundTaxPaid = if (sSRTaxGateway) Some(true) else nonUKTaxOnShortServiceRefund,
+          shortServiceRefundTaxPaidCharge = if (sSRTaxGateway) OPC.map(_.shortServiceRefundTaxPaid) else None,
+          refundPensionScheme = if (OPC.nonEmpty) schemes else Seq[OverseasRefundPensionScheme]()
+        ))
+
+  }
+}
 
 object ShortServiceRefundsStorageAnswers {
   implicit val format: OFormat[ShortServiceRefundsStorageAnswers] = Json.format[ShortServiceRefundsStorageAnswers]

@@ -264,15 +264,14 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[ShortServiceRefundsStorageAnswers](ctx.toJourneyContext(Journey.ShortServiceRefunds))
-      shortServiceRefundsAnswers = maybeCharges.flatMap(
-        _.overseasPensionContributions.flatMap(
-          _.toShortServiceRefundsAnswers(maybeDbAnswers)
-        ))
+      shortServiceRefundsAnswers = maybeDbAnswers.flatMap(_.toShortServiceRefundsAnswers(maybeCharges))
     } yield shortServiceRefundsAnswers
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
-    val journeyCtx     = ctx.toJourneyContext(Journey.ShortServiceRefunds)
+    println("--------- storage answers ----------" + storageAnswers)
+    val journeyCtx = ctx.toJourneyContext(Journey.ShortServiceRefunds)
+    println("--------- answers ----------" + answers)
 
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
@@ -281,7 +280,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       updatedCharges               = existingCharges.copy(overseasPensionContributions = overseasPensionContributions)
       _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges, existingCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
-    } yield ()
+    } yield println("--------- updatedCharges ----------" + updatedCharges)
   }
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service

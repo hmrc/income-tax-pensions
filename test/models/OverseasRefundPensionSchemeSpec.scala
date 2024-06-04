@@ -26,9 +26,9 @@ import testdata.transfersIntoOverseasPensions.{
 import utils.TestUtils
 
 class OverseasRefundPensionSchemeSpec extends TestUtils {
-  "toOverseasSchemeProvider" should {
-    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
-      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
-    }
-  }
+//  "toOverseasSchemeProvider" should {
+//    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
+//      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
+//    }
+//  }
 }

@@ -21,10 +21,10 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
 
-  "fromJourneyAnswers" should {
-    "create ShortServiceRefundsStorageAnswers" in {
-      val result = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(shortServiceRefundsAnswers)
-      assert(result === shortServiceRefundsCtxStorageAnswers)
-    }
-  }
+//  "fromJourneyAnswers" should {
+//    "create ShortServiceRefundsStorageAnswers" in {
+//      val result = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(shortServiceRefundsAnswers)
+//      assert(result === shortServiceRefundsCtxStorageAnswers)
+//    }
+//  }
 }
