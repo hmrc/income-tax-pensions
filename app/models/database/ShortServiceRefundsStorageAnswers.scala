@@ -26,7 +26,7 @@ final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Bo
 
   def toShortServiceRefundsAnswers(maybeCharges: Option[GetPensionChargesRequestModel]): Option[ShortServiceRefundsAnswers] = {
     val oPCAnswers: Option[OverseasPensionContributions] = maybeCharges.flatMap(_.overseasPensionContributions)
-    val isEmptyOPCAnswers: Boolean               = oPCAnswers.getOrElse(OverseasPensionContributions.empty).isEmpty
+    val isEmptyOPCAnswers: Boolean                       = oPCAnswers.getOrElse(OverseasPensionContributions.empty).isEmpty
 
     val sSRGateway: Boolean    = oPCAnswers.map(_.shortServiceRefund).exists(_ != 0)
     val sSRTaxGateway: Boolean = oPCAnswers.map(_.shortServiceRefundTaxPaid).exists(_ != 0)

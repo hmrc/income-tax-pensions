@@ -17,7 +17,6 @@
 package models.frontend
 
 import cats.data.NonEmptyList
-import models.ForeignPension
 import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.incomeFromOverseasPensions._
 

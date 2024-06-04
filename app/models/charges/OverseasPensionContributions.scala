@@ -23,7 +23,7 @@ case class OverseasPensionContributions(overseasSchemeProvider: Seq[OverseasSche
                                         shortServiceRefundTaxPaid: BigDecimal) {
   def nonEmpty: Boolean = overseasSchemeProvider.nonEmpty
 
-  def isEmpty: Boolean = overseasSchemeProvider.isEmpty && shortServiceRefund.equals(0) && shortServiceRefundTaxPaid.equals(0)
+  def isEmpty: Boolean = overseasSchemeProvider.isEmpty && shortServiceRefund.equals(BigDecimal(0)) && shortServiceRefundTaxPaid.equals(BigDecimal(0))
 }
 
 object OverseasPensionContributions {

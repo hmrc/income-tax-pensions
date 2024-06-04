@@ -25,7 +25,7 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
-import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, OverseasPensionContributions}
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
@@ -42,7 +42,6 @@ import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStora
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
-import testdata.shortServiceRefunds.{overseasPensionContributions, shortServiceRefundsAnswers, shortServiceRefundsCtxStorageAnswers}
 import testdata.transfersIntoOverseasPensions._
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
 import uk.gov.hmrc.http.HeaderCarrier
