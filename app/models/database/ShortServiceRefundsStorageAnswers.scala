@@ -25,25 +25,24 @@ final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Bo
   def isEmpty: Boolean = shortServiceRefund.isEmpty && nonUKTaxOnShortServiceRefund.isEmpty
 
   def toShortServiceRefundsAnswers(maybeCharges: Option[GetPensionChargesRequestModel]): Option[ShortServiceRefundsAnswers] = {
-    val OPC: Option[OverseasPensionContributions] = maybeCharges.flatMap(_.overseasPensionContributions)
-    val noEmptyAPIAnswers                         = OPC.getOrElse(OverseasPensionContributions.empty).isEmpty
-    println(noEmptyAPIAnswers)
-    val sSRGateway: Boolean    = OPC.map(_.shortServiceRefund).exists(_ != 0)
-    val sSRTaxGateway: Boolean = OPC.map(_.shortServiceRefundTaxPaid).exists(_ != 0)
+    val oPC: Option[OverseasPensionContributions] = maybeCharges.flatMap(_.overseasPensionContributions)
+    val nonEmptyOPCAnswers: Boolean               = oPC.getOrElse(OverseasPensionContributions.empty).isEmpty
 
-    val schemes: Seq[OverseasRefundPensionScheme] = OPC.map(_.overseasSchemeProvider.map(_.toOverseasRefundPensionScheme)).getOrElse(Seq())
+    val sSRGateway: Boolean    = oPC.map(_.shortServiceRefund).exists(_ != 0)
+    val sSRTaxGateway: Boolean = oPC.map(_.shortServiceRefundTaxPaid).exists(_ != 0)
 
-    if (noEmptyAPIAnswers && isEmpty) None
+    val schemes: Seq[OverseasRefundPensionScheme] = oPC.map(_.overseasSchemeProvider.map(_.toOverseasRefundPensionScheme)).getOrElse(Seq())
+
+    if (nonEmptyOPCAnswers && isEmpty) None
     else
       Some(
         ShortServiceRefundsAnswers(
           shortServiceRefund = if (sSRGateway) Some(true) else shortServiceRefund,
-          shortServiceRefundCharge = if (sSRGateway) OPC.map(_.shortServiceRefund) else None,
+          shortServiceRefundCharge = if (sSRGateway) oPC.map(_.shortServiceRefund) else None,
           shortServiceRefundTaxPaid = if (sSRTaxGateway) Some(true) else nonUKTaxOnShortServiceRefund,
-          shortServiceRefundTaxPaidCharge = if (sSRTaxGateway) OPC.map(_.shortServiceRefundTaxPaid) else None,
-          refundPensionScheme = if (OPC.nonEmpty) schemes else Seq[OverseasRefundPensionScheme]()
+          shortServiceRefundTaxPaidCharge = if (sSRTaxGateway) oPC.map(_.shortServiceRefundTaxPaid) else None,
+          refundPensionScheme = if (oPC.nonEmpty) schemes else Seq[OverseasRefundPensionScheme]()
         ))
-
   }
 }
 

@@ -16,16 +16,42 @@
 
 package models.database
 
-import testdata.shortServiceRefunds._
+import models.frontend.ShortServiceRefundsAnswers
 import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.connector.getPensionChargesRequestModel._
+import testdata.shortServiceRefunds._
 
 class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
-  // TODO: SASS-8385 - Fix tests
 
-//  "fromJourneyAnswers" should {
-//    "create ShortServiceRefundsStorageAnswers" in {
-//      val result = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(shortServiceRefundsAnswers)
-//      assert(result === shortServiceRefundsCtxStorageAnswers)
-//    }
-//  }
+  "fromJourneyAnswers" should {
+    "create a ShortServiceRefundsStorageAnswers" in {
+      val result = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(shortServiceRefundsAnswers)
+      assert(result === shortServiceRefundsCtxStorageAnswers)
+    }
+  }
+
+  "toShortServiceRefundsAnswers" should {
+    "create a ShortServiceRefundsAnswers if there are existing API and DB answers" in {
+      val result = shortServiceRefundsCtxStorageAnswers.toShortServiceRefundsAnswers(Some(getPensionChargesRequestModel))
+      assert(result === Some(shortServiceRefundsAnswers))
+    }
+
+    "create a ShortServiceRefundsAnswers with API answers overruling DB answers" in {
+      val emptyStorageAnswers = ShortServiceRefundsStorageAnswers()
+      val result              = emptyStorageAnswers.toShortServiceRefundsAnswers(Some(getPensionChargesRequestModel))
+      assert(result === Some(shortServiceRefundsAnswers))
+    }
+
+    "create a ShortServiceRefundsAnswers with DB answers only" in {
+      val shortServiceRefundsAnswers = ShortServiceRefundsAnswers(Some(true), None, Some(true), None, Seq())
+      val result                     = shortServiceRefundsCtxStorageAnswers.toShortServiceRefundsAnswers(None)
+      assert(result === Some(shortServiceRefundsAnswers))
+    }
+
+    "return None if there are no API and DB answers" in {
+      val emptyStorageAnswers = ShortServiceRefundsStorageAnswers()
+      val result              = emptyStorageAnswers.toShortServiceRefundsAnswers(None)
+      assert(result === None)
+    }
+  }
 }
