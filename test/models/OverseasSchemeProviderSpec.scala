@@ -16,6 +16,7 @@
 
 package models
 
+import testdata.shortServiceRefunds.{overseasRefundPensionScheme, overseasSchemeProvider}
 import testdata.transfersIntoOverseasPensions.{
   nonUkOverseasSchemeProvider,
   transferPensionSchemeNonUK,
@@ -37,4 +38,9 @@ class OverseasSchemeProviderSpec extends TestUtils {
     }
   }
 
+  "toOverseasRefundPensionScheme" should {
+    "transform the OverseasSchemeProvider into a OverseasRefundPensionScheme" in {
+      assert(overseasSchemeProvider.toOverseasRefundPensionScheme == overseasRefundPensionScheme)
+    }
+  }
 }

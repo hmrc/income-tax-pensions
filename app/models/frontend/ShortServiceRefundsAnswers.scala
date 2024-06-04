@@ -16,18 +16,19 @@
 
 package models.frontend
 
-import models.charges.{OverseasPensionContributions, OverseasSchemeProvider}
+import models.charges.{OverseasPensionContributions, OverseasRefundPensionScheme}
 import play.api.libs.json.{Json, OFormat}
 
 final case class ShortServiceRefundsAnswers(shortServiceRefund: Option[Boolean] = None,
-                                            shortServiceRefundAmount: Option[BigDecimal] = None,
+                                            shortServiceRefundCharge: Option[BigDecimal] = None,
                                             shortServiceRefundTaxPaid: Option[Boolean] = None,
-                                            shortServiceRefundTaxPaidAmount: Option[BigDecimal] = None,
-                                            overseasSchemeProvider: Option[Seq[OverseasSchemeProvider]] = None) {
+                                            shortServiceRefundTaxPaidCharge: Option[BigDecimal] = None,
+                                            refundPensionScheme: Seq[OverseasRefundPensionScheme] = Nil) {
+
   def toOverseasPensions: OverseasPensionContributions = OverseasPensionContributions(
-    overseasSchemeProvider = this.overseasSchemeProvider.getOrElse(Seq[OverseasSchemeProvider]()),
-    shortServiceRefund = this.shortServiceRefundAmount.getOrElse(BigDecimal(0)),
-    shortServiceRefundTaxPaid = this.shortServiceRefundTaxPaidAmount.getOrElse(BigDecimal(0))
+    overseasSchemeProvider = this.refundPensionScheme.map(_.toOverseasSchemeProvider),
+    shortServiceRefund = this.shortServiceRefundCharge.getOrElse(BigDecimal(0)),
+    shortServiceRefundTaxPaid = this.shortServiceRefundTaxPaidCharge.getOrElse(BigDecimal(0))
   )
 }
 

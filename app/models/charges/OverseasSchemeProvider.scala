@@ -41,6 +41,14 @@ case class OverseasSchemeProvider(
       alphaThreeCountryCode = Some(providerCountryCode)
     )
   }
+
+  def toOverseasRefundPensionScheme: OverseasRefundPensionScheme = OverseasRefundPensionScheme(
+    name = Some(providerName),
+    qualifyingRecognisedOverseasPensionScheme = qualifyingRecognisedOverseasPensionScheme.flatMap(_.headOption),
+    providerAddress = Some(providerAddress),
+    alphaTwoCountryCode = Country.get2AlphaCodeFrom3AlphaCode(Some(providerCountryCode)),
+    alphaThreeCountryCode = Some(providerCountryCode)
+  )
 }
 
 object OverseasSchemeProvider {

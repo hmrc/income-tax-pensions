@@ -116,8 +116,8 @@ class JourneyAnswersController @Inject() (pensionsService: PensionsService, auth
   }
 
   def saveShortServiceRefunds(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    getBodyWithCtx[ShortServiceRefundsAnswers](taxYear, nino) { (ctx, answers) =>
-      pensionsService.upsertShortServiceRefunds(ctx, answers).map(_ => NoContent)
+    getBodyWithCtx[ShortServiceRefundsAnswers](taxYear, nino) { (ctx, value) =>
+      pensionsService.upsertShortServiceRefunds(ctx, value).map(_ => NoContent)
     }
   }
 

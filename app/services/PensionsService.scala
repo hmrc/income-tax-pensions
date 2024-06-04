@@ -264,15 +264,13 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[ShortServiceRefundsStorageAnswers](ctx.toJourneyContext(Journey.ShortServiceRefunds))
-      shortServiceRefundsAnswers = maybeCharges.flatMap(
-        _.overseasPensionContributions.flatMap(
-          _.toShortServiceRefundsAnswers(maybeDbAnswers)
-        ))
+      shortServiceRefundsAnswers = maybeDbAnswers.flatMap(_.toShortServiceRefundsAnswers(maybeCharges))
     } yield shortServiceRefundsAnswers
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
-    val journeyCtx     = ctx.toJourneyContext(Journey.ShortServiceRefunds)
+
+    val journeyCtx = ctx.toJourneyContext(Journey.ShortServiceRefunds)
 
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)

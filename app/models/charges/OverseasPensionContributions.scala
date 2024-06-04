@@ -16,8 +16,6 @@
 
 package models.charges
 
-import models.database.ShortServiceRefundsStorageAnswers
-import models.frontend.ShortServiceRefundsAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class OverseasPensionContributions(overseasSchemeProvider: Seq[OverseasSchemeProvider],
@@ -25,19 +23,7 @@ case class OverseasPensionContributions(overseasSchemeProvider: Seq[OverseasSche
                                         shortServiceRefundTaxPaid: BigDecimal) {
   def nonEmpty: Boolean = overseasSchemeProvider.nonEmpty
 
-  def toShortServiceRefundsAnswers(maybeDbAnswers: Option[ShortServiceRefundsStorageAnswers]): Option[ShortServiceRefundsAnswers] =
-    maybeDbAnswers map { dbAnswers =>
-      val sSRGateway: Boolean    = shortServiceRefund != 0
-      val sSRTaxGateway: Boolean = shortServiceRefund != 0
-
-      ShortServiceRefundsAnswers(
-        shortServiceRefund = if (sSRGateway || sSRTaxGateway) Some(true) else dbAnswers.shortServiceRefunds,
-        shortServiceRefundAmount = if (sSRGateway) Some(shortServiceRefund) else None,
-        shortServiceRefundTaxPaid = if (sSRTaxGateway) Some(true) else dbAnswers.nonUKTaxOnShortServiceRefunds,
-        shortServiceRefundTaxPaidAmount = if (sSRTaxGateway) Some(shortServiceRefundTaxPaid) else None,
-        overseasSchemeProvider = Some(overseasSchemeProvider)
-      )
-    }
+  def isEmpty: Boolean = overseasSchemeProvider.isEmpty && shortServiceRefund.equals(0) && shortServiceRefundTaxPaid.equals(0)
 }
 
 object OverseasPensionContributions {

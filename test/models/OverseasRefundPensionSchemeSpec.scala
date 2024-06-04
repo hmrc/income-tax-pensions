@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package models.database
+package models
 
-import testdata.shortServiceRefunds._
-import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.shortServiceRefunds.{overseasRefundPensionScheme, overseasSchemeProvider}
+import testdata.transfersIntoOverseasPensions.{
+  nonUkOverseasSchemeProvider,
+  transferPensionSchemeNonUK,
+  transferPensionSchemeUK,
+  ukOverseasSchemeProvider
+}
+import utils.TestUtils._
 
-class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
+class OverseasRefundPensionSchemeSpec {
   // TODO: SASS-8385 - Fix tests
 
-//  "fromJourneyAnswers" should {
-//    "create ShortServiceRefundsStorageAnswers" in {
-//      val result = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(shortServiceRefundsAnswers)
-//      assert(result === shortServiceRefundsCtxStorageAnswers)
+//  "toOverseasSchemeProvider" should {
+//    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
+//      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
 //    }
 //  }
 }
