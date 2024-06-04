@@ -21,6 +21,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.shortServiceRefunds._
 
 class ShortServiceRefundsAnswersSpec extends AnyWordSpecLike {
+  // TODO: SASS-8385 - Fix tests
 
 //  "toOverseasPensions" should {
 //    "convert ShortServiceRefundsAnswers to a valid OverseasPensionContributions" in {

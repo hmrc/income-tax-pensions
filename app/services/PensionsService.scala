@@ -269,9 +269,8 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
-    println("--------- storage answers ----------" + storageAnswers)
+
     val journeyCtx = ctx.toJourneyContext(Journey.ShortServiceRefunds)
-    println("--------- answers ----------" + answers)
 
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
@@ -280,7 +279,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       updatedCharges               = existingCharges.copy(overseasPensionContributions = overseasPensionContributions)
       _ <- createOrDeleteChargesWhenEmpty(ctx, updatedCharges, existingCharges)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
-    } yield println("--------- updatedCharges ----------" + updatedCharges)
+    } yield ()
   }
 
   // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service

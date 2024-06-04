@@ -20,6 +20,7 @@ import testdata.shortServiceRefunds._
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
+  // TODO: SASS-8385 - Fix tests
 
 //  "fromJourneyAnswers" should {
 //    "create ShortServiceRefundsStorageAnswers" in {

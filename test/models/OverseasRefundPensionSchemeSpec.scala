@@ -23,9 +23,11 @@ import testdata.transfersIntoOverseasPensions.{
   transferPensionSchemeUK,
   ukOverseasSchemeProvider
 }
-import utils.TestUtils
+import utils.TestUtils._
 
-class OverseasRefundPensionSchemeSpec extends TestUtils {
+class OverseasRefundPensionSchemeSpec {
+  // TODO: SASS-8385 - Fix tests
+
 //  "toOverseasSchemeProvider" should {
 //    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
 //      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
