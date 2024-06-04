@@ -16,7 +16,8 @@
 
 package testdata.connector
 
-import models.charges.{GetPensionChargesRequestModel, PensionSchemeOverseasTransfers}
+import models.charges.{GetPensionChargesRequestModel, OverseasPensionContributions, PensionSchemeOverseasTransfers}
+import testdata.shortServiceRefunds.sSROverseasSchemeProvider
 import testdata.transfersIntoOverseasPensions.{nonUkOverseasSchemeProvider, ukOverseasSchemeProvider}
 
 object getPensionChargesRequestModel {
@@ -32,7 +33,12 @@ object getPensionChargesRequestModel {
       )),
     pensionSchemeUnauthorisedPayments = None,
     pensionContributions = None,
-    overseasPensionContributions = None
+    overseasPensionContributions = Some(
+      OverseasPensionContributions(
+        overseasSchemeProvider = Seq(sSROverseasSchemeProvider),
+        shortServiceRefund = BigDecimal(1),
+        shortServiceRefundTaxPaid = BigDecimal(2)
+      ))
   )
 
 }

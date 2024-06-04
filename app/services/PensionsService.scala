@@ -269,8 +269,7 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
-
-    val journeyCtx = ctx.toJourneyContext(Journey.ShortServiceRefunds)
+    val journeyCtx     = ctx.toJourneyContext(Journey.ShortServiceRefunds)
 
     for {
       getCharges <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)

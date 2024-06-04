@@ -25,17 +25,17 @@ object shortServiceRefunds {
 
   val pstrReference = "12345678RA"
 
-  def overseasRefundPensionScheme: OverseasRefundPensionScheme =
+  def sSROverseasRefundPensionScheme: OverseasRefundPensionScheme =
     OverseasRefundPensionScheme(Some("Pension Scheme"), Some("Q123456"), Some("1 Street"), Some(GBAlpha2Code), Some(GBAlpha3Code))
 
-  def overseasSchemeProvider: OverseasSchemeProvider =
+  def sSROverseasSchemeProvider: OverseasSchemeProvider =
     OverseasSchemeProvider("Pension Scheme", "1 Street", GBAlpha3Code, Some(Seq("Q123456")), None)
 
   def overseasPensionContributions: OverseasPensionContributions =
-    OverseasPensionContributions(Seq(overseasSchemeProvider), BigDecimal(1.0), BigDecimal(2.0))
+    OverseasPensionContributions(Seq(sSROverseasSchemeProvider), BigDecimal(1.0), BigDecimal(2.0))
 
   def shortServiceRefundsAnswers: ShortServiceRefundsAnswers =
-    ShortServiceRefundsAnswers(Some(true), Some(BigDecimal(1.0)), Some(true), Some(BigDecimal(2.0)), Seq(overseasRefundPensionScheme))
+    ShortServiceRefundsAnswers(Some(true), Some(BigDecimal(1.0)), Some(true), Some(BigDecimal(2.0)), Seq(sSROverseasRefundPensionScheme))
 
   def shortServiceRefundsCtxStorageAnswers: ShortServiceRefundsStorageAnswers =
     ShortServiceRefundsStorageAnswers(Some(true), Some(true))

@@ -16,21 +16,14 @@
 
 package models
 
-import testdata.shortServiceRefunds.{overseasRefundPensionScheme, overseasSchemeProvider}
-import testdata.transfersIntoOverseasPensions.{
-  nonUkOverseasSchemeProvider,
-  transferPensionSchemeNonUK,
-  transferPensionSchemeUK,
-  ukOverseasSchemeProvider
-}
-import utils.TestUtils._
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.shortServiceRefunds.{sSROverseasRefundPensionScheme, sSROverseasSchemeProvider}
 
-class OverseasRefundPensionSchemeSpec {
-  // TODO: SASS-8385 - Fix tests
+class OverseasRefundPensionSchemeSpec extends AnyWordSpecLike {
 
-//  "toOverseasSchemeProvider" should {
-//    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
-//      assert(overseasRefundPensionScheme.toOverseasSchemeProvider == overseasSchemeProvider)
-//    }
-//  }
+  "toOverseasSchemeProvider" should {
+    "transform the OverseasRefundPensionScheme into an OverseasSchemeProvider" in {
+      assert(sSROverseasRefundPensionScheme.toOverseasSchemeProvider == sSROverseasSchemeProvider)
+    }
+  }
 }
