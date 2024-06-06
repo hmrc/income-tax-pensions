@@ -37,7 +37,7 @@ import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
-import stubs.services.StubEmploymentService
+import stubs.services.{StubEmploymentService, StubJourneyStatusService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
@@ -66,14 +66,17 @@ class PensionsServiceIpmlSpec
   val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
   val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
   val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
+  val stubStatusService                                 = StubJourneyStatusService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
     new PensionsServiceImpl(
+      mockAppConfig,
       mockReliefsConnector,
       mockChargesConnector,
       stateBenefitsConnector,
       mockIncomeConnector,
       stubEmploymentService,
+      stubStatusService,
       stubRepository
     )
 

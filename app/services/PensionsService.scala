@@ -18,12 +18,14 @@ package services
 
 import cats.data.{EitherT, NonEmptyList}
 import cats.implicits._
+import config.AppConfig
 import connectors._
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common.{Journey, JourneyContextWithNino}
+import models.commonTaskList.{TaskListModel, TaskListSection, TaskListSectionItem, TaskStatus, TaskTitle}
 import models.database._
-import models.domain.ApiResultT
+import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
 import models.frontend._
 import models.submission.EmploymentPensions
@@ -36,6 +38,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PensionsService {
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]]
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]]
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getUkPensionIncome(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UkPensionIncomeAnswers]]
@@ -61,11 +64,13 @@ trait PensionsService {
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]]
 }
 
-class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
+class PensionsServiceImpl @Inject() (appConfig: AppConfig,
+                                     reliefsConnector: PensionReliefsConnector,
                                      chargesConnector: PensionChargesConnector,
                                      stateBenefitsConnector: GetStateBenefitsConnector,
                                      pensionIncomeConnector: PensionIncomeConnector,
                                      employmentService: EmploymentService,
+                                     statusService: JourneyStatusService,
                                      repository: JourneyAnswersRepository)(implicit ec: ExecutionContext)
     extends PensionsService {
 
@@ -315,4 +320,35 @@ class PensionsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
       hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
+  /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = {
+
+    // TODO Right now we don't use answers to determine status, but we will have to as the db data is removed after 28 days
+    val allJourneys = for {
+      paymentsIntoPensons              <- getPaymentsIntoPensions(ctx)
+      ukPensionIncome                  <- getUkPensionIncome(ctx)
+      annualAllowances                 <- getAnnualAllowances(ctx)
+      unauthorisedPaymentsFromPensions <- getUnauthorisedPaymentsFromPensions(ctx)
+      incomeFromOverseasPensions       <- getIncomeFromOverseasPensions(ctx)
+      paymentsIntoOverseasPensions     <- getPaymentsIntoOverseasPensions(ctx)
+      transfersIntoOverseasPensions    <- getTransfersIntoOverseasPensions(ctx)
+      shortServiceRefunds              <- getShortServiceRefunds(ctx)
+      statuses                         <- statusService.getAllStatuses(ctx.taxYear, ctx.mtditid)
+    } yield AllJourneys(
+      paymentsIntoPensons,
+      ukPensionIncome,
+      annualAllowances,
+      unauthorisedPaymentsFromPensions,
+      incomeFromOverseasPensions,
+      paymentsIntoOverseasPensions,
+      transfersIntoOverseasPensions,
+      shortServiceRefunds,
+      statuses
+    )
+
+    allJourneys.map { all =>
+      val taskListModel = TaskListModel.fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
+      Some(taskListModel)
+    }
+  }
 }
