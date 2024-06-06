@@ -30,6 +30,9 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
 
+  /** It is used only to return URL for the Common Task List */
+  val incomeTaxPensionsFrontendUrl: String = s"${servicesConfig.baseUrl("income-tax-pensions-frontend")}/update-and-submit-income-tax-return"
+
   def getEmploymentSourceUrl(nino: Nino, taxYear: TaxYear) = s"$employmentBaseUrl/income-tax/nino/$nino/sources?taxYear=$taxYear"
 
   def getEmploymentUrl(nino: Nino, employmentId: String, source: String, taxYear: TaxYear) =

@@ -1,5 +1,7 @@
 GET           /income-tax/nino/:nino/sources                                     controllers.GetAllPensionsController.getAllPensions(nino: String, taxYear: Int)
 
+GET           /:taxYear/common-task-list/:nino                                   controllers.CommonTaskListController.getCommonTaskList(taxYear: TaxYear, nino: Nino)
+
 # Journeys
 GET           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.getPaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
 PUT           /:taxYear/payments-into-pensions/:nino/answers                     controllers.JourneyAnswersController.savePaymentsIntoPensions(taxYear: TaxYear, nino: Nino)
