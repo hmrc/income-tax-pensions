@@ -19,6 +19,7 @@ package stubs.services
 import cats.data.EitherT
 import cats.implicits._
 import models.common.JourneyContextWithNino
+import models.commonTaskList.TaskListModel
 import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend._
@@ -88,4 +89,6 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
     EitherT.fromEither(upsertShortServiceRefunds)
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
+
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = ???
 }

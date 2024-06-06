@@ -16,8 +16,8 @@ case class StubJourneyStatusService() extends JourneyStatusService {
     EitherT.rightT[Future, ServiceError](List.empty[JourneyNameAndStatus])
 
   def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] =
-    EitherT.rightT[Future, ServiceError(List.empty[JourneyNameAndStatus])
+    EitherT.rightT[Future, ServiceError](List.empty[JourneyNameAndStatus])
 
   def saveJourneyStatus(ctx: JourneyContext, journeyStatus: JourneyStatus): ApiResultT[Unit] =
-    EitherT.rightT[Future, ServiceError(())
+    EitherT.rightT[Future, ServiceError](())
 }
