@@ -33,11 +33,11 @@ import utils.TestUtils
 import scala.concurrent.Future
 
 class GetAllPensionsControllerSpec extends TestUtils {
-  val reliefsConnector: PensionReliefsConnector         = mock[PensionReliefsConnector]
-  val chargesConnector: PensionChargesConnector         = mock[PensionChargesConnector]
+  val reliefsConnector: PensionReliefsConnector      = mock[PensionReliefsConnector]
+  val chargesConnector: PensionChargesConnector      = mock[PensionChargesConnector]
   val stateBenefitsConnector: StateBenefitsConnector = mock[StateBenefitsConnector]
-  val pensionsService: PensionsService                  = mock[PensionsService]
-  val controller: GetAllPensionsController              = new GetAllPensionsController(pensionsService, authorisedAction, mockControllerComponents)
+  val pensionsService: PensionsService               = mock[PensionsService]
+  val controller: GetAllPensionsController           = new GetAllPensionsController(pensionsService, authorisedAction, mockControllerComponents)
 
   val expectedReliefsResult: GetPensionReliefsResponse      = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse      = Right(Some(fullPensionChargesModel))
