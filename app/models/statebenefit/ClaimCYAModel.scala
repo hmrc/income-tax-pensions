@@ -21,18 +21,13 @@ import play.api.libs.json.{Json, OFormat}
 import java.time.{Instant, LocalDate}
 import java.util.UUID
 
-final case class Claim(
-    benefitId: Option[UUID],
+final case class ClaimCYAModel(
+    benefitId: Option[UUID] = None,
     startDate: LocalDate,
-    endDateQuestion: Option[Boolean],
-    endDate: Option[LocalDate],
-    dateIgnored: Option[Instant],
-    submittedOn: Option[Instant],
-    amount: Option[BigDecimal],
-    taxPaidQuestion: Option[Boolean],
-    taxPaid: Option[BigDecimal]
+    amount: Option[BigDecimal] = None,
+    taxPaid: Option[BigDecimal] = None
 )
 
-object Claim {
-  implicit val format: OFormat[Claim] = Json.format[Claim]
+object ClaimCYAModel {
+  implicit val format: OFormat[ClaimCYAModel] = Json.format[ClaimCYAModel]
 }

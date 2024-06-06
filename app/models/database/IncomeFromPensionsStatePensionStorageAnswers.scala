@@ -28,5 +28,8 @@ object IncomeFromPensionsStatePensionStorageAnswers {
   implicit val format: OFormat[IncomeFromPensionsStatePensionStorageAnswers] = Json.format[IncomeFromPensionsStatePensionStorageAnswers]
 
   def fromJourneyAnswers(answers: IncomeFromPensionsStatePensionAnswers): IncomeFromPensionsStatePensionStorageAnswers =
-    IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false))
+    IncomeFromPensionsStatePensionStorageAnswers(
+      answers.statePension.flatMap(_.amountPaidQuestion),
+      answers.statePensionLumpSum.flatMap(_.amountPaidQuestion)
+    )
 }

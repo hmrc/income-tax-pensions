@@ -27,7 +27,7 @@ import models.statebenefit.StateBenefitsUserData
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -62,10 +62,10 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
 
   private def runSaveIfRequired(answers: IncomeFromPensionsStatePensionAnswers, ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
-    val lastUpdated      = ZonedDateTime.now(ZoneOffset.UTC)
-    val answerBenefitIds = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, lastUpdated)
+    val lastUpdated   = Instant.ofEpochMilli(Instant.now().toEpochMilli)
+    val stateBenefits = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, lastUpdated)
 
-    val response = answerBenefitIds.traverse { benefit =>
+    val response = stateBenefits.traverse { benefit =>
       EitherT(connector.saveClaim(ctx.nino, benefit)).leftMap(err => err.toServiceError)
     }
 
@@ -78,13 +78,13 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
       priorBenefitIds <- obtainExistingBenefitIds(ctx)
       answerBenefitIds = obtainAnswersBenefitIds(answers)
       ids              = priorBenefitIds.diff(answerBenefitIds).toNel
-      uuids            = ids.map(_.toList).getOrElse(Nil)
-      _ <- doDelete(uuids, ctx.nino, ctx.taxYear)
+      removedUUIDs     = ids.map(_.toList).getOrElse(Nil)
+      _ <- doDelete(removedUUIDs, ctx.nino, ctx.taxYear)
     } yield ()
 
   private def obtainAnswersBenefitIds(answers: IncomeFromPensionsStatePensionAnswers) = {
-    val maybeSpId        = answers.statePension.map(_.benefitId)
-    val maybeSpLumpSumId = answers.statePensionLumpSum.map(_.benefitId)
+    val maybeSpId        = answers.statePension.flatMap(_.benefitId)
+    val maybeSpLumpSumId = answers.statePensionLumpSum.flatMap(_.benefitId)
 
     List(maybeSpId, maybeSpLumpSumId).flatten
   }
@@ -95,9 +95,10 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
       .void
 
   private def obtainExistingBenefitIds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[List[UUID]] =
-    getStateBenefits(ctx).map { stateBenefitData =>
-      val maybeSpId        = stateBenefitData.stateBenefitsData.flatMap(_.statePension.map(_.benefitId))
-      val maybeSpLumpSumId = stateBenefitData.stateBenefitsData.flatMap(_.statePensionLumpSum.map(_.benefitId))
-      List(maybeSpId, maybeSpLumpSumId).flatten
-    }
+    for {
+      stateBenefitData <- getStateBenefits(ctx)
+      maybeExistingStateBenefits = stateBenefitData.stateBenefitsData
+      maybeSpId                  = maybeExistingStateBenefits.flatMap(_.statePension.map(_.benefitId))
+      maybeSpLumpSumId           = maybeExistingStateBenefits.flatMap(_.statePensionLumpSum.map(_.benefitId))
+    } yield List(maybeSpId, maybeSpLumpSumId).flatten
 }

@@ -20,7 +20,7 @@ import connectors.OptionalContentHttpReads
 import models.database.IncomeFromPensionsStatePensionStorageAnswers
 import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.{JsPath, Json, OFormat, OWrites, Reads}
+import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
@@ -34,17 +34,18 @@ case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
     val statePensionLumpSum = stateBenefitsData.flatMap(_.statePensionLumpSum).map(StateBenefitAnswers.fromStateBenefit)
 
     IncomeFromPensionsStatePensionAnswers(
-      statePension = statePension,
-      statePensionLumpSum = statePensionLumpSum,
+      statePension = statePension.orElse(
+        dbAnswers.map(ans => StateBenefitAnswers.empty.copy(amountPaidQuestion = ans.statePension))
+      ),
+      statePensionLumpSum = statePensionLumpSum.orElse(
+        dbAnswers.map(ans => StateBenefitAnswers.empty.copy(amountPaidQuestion = ans.statePensionLumpSum))
+      ),
       sessionId = sessionId
     )
   }
 }
 
 object AllStateBenefitsData {
-  implicit val format: OFormat[AllStateBenefitsData]                  = Json.format[AllStateBenefitsData]
-  implicit val optRds: OptionalContentHttpReads[AllStateBenefitsData] = new OptionalContentHttpReads[AllStateBenefitsData]
-
   val empty: AllStateBenefitsData = AllStateBenefitsData(None, None)
 
   implicit val allStateBenefitsDataWrites: OWrites[AllStateBenefitsData] = (data: AllStateBenefitsData) =>
@@ -57,4 +58,6 @@ object AllStateBenefitsData {
     (JsPath \ "stateBenefits").readNullable[StateBenefitsData] and
       (JsPath \ "customerAddedStateBenefits").readNullable[CustomerAddedStateBenefitsData]
   )(AllStateBenefitsData.apply _)
+
+  implicit val optRds: OptionalContentHttpReads[AllStateBenefitsData] = new OptionalContentHttpReads[AllStateBenefitsData]
 }

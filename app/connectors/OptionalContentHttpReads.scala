@@ -19,12 +19,16 @@ package connectors
 import cats.implicits._
 import connectors.ContentHttpReads.readOne
 import connectors.httpParsers.ApiParser.unsafeLogPagerDutyAlertOnError
+import models.logging.ConnectorResponseInfo
 import play.api.libs.json.Reads
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.Logging
 
-class OptionalContentHttpReads[A: Reads] extends HttpReads[DownstreamErrorOr[Option[A]]] {
+class OptionalContentHttpReads[A: Reads] extends HttpReads[DownstreamErrorOr[Option[A]]] with Logging {
 
-  override def read(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Option[A]] =
+  override def read(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Option[A]] = {
+    ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
+
     if (isNoContent(response.status)) {
       None.asRight
     } else if (isSuccess(response.status)) {
@@ -32,4 +36,5 @@ class OptionalContentHttpReads[A: Reads] extends HttpReads[DownstreamErrorOr[Opt
     } else {
       unsafeLogPagerDutyAlertOnError(method, url, response).map(_ => None)
     }
+  }
 }
