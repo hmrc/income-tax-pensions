@@ -323,6 +323,8 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
 
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = {
+
+    // TODO Right now we don't use answers to determine status, but we will have to as the db data is removed after 28 days
     val allJourneys = for {
       paymentsIntoPensons              <- getPaymentsIntoPensions(ctx)
       ukPensionIncome                  <- getUkPensionIncome(ctx)
