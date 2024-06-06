@@ -321,7 +321,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
-  /** TODO It could be done more optimal, with fewer calls to IFS */
+  /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = {
     val allJourneys = for {
       paymentsIntoPensons              <- getPaymentsIntoPensions(ctx)

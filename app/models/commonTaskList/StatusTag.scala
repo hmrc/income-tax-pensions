@@ -17,6 +17,4 @@
 package models.commonTaskList
 
 // TODO: Replace String of status with enum of possible status
-trait StatusTag {
-
-}
+trait StatusTag {}

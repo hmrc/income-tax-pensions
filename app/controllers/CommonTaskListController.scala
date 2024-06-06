@@ -27,7 +27,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class CommonTaskListController @Inject() (service: PensionsService, auth: AuthorisedAction, cc: ControllerComponents)(implicit ec: ExecutionContext)
-  extends BackendController(cc)
+    extends BackendController(cc)
     with Logging {
 
   def getCommonTaskList(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>

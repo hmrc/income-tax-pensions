@@ -21,7 +21,7 @@ import models.common.Journey._
 
 final case class JourneyFrontend(journey: Journey, status: Option[JourneyStatus]) {
 
-  /** If we have status in DB, it must have been submitted (therefore it will be CYA.
+  /** If we have status in DB, it must have been submitted (therefore it will be CYA.)
     *
     * TODO It won't work when we introduce TTL=28 days
     */

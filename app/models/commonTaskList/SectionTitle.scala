@@ -25,6 +25,6 @@ sealed abstract class SectionTitle(override val entryName: String) extends EnumE
 object SectionTitle extends Enum[SectionTitle] with utils.PlayJsonEnum[SectionTitle] {
   val values: IndexedSeq[SectionTitle] = findValues
 
-  case object PensionsTitle extends SectionTitle("Pensions")
+  case object PensionsTitle             extends SectionTitle("Pensions")
   case object PaymentsIntoPensionsTitle extends SectionTitle("PaymentsIntoPensions")
 }

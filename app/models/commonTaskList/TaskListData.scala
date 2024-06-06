@@ -21,10 +21,7 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-final case class TaskListData(mtdItId: String,
-                              taxYear: Int,
-                              data: JsObject = Json.obj(),
-                              lastUpdated: Instant = Instant.now)
+final case class TaskListData(mtdItId: String, taxYear: Int, data: JsObject = Json.obj(), lastUpdated: Instant = Instant.now)
 
 object TaskListData {
 
@@ -37,7 +34,7 @@ object TaskListData {
         (__ \ "taxYear").read[Int].filter(_.toString.matches("^20\\d{2}$")) and
         (__ \ "data").read[JsObject] and
         (__ \ "lastUpdated").read(MongoJavatimeFormats.instantFormat)
-    ) (TaskListData.apply _)
+    )(TaskListData.apply _)
   }
 
   val writes: OWrites[TaskListData] = {
@@ -49,7 +46,7 @@ object TaskListData {
         (__ \ "taxYear").write[Int] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
-    ) (unlift(TaskListData.unapply))
+    )(unlift(TaskListData.unapply))
   }
 
   implicit val format: OFormat[TaskListData] = OFormat(reads, writes)
