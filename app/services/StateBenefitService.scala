@@ -16,7 +16,6 @@
 
 package services
 
-import cats.data.EitherT
 import cats.implicits.{catsSyntaxList, toFunctorOps, toTraverseOps}
 import connectors.StateBenefitsConnector
 import models.AllStateBenefitsData
@@ -43,7 +42,8 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
   def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData] = {
     implicit val updatedHc: HeaderCarrier = hc.withInternalId(ctx.mtditid.value)
 
-    EitherT(connector.getStateBenefits(ctx.nino, ctx.taxYear)(updatedHc))
+    connector
+      .getStateBenefits(ctx.nino, ctx.taxYear)(updatedHc)
       .leftMap(err => err.toServiceError)
       .map(_.getOrElse(AllStateBenefitsData.empty))
   }
@@ -60,13 +60,14 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
     } yield ()
   }
 
+  private[services] def now: Instant = Instant.ofEpochMilli(Instant.now().toEpochMilli)
+
   private def runSaveIfRequired(answers: IncomeFromPensionsStatePensionAnswers, ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
-    val lastUpdated   = Instant.ofEpochMilli(Instant.now().toEpochMilli)
-    val stateBenefits = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, lastUpdated)
+    val stateBenefits = StateBenefitsUserData.fromJourneyAnswers(ctx, answers, now)
 
     val response = stateBenefits.traverse { benefit =>
-      EitherT(connector.saveClaim(ctx.nino, benefit)).leftMap(err => err.toServiceError)
+      connector.saveClaim(ctx.nino, benefit).leftMap(err => err.toServiceError)
     }
 
     response.void
@@ -91,7 +92,7 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
 
   private def doDelete(ids: List[UUID], nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier, ec: ExecutionContext): ApiResultT[Unit] =
     ids
-      .traverse(id => EitherT(connector.deleteClaim(nino, taxYear, id)).leftMap(_.toServiceError))
+      .traverse(id => connector.deleteClaim(nino, taxYear, id).leftMap(_.toServiceError))
       .void
 
   private def obtainExistingBenefitIds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[List[UUID]] =

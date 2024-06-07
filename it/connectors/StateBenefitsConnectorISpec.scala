@@ -54,12 +54,12 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
 
       for ((intExtHost, intExt) <- Seq((internalHost, "Internal"), (externalHost, "External")))
         s"the host for DES is '$intExt'" in {
-          val connector      = new StateBenefitsConnector(httpClient, appConfig(intExtHost))
+          val connector      = new StateBenefitsConnectorImpl(httpClient, appConfig(intExtHost))
           val expectedResult = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
 
           stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString(), headersSentToBenefits)
 
-          val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+          val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
           result mustBe Right(Some(expectedResult))
         }
@@ -69,7 +69,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
       val expectedResult = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
       stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString())
 
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc)).toOption.get
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value).toOption.get
 
       result mustBe Some(expectedResult)
     }
@@ -77,7 +77,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
     "return a Right None when NOT_FOUND" in {
       stubGetWithoutResponseBody(stateBenefitsUrl, NOT_FOUND)
 
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Right(None)
     }
@@ -85,7 +85,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
     "return a Right None when NO_CONTENT" in {
       stubGetWithoutResponseBody(stateBenefitsUrl, NO_CONTENT)
 
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Right(None)
     }
@@ -96,7 +96,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
         APIErrorModel(SERVICE_UNAVAILABLE, APIErrorBodyModel("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding."))
 
       stubGetWithResponseBody(stateBenefitsUrl, SERVICE_UNAVAILABLE, responseBody.toString())
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -109,7 +109,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
       val expectedResult = APIErrorModel(BAD_REQUEST, APIErrorBodyModel("INVALID_NINO", "Nino is invalid"))
 
       stubGetWithResponseBody(stateBenefitsUrl, BAD_REQUEST, responseBody.toString())
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -125,7 +125,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
           APIErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention."))
 
       stubGetWithResponseBody(stateBenefitsUrl, INTERNAL_SERVER_ERROR, responseBody.toString())
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -141,7 +141,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
         APIErrorBodyModel("SERVER_ERROR", "DES is currently experiencing problems that require live service intervention."))
 
       stubGetWithResponseBody(stateBenefitsUrl, GATEWAY_TIMEOUT, responseBody.toString())
-      val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }

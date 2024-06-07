@@ -20,6 +20,7 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
+// TODO clean up, we don't need all of this fields
 case class CustomerAddedStateBenefitsData(incapacityBenefits: Option[Set[CustomerAddedStateBenefit]] = None,
                                           statePensions: Option[Set[CustomerAddedStateBenefit]] = None,
                                           statePensionLumpSums: Option[Set[CustomerAddedStateBenefit]] = None,

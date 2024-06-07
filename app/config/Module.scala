@@ -17,7 +17,7 @@
 package config
 
 import com.google.inject.AbstractModule
-import connectors.{IntegrationFrameworkConnector, IntegrationFrameworkConnectorImpl}
+import connectors.{IntegrationFrameworkConnector, IntegrationFrameworkConnectorImpl, StateBenefitsConnector, StateBenefitsConnectorImpl}
 import repositories.{JourneyAnswersRepository, MongoJourneyAnswersRepository}
 import services._
 
@@ -35,6 +35,7 @@ class Module extends AbstractModule {
     bind(classOf[JourneyStatusService]).to(classOf[JourneyStatusServiceImpl])
     bind(classOf[StateBenefitService]).to(classOf[StateBenefitServiceImpl])
     bind(classOf[IntegrationFrameworkConnector]).to(classOf[IntegrationFrameworkConnectorImpl])
+    bind(classOf[StateBenefitsConnector]).to(classOf[StateBenefitsConnectorImpl])
   }
 
 }

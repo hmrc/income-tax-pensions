@@ -16,6 +16,7 @@
 
 package testdata.connector
 
+import models.AllStateBenefitsData
 import play.api.libs.json.JsObject
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
@@ -49,7 +50,7 @@ object stateBenefits {
     .copy(bereavementAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c997")))))
     .copy(otherStateBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c957")))))
 
-  val allStateBenefitsData = anAllStateBenefitsData.copy(
+  val allStateBenefitsData: AllStateBenefitsData = anAllStateBenefitsData.copy(
     stateBenefitsData = Some(stateBenefitsData),
     customerAddedStateBenefitsData = Some(customerAddedStateBenefitsData)
   )
