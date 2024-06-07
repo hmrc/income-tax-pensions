@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
 import utils.TestUtils
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 class CustomerAddedStateBenefitSpec extends TestUtils {
