@@ -44,7 +44,7 @@ object CustomerAddedStateBenefitsDataBuilder {
       |      "amount": 100.00,
       |      "taxPaid": 200.00
       |    }
-      |  ],
+      |  ]
       |}
       |""".stripMargin)
 }
