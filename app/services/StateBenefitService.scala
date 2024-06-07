@@ -27,7 +27,7 @@ import models.statebenefit.StateBenefitsUserData
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.Instant
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext

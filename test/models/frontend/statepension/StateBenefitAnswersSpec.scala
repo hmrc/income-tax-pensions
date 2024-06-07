@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package models.frontend.statepension
 
-import play.api.libs.json.{Json, OFormat}
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.frontend.stateBenefitAnswers
+import testdata.stateBenefit
 
-import java.time.{Instant, LocalDate}
-import java.util.UUID
+class StateBenefitAnswersSpec extends AnyWordSpecLike {
 
-case class StateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal], taxPaid: Option[BigDecimal])
-
-object StateBenefit {
-  implicit val format: OFormat[StateBenefit] = Json.format[StateBenefit]
+  "fromStateBenefit" should {
+    "convert StateBenefit to StateBenefitAnswers" in {
+      val result = StateBenefitAnswers.fromStateBenefit(stateBenefit.sample)
+      assert(result === stateBenefitAnswers.sample)
+    }
+  }
 }

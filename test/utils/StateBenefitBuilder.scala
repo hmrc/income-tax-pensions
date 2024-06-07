@@ -25,11 +25,8 @@ import java.util.UUID
 object StateBenefitBuilder {
 
   val aStateBenefit: StateBenefit = StateBenefit(
-    benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c936"),
+    benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"),
     startDate = LocalDate.parse(s"${taxYearEOY - 1}-04-23"),
-    endDate = Some(LocalDate.parse(s"$taxYearEOY-08-13")),
-    dateIgnored = Some(Instant.parse(s"${taxYearEOY - 1}-07-08T05:23:00Z")),
-    submittedOn = Some(Instant.parse(s"$taxYearEOY-03-13T19:23:00Z")),
     amount = Some(300.00),
     taxPaid = Some(400.00)
   )

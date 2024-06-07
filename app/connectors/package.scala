@@ -18,7 +18,7 @@ import connectors.httpParsers.ApiParser.CommonDownstreamParser
 import models.ServiceErrorModel
 import models.logging.ConnectorResponseInfo
 import play.api.Logger
-import play.api.http.Status.NO_CONTENT
+import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
@@ -52,4 +52,6 @@ package object connectors {
   def isSuccess(status: Int): Boolean = status >= 200 && status <= 299
 
   def isNoContent(status: Int): Boolean = status == NO_CONTENT
+
+  def isNotFound(status: Int): Boolean = status == NOT_FOUND
 }

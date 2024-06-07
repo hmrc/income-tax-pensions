@@ -26,7 +26,6 @@ import utils.JsonUtils.jsonObjNoNulls
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
                                 customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
 
-  // TODO dbAnswers not used
   def toIncomeFromPensionsStatePensionAnswers(
       sessionId: Option[String],
       dbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {

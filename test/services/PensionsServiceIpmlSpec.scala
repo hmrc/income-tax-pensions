@@ -31,6 +31,7 @@ import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
@@ -39,8 +40,11 @@ import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
+import stubs.services.{StubEmploymentService, StubStateBenefitService}
 import stubs.services.{StubEmploymentService, StubJourneyStatusService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
+import testdata.connector.stateBenefits
+import testdata.frontend.stateBenefitAnswers
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
@@ -80,6 +84,16 @@ class PensionsServiceIpmlSpec
       mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
+      stubRepository
+    )
+
+  def createPensionWithStubStateBenefit(stub: StubStateBenefitService) =
+    new PensionsServiceImpl(
+      mockReliefsConnector,
+      mockChargesConnector,
+      stub,
+      mockIncomeConnector,
+      stubEmploymentService,
       stubRepository
     )
 
@@ -339,6 +353,57 @@ class PensionsServiceIpmlSpec
       assert(persistedAnswers === UkPensionIncomeStorageAnswers(true))
     }
   }
+
+  "getStatePension" should {
+    "get None if No downstream and DB answers" in {
+      val service = createPensionWithStubStateBenefit(stubStateBenefit)
+      val result  = service.getStatePension(sampleCtx).value.futureValue.value.value
+
+      assert(result === IncomeFromPensionsStatePensionAnswers.empty)
+    }
+
+    "get answers if No downstream but DB answers exist" in {
+      val service = createPensionWithStubStateBenefit(stubStateBenefit)
+      val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        res <- service.getStatePension(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(
+        result === Some(
+          IncomeFromPensionsStatePensionAnswers(
+            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
+            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
+            None
+          )))
+    }
+
+    "get answers from downstream" in {
+      val service = createPensionWithStubStateBenefit(
+        StubStateBenefitService(
+          getStateBenefitsResult = Right(stateBenefits.allStateBenefitsData)
+        ))
+
+      val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        res <- service.getStatePension(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(
+        result === Some(
+          IncomeFromPensionsStatePensionAnswers(
+            Some(stateBenefitAnswers.sample),
+            Some(stateBenefitAnswers.sample),
+            None
+          )))
+    }
+  }
+
+  "upsertStatePension" should {}
 
   "getAnnualAllowances" should {
     val annualAllowancesCtx = sampleCtx.toJourneyContext(Journey.AnnualAllowances)

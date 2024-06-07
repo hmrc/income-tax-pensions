@@ -29,7 +29,7 @@ class OptionalContentHttpReads[A: Reads] extends HttpReads[DownstreamErrorOr[Opt
   override def read(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Option[A]] = {
     ConnectorResponseInfo(method, url, response).logResponseWarnOn4xx(logger)
 
-    if (isNoContent(response.status)) {
+    if (isNoContent(response.status) || isNotFound(response.status)) {
       None.asRight
     } else if (isSuccess(response.status)) {
       readOne[A](method, url, response).map(Some(_))
