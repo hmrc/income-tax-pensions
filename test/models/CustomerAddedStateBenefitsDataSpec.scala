@@ -27,9 +27,7 @@ import java.util.UUID
 class CustomerAddedStateBenefitsDataSpec extends TestUtils {
 
   private val customerAddedStateBenefit = aCustomerAddedStateBenefit
-    .copy(submittedOn = Some(Instant.parse("2020-11-17T19:23:00Z")))
     .copy(startDate = LocalDate.parse("2018-07-17"))
-    .copy(endDate = Some(LocalDate.parse("2020-09-23")))
 
   private val customerAddedStateBenefitsData = aCustomerAddedStateBenefitsData
     .copy(statePensions = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c943")))))

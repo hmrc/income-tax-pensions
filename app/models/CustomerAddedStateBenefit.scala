@@ -23,8 +23,6 @@ import java.util.UUID
 
 case class CustomerAddedStateBenefit(benefitId: UUID,
                                      startDate: LocalDate,
-                                     endDate: Option[LocalDate] = None,
-                                     submittedOn: Option[Instant] = None,
                                      amount: Option[BigDecimal] = None,
                                      taxPaid: Option[BigDecimal] = None)
 
