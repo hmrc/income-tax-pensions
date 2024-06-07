@@ -23,87 +23,28 @@ import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
 object CustomerAddedStateBenefitsDataBuilder {
 
   val aCustomerAddedStateBenefitsData: CustomerAddedStateBenefitsData = CustomerAddedStateBenefitsData(
-    incapacityBenefits = Some(Set(aCustomerAddedStateBenefit)),
     statePensions = Some(Set(aCustomerAddedStateBenefit)),
-    statePensionLumpSums = Some(Set(aCustomerAddedStateBenefit)),
-    employmentSupportAllowances = Some(Set(aCustomerAddedStateBenefit)),
-    jobSeekersAllowances = Some(Set(aCustomerAddedStateBenefit)),
-    bereavementAllowances = Some(Set(aCustomerAddedStateBenefit)),
-    otherStateBenefits = Some(Set(aCustomerAddedStateBenefit))
+    statePensionLumpSums = Some(Set(aCustomerAddedStateBenefit))
   )
 
   val aCustomerAddedStateBenefitsDataJsValue: JsValue = Json.parse("""
       |{
-      |  "incapacityBenefit": [
-      |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c941",
-      |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
-      |      "amount": 100.00,
-      |      "taxPaid": 200.00
-      |    }
-      |  ],
       |  "statePension": [
       |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
       |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c943",
       |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
       |      "amount": 100.00,
       |      "taxPaid": 200.00
       |    }
       |  ],
       |  "statePensionLumpSum": [
       |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
       |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c956",
       |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
       |      "amount": 100.00,
       |      "taxPaid": 200.00
       |    }
       |  ],
-      |  "employmentSupportAllowance": [
-      |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c988",
-      |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
-      |      "amount": 100.00,
-      |      "taxPaid": 200.00
-      |    }
-      |  ],
-      |  "jobSeekersAllowance": [
-      |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c990",
-      |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
-      |      "amount": 100.00,
-      |      "taxPaid": 200.00
-      |    }
-      |  ],
-      |  "bereavementAllowance": [
-      |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c997",
-      |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
-      |      "amount": 100.00,
-      |      "taxPaid": 200.00
-      |    }
-      |  ],
-      |  "otherStateBenefits": [
-      |    {
-      |      "submittedOn": "2020-11-17T19:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c957",
-      |      "startDate": "2018-07-17",
-      |      "endDate": "2020-09-23",
-      |      "amount": 100.00,
-      |      "taxPaid": 200.00
-      |    }
-      |  ]
       |}
       |""".stripMargin)
 }

@@ -32,14 +32,8 @@ class CustomerAddedStateBenefitsDataSpec extends TestUtils {
     .copy(endDate = Some(LocalDate.parse("2020-09-23")))
 
   private val customerAddedStateBenefitsData = aCustomerAddedStateBenefitsData
-    .copy(incapacityBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c941")))))
     .copy(statePensions = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c943")))))
     .copy(statePensionLumpSums = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c956")))))
-    .copy(employmentSupportAllowances =
-      Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
-    .copy(jobSeekersAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c990")))))
-    .copy(bereavementAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c997")))))
-    .copy(otherStateBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c957")))))
 
   "customerAddedStateBenefitsDataWrites" should {
     "convert CustomerAddedStateBenefitsData to correct JsValue when full object" in {

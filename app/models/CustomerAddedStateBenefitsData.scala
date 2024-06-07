@@ -20,35 +20,21 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
-// TODO clean up, we don't need all of this fields
-case class CustomerAddedStateBenefitsData(incapacityBenefits: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          statePensions: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          statePensionLumpSums: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          employmentSupportAllowances: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          jobSeekersAllowances: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          bereavementAllowances: Option[Set[CustomerAddedStateBenefit]] = None,
-                                          otherStateBenefits: Option[Set[CustomerAddedStateBenefit]] = None)
+case class CustomerAddedStateBenefitsData(
+    statePensions: Option[Set[CustomerAddedStateBenefit]] = None,
+    statePensionLumpSums: Option[Set[CustomerAddedStateBenefit]] = None
+)
 
 object CustomerAddedStateBenefitsData {
 
   implicit val customerAddedStateBenefitsDataWrites: OWrites[CustomerAddedStateBenefitsData] = (data: CustomerAddedStateBenefitsData) =>
     jsonObjNoNulls(
-      "incapacityBenefit"          -> data.incapacityBenefits,
-      "statePension"               -> data.statePensions,
-      "statePensionLumpSum"        -> data.statePensionLumpSums,
-      "employmentSupportAllowance" -> data.employmentSupportAllowances,
-      "jobSeekersAllowance"        -> data.jobSeekersAllowances,
-      "bereavementAllowance"       -> data.bereavementAllowances,
-      "otherStateBenefits"         -> data.otherStateBenefits
+      "statePension"        -> data.statePensions,
+      "statePensionLumpSum" -> data.statePensionLumpSums
     )
 
   implicit val customerAddedStateBenefitsDataReads: Reads[CustomerAddedStateBenefitsData] = (
-    (JsPath \ "incapacityBenefit").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "statePension").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "statePensionLumpSum").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "employmentSupportAllowance").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "jobSeekersAllowance").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "bereavementAllowance").readNullable[Set[CustomerAddedStateBenefit]] and
-      (JsPath \ "otherStateBenefits").readNullable[Set[CustomerAddedStateBenefit]]
+    (JsPath \ "statePension").readNullable[Set[CustomerAddedStateBenefit]] and
+      (JsPath \ "statePensionLumpSum").readNullable[Set[CustomerAddedStateBenefit]]
   )(CustomerAddedStateBenefitsData.apply _)
 }
