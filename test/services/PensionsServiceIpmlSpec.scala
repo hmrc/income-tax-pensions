@@ -73,7 +73,8 @@ class PensionsServiceIpmlSpec
   val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
   val stubRepository: StubJourneyAnswersRepository   = StubJourneyAnswersRepository()
   val stubEmploymentService: StubEmploymentService   = StubEmploymentService()
-  val stubStatusService                                 = StubJourneyStatusService()
+  val stubStatusService: StubJourneyStatusService    = StubJourneyStatusService()
+  val stubStateBenefit: StubStateBenefitService      = StubStateBenefitService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
     new PensionsServiceImpl(
@@ -89,11 +90,13 @@ class PensionsServiceIpmlSpec
 
   def createPensionWithStubStateBenefit(stub: StubStateBenefitService) =
     new PensionsServiceImpl(
+      mockAppConfig,
       mockReliefsConnector,
       mockChargesConnector,
       stub,
       mockIncomeConnector,
       stubEmploymentService,
+      stubStatusService,
       stubRepository
     )
 

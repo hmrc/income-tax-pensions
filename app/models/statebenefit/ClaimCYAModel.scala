@@ -18,7 +18,7 @@ package models.statebenefit
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 final case class ClaimCYAModel(

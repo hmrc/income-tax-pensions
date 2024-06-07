@@ -16,8 +16,8 @@
 
 package models.frontend
 
-import models.common.{Journey, JourneyStatus, TaxYear}
 import models.common.Journey._
+import models.common.{Journey, JourneyStatus}
 
 final case class JourneyFrontend(journey: Journey, status: Option[JourneyStatus]) {
 
