@@ -16,63 +16,21 @@
 
 package models
 
-import play.api.libs.json.{JsObject, JsValue, Json}
-import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
-import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
-import utils.CustomerAddedStateBenefitsDataBuilder.{aCustomerAddedStateBenefitsData, aCustomerAddedStateBenefitsDataJsValue}
-import utils.StateBenefitBuilder.aStateBenefit
-import utils.StateBenefitsDataBuilder.{aStateBenefitsData, aStateBenefitsDataJsValue}
-import utils.TestUtils
+import models.database.IncomeFromPensionsStatePensionStorageAnswers
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
+import org.scalatest.wordspec.AnyWordSpecLike
+import play.api.libs.json.{JsValue, Json}
+import testdata.connector.stateBenefits._
+import testdata.database.incomeFromPensionsStatePensionStorageAnswers
+import testdata.frontend.stateBenefitAnswers
 
-import java.time.{Instant, LocalDate}
 import java.util.UUID
 
-class AllStateBenefitsDataSpec extends TestUtils {
-
-  private val stateBenefit = aStateBenefit
-    .copy(startDate = LocalDate.parse("2019-04-23"))
-    .copy(endDate = Some(LocalDate.parse("2020-08-13")))
-    .copy(dateIgnored = Some(Instant.parse("2019-07-08T05:23:00Z")))
-    .copy(submittedOn = Some(Instant.parse("2020-09-11T17:23:00Z")))
-
-  private val stateBenefitsData = aStateBenefitsData
-    .copy(incapacityBenefits = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c934")))))
-    .copy(statePension = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c935"))))
-    .copy(statePensionLumpSum = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c936"))))
-    .copy(employmentSupportAllowances = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c937")))))
-    .copy(jobSeekersAllowances = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c938")))))
-    .copy(bereavementAllowance = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c939"))))
-    .copy(other = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c940"))))
-
-  private val customerAddedStateBenefit = aCustomerAddedStateBenefit
-    .copy(submittedOn = Some(Instant.parse("2020-11-17T19:23:00Z")))
-    .copy(startDate = LocalDate.parse("2018-07-17"))
-    .copy(endDate = Some(LocalDate.parse("2020-09-23")))
-
-  private val customerAddedStateBenefitsData = aCustomerAddedStateBenefitsData
-    .copy(incapacityBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c941")))))
-    .copy(statePensions = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c943")))))
-    .copy(statePensionLumpSums = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c956")))))
-    .copy(employmentSupportAllowances =
-      Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c988")))))
-    .copy(jobSeekersAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c990")))))
-    .copy(bereavementAllowances = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c997")))))
-    .copy(otherStateBenefits = Some(Set(customerAddedStateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c957")))))
-
-  private val allStateBenefitsData = anAllStateBenefitsData.copy(
-    stateBenefitsData = Some(stateBenefitsData),
-    customerAddedStateBenefitsData = Some(customerAddedStateBenefitsData)
-  )
-
-  private val allStateBenefitsDataJsValue = JsObject(
-    Seq(
-      "stateBenefits"              -> aStateBenefitsDataJsValue,
-      "customerAddedStateBenefits" -> aCustomerAddedStateBenefitsDataJsValue
-    ))
+class AllStateBenefitsDataSpec extends AnyWordSpecLike {
 
   "allStateBenefitsDataWrites" should {
     "convert AllStateBenefitsData to correct JsValue when full object" in {
-      Json.toJson(allStateBenefitsData) mustBe allStateBenefitsDataJsValue
+      assert(Json.toJson(allStateBenefitsData) === allStateBenefitsDataJsValue)
     }
 
     "convert AllStateBenefitsData to correct JsValue when empty object" in {
@@ -86,13 +44,13 @@ class AllStateBenefitsDataSpec extends TestUtils {
         customerAddedStateBenefitsData = None
       )
 
-      Json.toJson(allStateBenefitsData) mustBe jsValue
+      assert(Json.toJson(allStateBenefitsData) === jsValue)
     }
   }
 
   "allStateBenefitsDataReads" should {
     "convert JsValue to AllStateBenefitsData when full object" in {
-      Json.fromJson[AllStateBenefitsData](allStateBenefitsDataJsValue).get mustBe allStateBenefitsData
+      assert(Json.fromJson[AllStateBenefitsData](allStateBenefitsDataJsValue).get === allStateBenefitsData)
     }
 
     "convert JsValue to AllStateBenefitsData when empty object" in {
@@ -102,10 +60,45 @@ class AllStateBenefitsDataSpec extends TestUtils {
           |}
           |""".stripMargin)
 
-      Json.fromJson[AllStateBenefitsData](jsValue).get mustBe AllStateBenefitsData(
-        stateBenefitsData = Some(StateBenefitsData()),
-        customerAddedStateBenefitsData = None
-      )
+      assert(
+        Json.fromJson[AllStateBenefitsData](jsValue).get === AllStateBenefitsData(
+          stateBenefitsData = Some(StateBenefitsData()),
+          customerAddedStateBenefitsData = None
+        ))
     }
+  }
+
+  "toIncomeFromPensionsStatePensionAnswers" should {
+    "return an empty" in {
+      val result = AllStateBenefitsData.empty.toIncomeFromPensionsStatePensionAnswers(None, None)
+      assert(result === IncomeFromPensionsStatePensionAnswers.empty)
+    }
+
+    "return all answers" in {
+      val result = allStateBenefitsData.toIncomeFromPensionsStatePensionAnswers(
+        Some("sessionId"),
+        Some(incomeFromPensionsStatePensionStorageAnswers.sampleAnswers))
+
+      assert(
+        result === IncomeFromPensionsStatePensionAnswers(
+          statePension = Some(stateBenefitAnswers.sample.copy(benefitId = Some(UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b")))),
+          statePensionLumpSum = Some(stateBenefitAnswers.sample.copy(benefitId = Some(UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b")))),
+          sessionId = Some("sessionId")
+        ))
+    }
+
+    "fallback to answers from database when no answers in IFS" in {
+      val result = AllStateBenefitsData.empty.toIncomeFromPensionsStatePensionAnswers(
+        Some("sessionId"),
+        Some(IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(true))))
+
+      assert(
+        result === IncomeFromPensionsStatePensionAnswers(
+          Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
+          Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+          sessionId = Some("sessionId")
+        ))
+    }
+
   }
 }

@@ -27,8 +27,6 @@ object CustomerAddedStateBenefitBuilder {
   val aCustomerAddedStateBenefit: CustomerAddedStateBenefit = CustomerAddedStateBenefit(
     benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c941"),
     startDate = LocalDate.parse(s"${taxYearEOY - 1}-04-23"),
-    endDate = Some(LocalDate.parse(s"$taxYearEOY-08-13")),
-    submittedOn = Some(Instant.parse(s"$taxYearEOY-03-13T19:23:00Z")),
     amount = Some(100.00),
     taxPaid = Some(200.00)
   )

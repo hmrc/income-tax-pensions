@@ -33,6 +33,8 @@ import utils.PagerDutyHelper.PagerDutyKeys.{
 }
 import utils.PagerDutyHelper.pagerDutyLog
 
+import scala.util.Try
+
 trait APIParserTrait extends Logging {
 
   val parserName: String
@@ -51,17 +53,27 @@ trait APIParserTrait extends Logging {
     val status = statusOverride.getOrElse(response.status)
 
     try {
-      val json = response.json
+      val maybeResponseJson = Try(response.json).toOption
 
-      lazy val apiError  = json.asOpt[APIErrorBodyModel]
-      lazy val apiErrors = json.asOpt[APIErrorsBodyModel]
+      val errorResult = maybeResponseJson.flatMap { json =>
+        json
+          .asOpt[APIErrorBodyModel]
+          .map { apiError =>
+            APIErrorModel(status, apiError)
+          }
+          .orElse {
+            json
+              .asOpt[APIErrorsBodyModel]
+              .map { apiErrors =>
+                APIErrorModel(status, apiErrors)
 
-      (apiError, apiErrors) match {
-        case (Some(apiError), _)  => Left(APIErrorModel(status, apiError))
-        case (_, Some(apiErrors)) => Left(APIErrorModel(status, apiErrors))
-        case _ =>
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, s"[$parserName][read] Unexpected Json from $service API.")
-          Left(APIErrorModel(status, APIErrorBodyModel.parsingError))
+              }
+          }
+      }
+
+      errorResult.map(Left(_)).getOrElse {
+        pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, s"[$parserName][read] Unexpected Json from $service API.")
+        Left(APIErrorModel(status, APIErrorBodyModel.parsingError))
       }
     } catch {
       case _: Exception => Left(APIErrorModel(status, APIErrorBodyModel.parsingError))

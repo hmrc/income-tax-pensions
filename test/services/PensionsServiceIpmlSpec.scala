@@ -16,6 +16,7 @@
 
 package services
 
+import cats.data.EitherT
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
@@ -29,6 +30,8 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
+import models.error.ServiceError
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
@@ -37,8 +40,11 @@ import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
+import stubs.services.{StubEmploymentService, StubStateBenefitService}
 import stubs.services.{StubEmploymentService, StubJourneyStatusService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
+import testdata.connector.stateBenefits
+import testdata.frontend.stateBenefitAnswers
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
 import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
@@ -63,17 +69,31 @@ class PensionsServiceIpmlSpec
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
 
-  val stateBenefitsConnector: GetStateBenefitsConnector = mock[GetStateBenefitsConnector]
-  val stubRepository: StubJourneyAnswersRepository      = StubJourneyAnswersRepository()
-  val stubEmploymentService: StubEmploymentService      = StubEmploymentService()
-  val stubStatusService                                 = StubJourneyStatusService()
+  val mockStateBenefitsService: StateBenefitService  = mock[StateBenefitService]
+  val pensionIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
+  val stubRepository: StubJourneyAnswersRepository   = StubJourneyAnswersRepository()
+  val stubEmploymentService: StubEmploymentService   = StubEmploymentService()
+  val stubStatusService: StubJourneyStatusService    = StubJourneyStatusService()
+  val stubStateBenefit: StubStateBenefitService      = StubStateBenefitService()
 
   def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
     new PensionsServiceImpl(
       mockAppConfig,
       mockReliefsConnector,
       mockChargesConnector,
-      stateBenefitsConnector,
+      mockStateBenefitsService,
+      mockIncomeConnector,
+      stubEmploymentService,
+      stubStatusService,
+      stubRepository
+    )
+
+  def createPensionWithStubStateBenefit(stub: StubStateBenefitService) =
+    new PensionsServiceImpl(
+      mockAppConfig,
+      mockReliefsConnector,
+      mockChargesConnector,
+      stub,
       mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
@@ -107,10 +127,10 @@ class PensionsServiceIpmlSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
 
-      (stateBenefitsConnector
-        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedStateBenefitsResult))
+      (mockStateBenefitsService
+        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT.rightT[Future, ServiceError](anAllStateBenefitsData))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -134,10 +154,10 @@ class PensionsServiceIpmlSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (stateBenefitsConnector
-        .getStateBenefits(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(Right(None)))
+      (mockStateBenefitsService
+        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
+        .expects(*, *)
+        .returning(EitherT.rightT[Future, ServiceError](AllStateBenefitsData.empty))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -336,6 +356,57 @@ class PensionsServiceIpmlSpec
       assert(persistedAnswers === UkPensionIncomeStorageAnswers(true))
     }
   }
+
+  "getStatePension" should {
+    "get None if No downstream and DB answers" in {
+      val service = createPensionWithStubStateBenefit(stubStateBenefit)
+      val result  = service.getStatePension(sampleCtx).value.futureValue.value.value
+
+      assert(result === IncomeFromPensionsStatePensionAnswers.empty)
+    }
+
+    "get answers if No downstream but DB answers exist" in {
+      val service = createPensionWithStubStateBenefit(stubStateBenefit)
+      val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        res <- service.getStatePension(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(
+        result === Some(
+          IncomeFromPensionsStatePensionAnswers(
+            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
+            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
+            None
+          )))
+    }
+
+    "get answers from downstream" in {
+      val service = createPensionWithStubStateBenefit(
+        StubStateBenefitService(
+          getStateBenefitsResult = Right(stateBenefits.allStateBenefitsData)
+        ))
+
+      val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
+
+      val result = (for {
+        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        res <- service.getStatePension(sampleCtx)
+      } yield res).value.futureValue.value
+
+      assert(
+        result === Some(
+          IncomeFromPensionsStatePensionAnswers(
+            Some(stateBenefitAnswers.sample),
+            Some(stateBenefitAnswers.sample),
+            None
+          )))
+    }
+  }
+
+  "upsertStatePension" should {}
 
   "getAnnualAllowances" should {
     val annualAllowancesCtx = sampleCtx.toJourneyContext(Journey.AnnualAllowances)

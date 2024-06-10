@@ -23,83 +23,21 @@ import utils.StateBenefitBuilder.aStateBenefit
 object StateBenefitsDataBuilder {
 
   val aStateBenefitsData: StateBenefitsData = StateBenefitsData(
-    incapacityBenefits = Some(Set(aStateBenefit)),
     statePension = Some(aStateBenefit),
-    statePensionLumpSum = Some(aStateBenefit),
-    employmentSupportAllowances = Some(Set(aStateBenefit)),
-    jobSeekersAllowances = Some(Set(aStateBenefit)),
-    bereavementAllowance = Some(aStateBenefit),
-    other = Some(aStateBenefit)
+    statePensionLumpSum = Some(aStateBenefit)
   )
 
   val aStateBenefitsDataJsValue: JsValue = Json.parse("""
       |{
-      |  "incapacityBenefit": [
-      |    {
-      |      "dateIgnored": "2019-07-08T05:23:00Z",
-      |      "submittedOn": "2020-09-11T17:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c934",
-      |      "startDate": "2019-04-23",
-      |      "endDate": "2020-08-13",
-      |      "amount": 300.00,
-      |      "taxPaid": 400.00
-      |    }
-      |  ],
       |  "statePension": {
-      |    "dateIgnored": "2019-07-08T05:23:00Z",
-      |    "submittedOn": "2020-09-11T17:23:00Z",
-      |    "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c935",
+      |    "benefitId": "f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b",
       |    "startDate": "2019-04-23",
-      |    "endDate": "2020-08-13",
       |    "amount": 300.00,
       |    "taxPaid": 400.00
       |  },
       |  "statePensionLumpSum": {
-      |    "dateIgnored": "2019-07-08T05:23:00Z",
-      |    "submittedOn": "2020-09-11T17:23:00Z",
-      |    "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c936",
+      |    "benefitId": "f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b",
       |    "startDate": "2019-04-23",
-      |    "endDate": "2020-08-13",
-      |    "amount": 300.00,
-      |    "taxPaid": 400.00
-      |  },
-      |  "employmentSupportAllowance": [
-      |    {
-      |      "dateIgnored": "2019-07-08T05:23:00Z",
-      |      "submittedOn": "2020-09-11T17:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c937",
-      |      "startDate": "2019-04-23",
-      |      "endDate": "2020-08-13",
-      |      "amount": 300.00,
-      |      "taxPaid": 400.00
-      |    }
-      |  ],
-      |  "jobSeekersAllowance": [
-      |    {
-      |      "dateIgnored": "2019-07-08T05:23:00Z",
-      |      "submittedOn": "2020-09-11T17:23:00Z",
-      |      "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c938",
-      |      "startDate": "2019-04-23",
-      |      "endDate": "2020-08-13",
-      |      "amount": 300.00,
-      |      "taxPaid": 400.00
-      |    }
-      |  ],
-      |  "bereavementAllowance": {
-      |    "dateIgnored": "2019-07-08T05:23:00Z",
-      |    "submittedOn": "2020-09-11T17:23:00Z",
-      |    "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c939",
-      |    "startDate": "2019-04-23",
-      |    "endDate": "2020-08-13",
-      |    "amount": 300.00,
-      |    "taxPaid": 400.00
-      |  },
-      |  "otherStateBenefits": {
-      |    "dateIgnored": "2019-07-08T05:23:00Z",
-      |    "submittedOn": "2020-09-11T17:23:00Z",
-      |    "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c940",
-      |    "startDate": "2019-04-23",
-      |    "endDate": "2020-08-13",
       |    "amount": 300.00,
       |    "taxPaid": 400.00
       |  }

@@ -16,7 +16,7 @@
 
 package models.stub
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 final case class APIUser(nino: String,
                          dividends: List[String] = Nil,
@@ -34,5 +34,5 @@ final case class APIUser(nino: String,
                          property: List[String] = Nil)
 
 object APIUser {
-  implicit val format = Json.format[APIUser]
+  implicit val format: OFormat[APIUser] = Json.format[APIUser]
 }

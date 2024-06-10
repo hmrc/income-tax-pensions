@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import utils.StateBenefitBuilder.aStateBenefit
 import utils.TestUtils
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 class StateBenefitSpec extends TestUtils {
@@ -30,11 +30,8 @@ class StateBenefitSpec extends TestUtils {
       "produce a valid json for fully populated object" in {
         val json = Json.parse("""
             |{
-            |  "dateIgnored": "2019-07-08T05:23:00Z",
-            |  "submittedOn": "2020-03-13T19:23:00Z",
-            |  "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c936",
+            |  "benefitId": "f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b",
             |  "startDate": "2019-04-23",
-            |  "endDate": "2020-08-13",
             |  "amount": 300.00,
             |  "taxPaid": 400.00
             |}
@@ -42,9 +39,6 @@ class StateBenefitSpec extends TestUtils {
 
         val underTest = aStateBenefit
           .copy(startDate = LocalDate.parse("2019-04-23"))
-          .copy(endDate = Some(LocalDate.parse("2020-08-13")))
-          .copy(submittedOn = Some(Instant.parse("2020-03-13T19:23:00Z")))
-          .copy(dateIgnored = Some(Instant.parse("2019-07-08T05:23:00Z")))
 
         Json.toJson(underTest) mustBe json
       }
@@ -52,12 +46,13 @@ class StateBenefitSpec extends TestUtils {
       "produce a valid json for a minimal object" in {
         val json = Json.parse("""
             |{
-            |  "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c936",
+            |  "benefitId": "f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b",
             |  "startDate": "2019-04-23"
             |}
             |""".stripMargin)
 
-        val underTest = StateBenefit(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c936"), startDate = LocalDate.parse("2019-04-23"))
+        val underTest =
+          StateBenefit(benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"), startDate = LocalDate.parse("2019-04-23"), None, None)
 
         Json.toJson(underTest) mustBe json
       }

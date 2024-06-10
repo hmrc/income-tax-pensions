@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package models
+package models.statebenefit
 
-import play.api.libs.json.{Json, OFormat}
+sealed trait BenefitType {
+  val value: String
+}
 
-import java.time.{Instant, LocalDate}
-import java.util.UUID
+object BenefitType {
+  case object StatePension extends BenefitType {
+    override val value: String = "statePension"
+  }
+  case object StatePensionLumpSum extends BenefitType {
+    override val value: String = "statePensionLumpSum"
+  }
 
-case class StateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal], taxPaid: Option[BigDecimal])
-
-object StateBenefit {
-  implicit val format: OFormat[StateBenefit] = Json.format[StateBenefit]
+  val values: List[BenefitType] = List(StatePension, StatePensionLumpSum)
 }

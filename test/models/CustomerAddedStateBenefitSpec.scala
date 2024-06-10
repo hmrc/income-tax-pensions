@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
 import utils.TestUtils
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 class CustomerAddedStateBenefitSpec extends TestUtils {
@@ -30,19 +30,15 @@ class CustomerAddedStateBenefitSpec extends TestUtils {
       "produce a valid json for fully populated object" in {
         val json = Json.parse("""
             |{
-            |  "submittedOn": "2020-03-13T19:23:00Z",
             |  "benefitId": "a1e8057e-fbbc-47a8-a8b4-78d9f015c941",
             |  "startDate": "2019-04-23",
-            |  "endDate": "2020-08-13",
             |  "amount": 100.00,
             |  "taxPaid": 200.00
             |}
             |""".stripMargin)
 
         val underTest = aCustomerAddedStateBenefit
-          .copy(submittedOn = Some(Instant.parse("2020-03-13T19:23:00Z")))
           .copy(startDate = LocalDate.parse("2019-04-23"))
-          .copy(endDate = Some(LocalDate.parse("2020-08-13")))
 
         Json.toJson(underTest) mustBe json
       }

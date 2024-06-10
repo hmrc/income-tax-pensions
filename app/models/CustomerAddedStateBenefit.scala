@@ -18,15 +18,10 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
-case class CustomerAddedStateBenefit(benefitId: UUID,
-                                     startDate: LocalDate,
-                                     endDate: Option[LocalDate] = None,
-                                     submittedOn: Option[Instant] = None,
-                                     amount: Option[BigDecimal] = None,
-                                     taxPaid: Option[BigDecimal] = None)
+case class CustomerAddedStateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal] = None, taxPaid: Option[BigDecimal] = None)
 
 object CustomerAddedStateBenefit {
   implicit val format: OFormat[CustomerAddedStateBenefit] = Json.format[CustomerAddedStateBenefit]

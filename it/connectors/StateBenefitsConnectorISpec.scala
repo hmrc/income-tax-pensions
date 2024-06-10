@@ -18,33 +18,32 @@ package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.AppConfig
-import connectors.GetStateBenefitsConnectorISpec.expectedResponseBody
+import connectors.StateBenefitsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
-import models.{AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
+import models.error.ServiceError.DownstreamError
+import models.{APIErrorBodyModel, APIErrorModel, AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
+import testdata.common._
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.CustomerAddedStateBenefitsDataBuilder.aCustomerAddedStateBenefitsDataJsValue
 import utils.StateBenefitsDataBuilder.aStateBenefitsDataJsValue
 
-class GetStateBenefitsConnectorISpec extends WiremockSpec {
+class StateBenefitsConnectorISpec extends WiremockSpec {
+  val connector: StateBenefitsConnector = app.injector.instanceOf[StateBenefitsConnector]
+  val httpClient: HttpClient            = app.injector.instanceOf[HttpClient]
+  implicit val hc: HeaderCarrier        = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-  lazy val connector: GetStateBenefitsConnector = app.injector.instanceOf[GetStateBenefitsConnector]
-
-  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
-
-  def appConfig(benefitsHost: String): AppConfig =
+  def appConfig(host: String): AppConfig =
     new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-      override val stateBenefitsBaseUrl: String = s"http://$benefitsHost:$wireMockPort"
+      override val stateBenefitsBaseUrl: String = s"http://$host:$wireMockPort"
     }
 
-  val nino: String             = "123456789"
-  val taxYear: Int             = 2021
-  val stateBenefitsUrl: String = s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
+  val stateBenefitsUrl = s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
 
-  ".getStateBenefits" should {
+  "getStateBenefits" should {
 
     "include internal headers" when {
       val headersSentToBenefits = Seq(
@@ -56,57 +55,48 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
 
       for ((intExtHost, intExt) <- Seq((internalHost, "Internal"), (externalHost, "External")))
         s"the host for DES is '$intExt'" in {
-          implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-          val connector                  = new GetStateBenefitsConnector(httpClient, appConfig(intExtHost))
-          val expectedResult             = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
+          val connector      = new StateBenefitsConnectorImpl(httpClient, appConfig(intExtHost))
+          val expectedResult = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
 
           stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString(), headersSentToBenefits)
 
-          val result = await(connector.getStateBenefits(nino, taxYear)(hc))
+          val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
           result mustBe Right(Some(expectedResult))
         }
     }
 
-    "return a GetStateBenefitsModel" when {
+    "return a AllStateBenefitsData" in {
+      val expectedResult = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
+      stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString())
 
-      "nino and tax year are present" in {
-        val expectedResult = Json.parse(expectedResponseBody.toString()).as[AllStateBenefitsData]
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value).toOption.get
 
-        stubGetWithResponseBody(stateBenefitsUrl, OK, expectedResponseBody.toString())
-
-        implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result                     = await(connector.getStateBenefits(nino, taxYear)(hc)).toOption.get
-
-        result mustBe Some(expectedResult)
-      }
+      result mustBe Some(expectedResult)
     }
 
     "return a Right None when NOT_FOUND" in {
-      stubGetWithResponseBody(stateBenefitsUrl, NOT_FOUND, "")
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+      stubGetWithoutResponseBody(stateBenefitsUrl, NOT_FOUND)
+
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Right(None)
     }
 
     "return a Right None when NO_CONTENT" in {
-//      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
       stubGetWithoutResponseBody(stateBenefitsUrl, NO_CONTENT)
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Right(None)
     }
 
     "return a SERVICE_UNAVAILABLE" in {
       val responseBody   = Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
-      val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel.serviceUnavailable)
+      val expectedResult = DownstreamError("APIErrorBodyModel(SERVICE_UNAVAILABLE,Dependent systems are currently not responding.)")
 
       stubGetWithResponseBody(stateBenefitsUrl, SERVICE_UNAVAILABLE, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -116,11 +106,10 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
         "code"   -> "INVALID_NINO",
         "reason" -> "Nino is invalid"
       )
-      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO", "Nino is invalid"))
+      val expectedResult = DownstreamError("APIErrorBodyModel(INVALID_NINO,Nino is invalid)")
 
       stubGetWithResponseBody(stateBenefitsUrl, BAD_REQUEST, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -130,11 +119,11 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
         "code"   -> "SERVER_ERROR",
         "reason" -> "DES is currently experiencing problems that require live service intervention."
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.serverError)
+      val expectedResult =
+        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)")
 
       stubGetWithResponseBody(stateBenefitsUrl, INTERNAL_SERVER_ERROR, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
@@ -145,19 +134,21 @@ class GetStateBenefitsConnectorISpec extends WiremockSpec {
         "code"   -> "SERVER_ERROR",
         "reason" -> "DES is currently experiencing problems that require live service intervention."
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.serverError)
+      val expectedResult =
+        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)")
 
       stubGetWithResponseBody(stateBenefitsUrl, GATEWAY_TIMEOUT, responseBody.toString())
-      implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result                     = await(connector.getStateBenefits(nino, taxYear)(hc))
+      val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
 
       result mustBe Left(expectedResult)
     }
   }
 
+  // TODO LT Add more tests, refactor above to Table, change the model to case classes and sealed traits
+
 }
 
-object GetStateBenefitsConnectorISpec {
+object StateBenefitsConnectorISpec {
 
   val expectedResponseBody: JsObject = JsObject(
     Seq(

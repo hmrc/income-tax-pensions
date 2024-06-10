@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package testdata
 
-import play.api.libs.json.{Json, OFormat}
+import models.StateBenefit
 
-import java.time.{Instant, LocalDate}
 import java.util.UUID
 
-case class StateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal], taxPaid: Option[BigDecimal])
-
-object StateBenefit {
-  implicit val format: OFormat[StateBenefit] = Json.format[StateBenefit]
+object stateBenefit {
+  val sample = StateBenefit(
+    UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"),
+    startDate = java.time.LocalDate.parse("2019-04-23"),
+    amount = Some(300.0),
+    taxPaid = Some(400.0)
+  )
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package models.frontend.statepension
 
-import play.api.libs.json.{Json, OFormat}
+import org.scalatest.wordspec.AnyWordSpecLike
 
-import java.time.{Instant, LocalDate}
-import java.util.UUID
-
-case class StateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal], taxPaid: Option[BigDecimal])
-
-object StateBenefit {
-  implicit val format: OFormat[StateBenefit] = Json.format[StateBenefit]
+class IncomeFromPensionsStatePensionAnswersSpec extends AnyWordSpecLike {
+  "removeEmptyAmounts" should {
+    "change empty values to None" in {
+      val answers = IncomeFromPensionsStatePensionAnswers(Some(StateBenefitAnswers.empty), Some(StateBenefitAnswers.empty), None)
+      val result  = answers.removeEmptyAmounts
+      assert(result === IncomeFromPensionsStatePensionAnswers(None, None, None))
+    }
+  }
 }

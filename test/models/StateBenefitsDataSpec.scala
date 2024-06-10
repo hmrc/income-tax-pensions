@@ -29,18 +29,10 @@ class StateBenefitsDataSpec extends TestUtils {
 
   private val stateBenefit = aStateBenefit
     .copy(startDate = LocalDate.parse("2019-04-23"))
-    .copy(endDate = Some(LocalDate.parse("2020-08-13")))
-    .copy(dateIgnored = Some(Instant.parse("2019-07-08T05:23:00Z")))
-    .copy(submittedOn = Some(Instant.parse("2020-09-11T17:23:00Z")))
 
   private val stateBenefitsData = aStateBenefitsData
-    .copy(incapacityBenefits = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c934")))))
-    .copy(statePension = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c935"))))
-    .copy(statePensionLumpSum = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c936"))))
-    .copy(employmentSupportAllowances = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c937")))))
-    .copy(jobSeekersAllowances = Some(Set(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c938")))))
-    .copy(bereavementAllowance = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c939"))))
-    .copy(other = Some(stateBenefit.copy(benefitId = UUID.fromString("a1e8057e-fbbc-47a8-a8b4-78d9f015c940"))))
+    .copy(statePension = Some(stateBenefit.copy(benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"))))
+    .copy(statePensionLumpSum = Some(stateBenefit.copy(benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"))))
 
   "stateBenefitsDataWrites" when {
     "convert StateBenefitsData to correct JsValue when full object" in {

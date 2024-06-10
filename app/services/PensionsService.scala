@@ -22,12 +22,13 @@ import config.AppConfig
 import connectors._
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
-import models.common.{Journey, JourneyContextWithNino}
-import models.commonTaskList.{TaskListModel, TaskListSection, TaskListSectionItem, TaskStatus, TaskTitle}
+import models.common._
+import models.commonTaskList.TaskListModel
 import models.database._
 import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
 import models.frontend._
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -43,6 +44,8 @@ trait PensionsService {
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getUkPensionIncome(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UkPensionIncomeAnswers]]
   def upsertUkPensionIncome(ctx: JourneyContextWithNino, answers: UkPensionIncomeAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
+  def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]]
+  def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getAnnualAllowances(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AnnualAllowancesAnswers]]
   def upsertAnnualAllowances(ctx: JourneyContextWithNino, answers: AnnualAllowancesAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UnauthorisedPaymentsAnswers]]
@@ -67,7 +70,7 @@ trait PensionsService {
 class PensionsServiceImpl @Inject() (appConfig: AppConfig,
                                      reliefsConnector: PensionReliefsConnector,
                                      chargesConnector: PensionChargesConnector,
-                                     stateBenefitsConnector: GetStateBenefitsConnector,
+                                     stateBenfitService: StateBenefitService,
                                      pensionIncomeConnector: PensionIncomeConnector,
                                      employmentService: EmploymentService,
                                      statusService: JourneyStatusService,
@@ -141,6 +144,25 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
 
     for {
       _ <- employmentService.upsertUkPensionIncome(ctx, answers)
+      _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
+    } yield ()
+  }
+
+  def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] =
+    for {
+      stateBenefits  <- stateBenfitService.getStateBenefits(ctx)
+      maybeDbAnswers <- repository.getAnswers[IncomeFromPensionsStatePensionStorageAnswers](ctx.toJourneyContext(Journey.StatePension))
+    } yield Some(stateBenefits.toIncomeFromPensionsStatePensionAnswers(sessionId = None, maybeDbAnswers))
+
+  def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
+      hc: HeaderCarrier): ApiResultT[Unit] = {
+
+    val storageAnswers = IncomeFromPensionsStatePensionStorageAnswers.fromJourneyAnswers(answers)
+
+    val journeyCtx = ctx.toJourneyContext(Journey.StatePension)
+
+    for {
+      _ <- stateBenfitService.upsertStateBenefits(ctx, answers)
       _ <- repository.upsertAnswers(journeyCtx, Json.toJson(storageAnswers))
     } yield ()
   }
@@ -290,31 +312,30 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
   //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
   //       duplicates the data in the cache.
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] =
+      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = {
+    val ctx = JourneyContextWithNino(TaxYear(taxYear), Mtditid(mtditid), Nino(nino))
+
     (for {
       reliefsData       <- EitherT(getReliefs(nino, taxYear))
       chargesData       <- EitherT(getCharges(nino, taxYear))
-      stateBenefitsData <- EitherT(getStateBenefits(nino, taxYear, mtditid))
+      stateBenefitsData <- stateBenfitService.getStateBenefits(ctx)
       pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
 //      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
       employmentData = None // TODO It's broken for 2025, fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
-      stateBenefits = stateBenefitsData,
+      stateBenefits = Some(stateBenefitsData),
       employmentPensions = employmentData.fold(none[EmploymentPensions])(EmploymentPensions.fromEmploymentResponse(_).some),
       pensionIncome = pensionIncomeData
     )).value
+  }
 
   private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionReliefsModel]] =
     reliefsConnector.getPensionReliefs(nino, taxYear)
 
   private def getCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionChargesRequestModel]] =
     chargesConnector.getPensionCharges(nino, taxYear)
-
-  private def getStateBenefits(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): DownstreamOutcome[Option[AllStateBenefitsData]] =
-    stateBenefitsConnector.getStateBenefits(nino, taxYear)(hc.withInternalId(mtditid))
 
   private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =

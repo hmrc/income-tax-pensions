@@ -23,6 +23,7 @@ import models.commonTaskList.TaskListModel
 import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend._
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.{AllPensionsData, ServiceErrorModel}
 import services.PensionsService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -89,6 +90,8 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
     EitherT.fromEither(upsertShortServiceRefunds)
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
-
+  def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] = ???
+  def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
+    ???
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = ???
 }

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package models.frontend
+package testdata
 
-import models.frontend.statepension.StateBenefitAnswers
-import play.api.libs.json.{Json, OFormat}
+import models.common.{Mtditid, Nino, TaxYear}
 
-final case class IncomeFromPensionsStatePensionAnswers(
-    statePension: Option[StateBenefitAnswers],
-    statePensionLumpSum: Option[StateBenefitAnswers]
-)
+import java.util.UUID
 
-object IncomeFromPensionsStatePensionAnswers {
-  implicit val format: OFormat[IncomeFromPensionsStatePensionAnswers] = Json.format[IncomeFromPensionsStatePensionAnswers]
-
+object common {
+  val uuid             = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b")
+  val nino: Nino       = Nino("123456789")
+  val taxYear: TaxYear = TaxYear(2021)
+  val mtditid: Mtditid = Mtditid("mtditid")
 }
