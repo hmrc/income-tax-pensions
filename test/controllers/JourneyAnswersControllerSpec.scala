@@ -46,7 +46,7 @@ class JourneyAnswersControllerSpec extends TestUtils with ScalaCheckPropertyChec
 
   private val pensionsService         = mock[PensionsService]
   private val underTest               = new JourneyAnswersController(pensionsService, authorisedAction, mockControllerComponents)
-  private val errorResult             = DownstreamError("ERROR")
+  private val errorResult             = DownstreamError("ERROR", 500)
   private val invalidJsonErrorMessage = "Cannot read JSON"
   private val downstreamErrorMessage  = "Downstream error: ERROR"
 

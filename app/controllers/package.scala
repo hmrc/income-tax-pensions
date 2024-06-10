@@ -51,8 +51,8 @@ package object controllers {
     }.merge
 
   private def handleError(error: ServiceError)(implicit logger: Logger) = {
-    logger.error(s"HttpError encountered: ${error.errorMessage}")
-    InternalServerError(error.errorMessage)
+    logger.error(s"HttpError encountered: ${error.reason}")
+    InternalServerError(error.reason)
   }
 
   private def parseBody[A: Reads](user: User[AnyContent])(implicit logger: Logger): Try[Option[JsResult[A]]] =
@@ -84,8 +84,8 @@ package object controllers {
   }
 
   private def toBadRequest(error: ServiceError)(implicit logger: Logger): Result = {
-    logger.error(s"Bad Request: ${error.errorMessage}")
-    BadRequest(Json.obj("code" -> BAD_REQUEST, "reason" -> error.errorMessage))
+    logger.error(s"Bad Request: ${error.reason}")
+    BadRequest(Json.obj("code" -> BAD_REQUEST, "reason" -> error.reason))
   }
 
 }

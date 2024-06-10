@@ -16,11 +16,15 @@
 
 package controllers
 
+import cats.data.EitherT
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
-import connectors.{StateBenefitsConnector, PensionChargesConnector, PensionReliefsConnector}
-import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel, ServiceErrorModel}
+import connectors.{PensionChargesConnector, PensionReliefsConnector, StateBenefitsConnector}
+import models.common.{Mtditid, Nino, TaxYear}
+import models.domain.ApiResultT
+import models.error.ServiceError
+import models.{AllPensionsData, DesErrorBodyModel, DesErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status.{BAD_REQUEST, NO_CONTENT, OK}
 import play.api.libs.json.Json
@@ -43,37 +47,37 @@ class GetAllPensionsControllerSpec extends TestUtils {
   val expectedChargesResult: GetPensionChargesResponse      = Right(Some(fullPensionChargesModel))
   val expectedStateBenefitsResult: GetStateBenefitsResponse = Right(Some(anAllStateBenefitsData))
 
-  def mockGetAllPensionsData(): CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
+  def mockGetAllPensionsData(): CallHandler4[Nino, TaxYear, Mtditid, HeaderCarrier, ApiResultT[AllPensionsData]] = {
     val validAllPensionsData = Right(fullPensionsModel)
     (pensionsService
-      .getAllPensionsData(_: String, _: Int, _: String)(_: HeaderCarrier))
+      .getAllPensionsData(_: Nino, _: TaxYear, _: Mtditid)(_: HeaderCarrier))
       .expects(*, *, *, *)
-      .returning(Future.successful(validAllPensionsData))
+      .returning(EitherT.fromEither(validAllPensionsData))
   }
 
-  def mockGetAllPensionsDataNoCharges(): CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
+  def mockGetAllPensionsDataNoCharges(): CallHandler4[Nino, TaxYear, Mtditid, HeaderCarrier, ApiResultT[AllPensionsData]] = {
     val validAllPensionsData = Right(
       AllPensionsData(Some(fullPensionReliefsModel), None, Some(anAllStateBenefitsData), Some(employmentPensionsData), Some(fullPensionIncomeModel)))
     (pensionsService
-      .getAllPensionsData(_: String, _: Int, _: String)(_: HeaderCarrier))
+      .getAllPensionsData(_: Nino, _: TaxYear, _: Mtditid)(_: HeaderCarrier))
       .expects(*, *, *, *)
-      .returning(Future.successful(validAllPensionsData))
+      .returning(EitherT.fromEither(validAllPensionsData))
   }
 
-  def mockGetAllPensionsDataEmpty(): CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
+  def mockGetAllPensionsDataEmpty(): CallHandler4[Nino, TaxYear, Mtditid, HeaderCarrier, ApiResultT[AllPensionsData]] = {
     val validEmptyPensionsData = Right(AllPensionsData(None, None, None, None, None))
     (pensionsService
-      .getAllPensionsData(_: String, _: Int, _: String)(_: HeaderCarrier))
+      .getAllPensionsData(_: Nino, _: TaxYear, _: Mtditid)(_: HeaderCarrier))
       .expects(*, *, *, *)
-      .returning(Future.successful(validEmptyPensionsData))
+      .returning(EitherT.fromEither(validEmptyPensionsData))
   }
 
-  def mockGetAllPensionsDataBadRequest(): CallHandler4[String, Int, String, HeaderCarrier, Future[Either[ServiceErrorModel, AllPensionsData]]] = {
-    val badRequestResponse = Left(DesErrorModel(BAD_REQUEST, DesErrorBodyModel.invalidTaxYear))
+  def mockGetAllPensionsDataBadRequest(): CallHandler4[Nino, TaxYear, Mtditid, HeaderCarrier, ApiResultT[AllPensionsData]] = {
+    val badRequestResponse: Either[ServiceError, AllPensionsData] = Left(DesErrorModel(BAD_REQUEST, DesErrorBodyModel.invalidTaxYear).toServiceError)
     (pensionsService
-      .getAllPensionsData(_: String, _: Int, _: String)(_: HeaderCarrier))
+      .getAllPensionsData(_: Nino, _: TaxYear, _: Mtditid)(_: HeaderCarrier))
       .expects(*, *, *, *)
-      .returning(Future.successful(badRequestResponse))
+      .returning(EitherT.fromEither(badRequestResponse))
   }
 
   ".getPensions" should {
@@ -82,7 +86,7 @@ class GetAllPensionsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockGetAllPensionsData()
-        controller.getAllPensions(nino, taxYear)(fakeRequest)
+        controller.getAllPensions(validNino, TaxYear(taxYear))(fakeRequest)
       }
 
       status(result) mustBe OK
@@ -93,7 +97,7 @@ class GetAllPensionsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockGetAllPensionsDataNoCharges()
-        controller.getAllPensions(nino, taxYear)(fakeRequest)
+        controller.getAllPensions(validNino, TaxYear(taxYear))(fakeRequest)
       }
 
       status(result) mustBe OK
@@ -112,7 +116,7 @@ class GetAllPensionsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockGetAllPensionsDataEmpty()
-        controller.getAllPensions(nino, taxYear)(fakeRequest)
+        controller.getAllPensions(validNino, TaxYear(taxYear))(fakeRequest)
       }
 
       status(result) mustBe NO_CONTENT
@@ -124,7 +128,7 @@ class GetAllPensionsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetAllPensionsDataBadRequest()
-          controller.getAllPensions(nino, taxYear)(fakeRequest)
+          controller.getAllPensions(validNino, TaxYear(taxYear))(fakeRequest)
         }
 
         status(result) mustBe BAD_REQUEST

@@ -26,6 +26,8 @@ import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsRespo
 import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsResponse
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
+import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
+import models.common.{Journey, JourneyContextWithNino, Mtditid, TaxYear}
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, OverseasPensionContributions}
 import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
@@ -137,7 +139,7 @@ class PensionsServiceImpSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedPensionIncomeResult))
 
-      val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
+      val result = await(service.getAllPensionsData(validNino, TaxYear(taxYear), validMtditid).value)
 
       result mustBe Right(fullPensionsModel)
     }
@@ -164,7 +166,7 @@ class PensionsServiceImpSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
+      val result = await(service.getAllPensionsData(validNino, TaxYear(taxYear), validMtditid).value)
 
       result mustBe Right(AllPensionsData(None, None, None, None, None))
     }
@@ -182,7 +184,7 @@ class PensionsServiceImpSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
-      val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
+      val result = await(service.getAllPensionsData(validNino, TaxYear(taxYear), validMtditid).value)
 
       result mustBe expectedErrorResult
 

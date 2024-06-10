@@ -17,6 +17,7 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
+import models.common.{Nino, TaxYear}
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -31,11 +32,16 @@ class GetAllPensionsController @Inject() (service: PensionsService, auth: Author
     extends BackendController(cc)
     with Logging {
 
-  def getAllPensions(nino: String, taxYear: Int): Action[AnyContent] = auth.async { implicit user =>
-    service.getAllPensionsData(nino, taxYear, user.mtditid).map {
+  def getAllPensions(nino: Nino, taxYear: TaxYear): Action[AnyContent] = auth.async { implicit user =>
+    val result = service.getAllPensionsData(nino, taxYear, user.getMtditid).value
+
+    result.map {
       case Right(pensions) if pensions.isEmpty => NoContent
       case Right(model)                        => Ok(Json.toJson(model))
-      case Left(errorModel)                    => Status(errorModel.status)(errorModel.toJson)
+      case Left(errorModel)                    =>
+        val errorStr = errorModel.toJson
+        print(errorStr)
+        Status(errorModel.status)(errorStr)
     }
   }
 }

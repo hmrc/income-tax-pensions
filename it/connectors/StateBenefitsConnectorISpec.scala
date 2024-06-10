@@ -93,7 +93,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
 
     "return a SERVICE_UNAVAILABLE" in {
       val responseBody   = Json.obj("code" -> "SERVICE_UNAVAILABLE", "reason" -> "Dependent systems are currently not responding.")
-      val expectedResult = DownstreamError("APIErrorBodyModel(SERVICE_UNAVAILABLE,Dependent systems are currently not responding.)")
+      val expectedResult = DownstreamError("APIErrorBodyModel(SERVICE_UNAVAILABLE,Dependent systems are currently not responding.)", 500)
 
       stubGetWithResponseBody(stateBenefitsUrl, SERVICE_UNAVAILABLE, responseBody.toString())
       val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
@@ -106,7 +106,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
         "code"   -> "INVALID_NINO",
         "reason" -> "Nino is invalid"
       )
-      val expectedResult = DownstreamError("APIErrorBodyModel(INVALID_NINO,Nino is invalid)")
+      val expectedResult = DownstreamError("APIErrorBodyModel(INVALID_NINO,Nino is invalid)", 500)
 
       stubGetWithResponseBody(stateBenefitsUrl, BAD_REQUEST, responseBody.toString())
       val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
@@ -120,7 +120,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
         "reason" -> "DES is currently experiencing problems that require live service intervention."
       )
       val expectedResult =
-        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)")
+        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)", 500)
 
       stubGetWithResponseBody(stateBenefitsUrl, INTERNAL_SERVER_ERROR, responseBody.toString())
       val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)
@@ -135,7 +135,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
         "reason" -> "DES is currently experiencing problems that require live service intervention."
       )
       val expectedResult =
-        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)")
+        DownstreamError("APIErrorBodyModel(SERVER_ERROR,DES is currently experiencing problems that require live service intervention.)", 500)
 
       stubGetWithResponseBody(stateBenefitsUrl, GATEWAY_TIMEOUT, responseBody.toString())
       val result = await(connector.getStateBenefits(nino, taxYear)(hc).value)

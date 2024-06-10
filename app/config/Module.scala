@@ -28,12 +28,14 @@ class Module extends AbstractModule {
   override def configure(): Unit = {
     bind(classOf[AppConfig]).asEagerSingleton()
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
-    bind(classOf[JourneyAnswersRepository]).to(classOf[MongoJourneyAnswersRepository])
-    bind(classOf[PensionReliefsService]).to(classOf[PensionReliefsServiceImpl])
+
     bind(classOf[EmploymentService]).to(classOf[EmploymentServiceImpl])
     bind(classOf[PensionsService]).to(classOf[PensionsServiceImpl])
     bind(classOf[JourneyStatusService]).to(classOf[JourneyStatusServiceImpl])
     bind(classOf[StateBenefitService]).to(classOf[StateBenefitServiceImpl])
+
+    bind(classOf[JourneyAnswersRepository]).to(classOf[MongoJourneyAnswersRepository])
+
     bind(classOf[IntegrationFrameworkConnector]).to(classOf[IntegrationFrameworkConnectorImpl])
     bind(classOf[StateBenefitsConnector]).to(classOf[StateBenefitsConnectorImpl])
   }

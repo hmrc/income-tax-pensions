@@ -43,6 +43,8 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
 
+  // TODO LT This is really bad, it fails only when called. We want to fail on start if we mis-configured our app
+  // TODO LT Make API sealed trait
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 

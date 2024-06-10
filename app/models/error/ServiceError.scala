@@ -20,10 +20,10 @@ import models.error.ServiceError._
 import models.{ServiceErrorBody, ServiceErrorModel}
 import play.api.libs.json._
 
-trait ServiceError extends ServiceErrorModel {
-  val errorMessage: String
-  val status: Int = 500
-  val body        = GenericServerError(errorMessage)
+sealed abstract class ServiceError(val reason: String, val code: String, _status: Int) extends ServiceErrorModel {
+  override def status: Int = _status
+
+  def body: GenericServerError = GenericServerError(code, reason)
 
   def toJson: JsValue = Json.toJson(body)(GenericServerError.format)
 }
@@ -31,25 +31,37 @@ trait ServiceError extends ServiceErrorModel {
 object ServiceError {
   type JsonErrorWithPath = List[(JsPath, scala.collection.Seq[JsonValidationError])]
 
-  final case class GenericServerError(error: String) extends ServiceErrorBody
+  final case class GenericServerError(code: String, reason: String) extends ServiceErrorBody
   object GenericServerError {
     val format = Json.format[GenericServerError]
   }
 
-  case class InvalidJsonFormatError(expectedCaseClassName: String, rawJson: String, error: JsonErrorWithPath) extends ServiceError {
-    val errorMessage: String = s"Cannot convert JSON to a case class: $expectedCaseClassName. Error: ${error.toString}. JSON:\n$rawJson"
-  }
+  case class InvalidJsonFormatError(expectedCaseClassName: String, rawJson: String, error: JsonErrorWithPath)
+      extends ServiceError(
+        s"Cannot convert JSON to a case class: $expectedCaseClassName. Error: ${error.toString}. JSON:\n$rawJson",
+        "INVALID_JSON_FORMAT",
+        500
+      )
 
-  final case class CannotReadJsonError(details: JsonErrorWithPath) extends ServiceError {
-    val errorMessage: String = s"Cannot read JSON: ${details.toString}"
-  }
+  final case class CannotReadJsonError(details: JsonErrorWithPath)
+      extends ServiceError(
+        s"Cannot read JSON: ${details.toString}",
+        "CANNOT_READ_JSON",
+        500
+      )
 
-  final case class CannotParseJsonError(details: Throwable) extends ServiceError {
-    val errorMessage: String = s"Cannot parse JSON: ${details.getMessage}"
-  }
+  final case class CannotParseJsonError(details: Throwable)
+      extends ServiceError(
+        s"Cannot parse JSON: ${details.getMessage}",
+        "CANNOT_PARSE_JSON",
+        500
+      )
 
-  final case class DownstreamError(error: String) extends ServiceError {
-    val errorMessage: String = s"Downstream error: $error"
-  }
+  final case class DownstreamError(error: String, _status: Int)
+      extends ServiceError(
+        s"Downstream error: $error, status: ${_status}",
+        "DOWNSTREAM_ERROR",
+        _status
+      )
 
 }

@@ -26,6 +26,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
+// TODO LT extract trait
 class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends Connector {
   private val downstreamServiceName = "income-tax-employment"
   private val parser                = ApiParser.CommonHttpReads(downstreamServiceName)
@@ -49,6 +50,7 @@ class EmploymentConnector @Inject() (val http: HttpClient, val appConfig: AppCon
     http.POST[CreateUpdateEmploymentRequest, DownstreamErrorOr[Unit]](url, model)(CreateUpdateEmploymentRequest.format, parser, hc, ec)
   }
 
+  // TODO LT employmentId - use type not string
   def deleteEmployment(nino: Nino, taxYear: TaxYear, employmentId: String)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): DownstreamOutcome[Unit] = {

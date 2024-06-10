@@ -18,7 +18,7 @@ package stubs.services
 
 import cats.data.EitherT
 import cats.implicits._
-import models.common.JourneyContextWithNino
+import models.common.{JourneyContextWithNino, Mtditid, Nino, TaxYear}
 import models.commonTaskList.TaskListModel
 import models.domain.ApiResultT
 import models.error.ServiceError
@@ -40,7 +40,7 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
                                getTransfersIntoOverseasPensionsResult: Either[ServiceError, Option[TransfersIntoOverseasPensionsAnswers]] = Right(
                                  None),
                                getShortServiceRefunds: Either[ServiceError, Option[ShortServiceRefundsAnswers]] = Right(None),
-                               getAllPensionsDataResult: Either[ServiceErrorModel, AllPensionsData] = Right(AllPensionsData.empty),
+                               getAllPensionsDataResult: Either[ServiceError, AllPensionsData] = Right(AllPensionsData.empty),
                                upsertPaymentsIntoPensionsResult: Either[ServiceError, Unit] = Right(()),
                                upsertUkPensionIncomeResult: Either[ServiceError, Unit] = Right(()),
                                upsertAnnualAllowancesResult: Either[ServiceError, Unit] = Right(()),
@@ -88,10 +88,11 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
     EitherT.fromEither(getShortServiceRefunds)
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     EitherT.fromEither(upsertShortServiceRefunds)
-  def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = Future.successful(getAllPensionsDataResult)
   def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] = ???
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     ???
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = ???
+
+  def getAllPensionsData(nino: Nino, taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[AllPensionsData] =
+    EitherT.fromEither(getAllPensionsDataResult)
 }

@@ -17,7 +17,7 @@
 package models
 
 import cats.implicits.catsSyntaxEitherId
-import models.error.ServiceError
+import models.error.{ServiceError}
 import models.error.ServiceError.DownstreamError
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.{JsValue, Json, OFormat}
@@ -25,12 +25,12 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 trait ServiceErrorBody
 
 trait ServiceErrorModel {
-  val status: Int
-  val body: ServiceErrorBody
+  def status: Int
+  def body: ServiceErrorBody
 
   def toJson: JsValue
 
-  def toServiceError: ServiceError = DownstreamError(body.toString)
+  def toServiceError: ServiceError = DownstreamError(body.toString, status)
 }
 
 object ServiceErrorModel {

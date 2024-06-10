@@ -21,7 +21,7 @@ import cats.implicits._
 import config.AppConfig
 import connectors._
 import models._
-import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
+import models.charges.CreateUpdatePensionChargesRequestModel
 import models.common._
 import models.commonTaskList.TaskListModel
 import models.database._
@@ -29,11 +29,9 @@ import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
-import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.HeaderCarrierUtils.HeaderCarrierOps
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -64,7 +62,7 @@ trait PensionsService {
       hc: HeaderCarrier): ApiResultT[Unit]
   def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]]
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
-  def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]]
+  def getAllPensionsData(nino: Nino, taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[AllPensionsData]
 }
 
 class PensionsServiceImpl @Inject() (appConfig: AppConfig,
@@ -308,38 +306,23 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     } yield ()
   }
 
-  // TODO: Decide whether loading employments and state benefits through pensions is what we want. The submissions service
-  //       (aka "the cache") already loads employments and state benefits so adding the calls to load through pensions
-  //       duplicates the data in the cache.
-  def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]] = {
-    val ctx = JourneyContextWithNino(TaxYear(taxYear), Mtditid(mtditid), Nino(nino))
+  def getAllPensionsData(nino: Nino, taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[AllPensionsData] = {
+    val ctx = JourneyContextWithNino(taxYear, mtditid, nino)
 
-    (for {
-      reliefsData       <- EitherT(getReliefs(nino, taxYear))
-      chargesData       <- EitherT(getCharges(nino, taxYear))
+    for {
+      reliefsData       <- reliefsConnector.getPensionReliefsT(nino, taxYear)
+      chargesData       <- chargesConnector.getPensionChargesT(nino, taxYear)
+      pensionIncomeData <- pensionIncomeConnector.getPensionIncomeT(nino, taxYear)
       stateBenefitsData <- stateBenfitService.getStateBenefits(ctx)
-      pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
-//      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
-      employmentData = None // TODO It's broken for 2025, fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
+      employmentData    <- employmentService.getEmployment(ctx)
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
+      pensionIncome = pensionIncomeData,
       stateBenefits = stateBenefitsData,
-      employmentPensions = employmentData.fold(none[EmploymentPensions])(EmploymentPensions.fromEmploymentResponse(_).some),
-      pensionIncome = pensionIncomeData
-    )).value
+      employmentPensions = Some(employmentData)
+    )
   }
-
-  private def getReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionReliefsModel]] =
-    reliefsConnector.getPensionReliefs(nino, taxYear)
-
-  private def getCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionChargesRequestModel]] =
-    chargesConnector.getPensionCharges(nino, taxYear)
-
-  private def getPensionIncome(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
-    pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = {

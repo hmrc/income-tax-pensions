@@ -49,7 +49,7 @@ class ErrorHandler @Inject() (
 
     statusCode match {
       case NOT_FOUND =>
-        logger.debug(clientErrorLogMessage) // May be lots of Not found errors (broken links etc. Don't want to clutter logging)
+        logger.info(clientErrorLogMessage) // May be lots of Not found errors (broken links etc. Don't want to clutter logging)
       case _ =>
         logger.error(clientErrorLogMessage)
     }
