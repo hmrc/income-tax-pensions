@@ -40,8 +40,7 @@ import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
-import stubs.services.{StubEmploymentService, StubStateBenefitService}
-import stubs.services.{StubEmploymentService, StubJourneyStatusService}
+import stubs.services.{StubEmploymentService, StubJourneyStatusService, StubStateBenefitService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.connector.stateBenefits
 import testdata.frontend.stateBenefitAnswers
@@ -429,7 +428,7 @@ class PensionsServiceIpmlSpec
     }
 
     "return answers" in {
-      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, None, None, Some(pensionContributions), None))))
+      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, None, Some(pensionContributions), None))))
       val result = (for {
         _   <- stubRepository.upsertAnswers(annualAllowancesCtx, Json.toJson(annualAllowancesStorageAnswers))
         res <- service.getAnnualAllowances(sampleCtx)
@@ -444,7 +443,7 @@ class PensionsServiceIpmlSpec
       mockGetPensionChargesT(Right(None))
       mockCreateOrAmendPensionChargesT(
         Right(None),
-        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(pensionContributions), None)
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, Some(pensionContributions), None)
       )
 
       val result = service.upsertAnnualAllowances(sampleCtx, annualAllowancesAnswers).value.futureValue
@@ -529,7 +528,7 @@ class PensionsServiceIpmlSpec
     }
 
     "return answers" in {
-      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, Some(pensionSchemeOverseasTransfers), None, None, None))))
+      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", Some(pensionSchemeOverseasTransfers), None, None, None))))
       val result = (for {
         _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
         res <- service.getTransfersIntoOverseasPensions(sampleCtx)
@@ -614,7 +613,7 @@ class PensionsServiceIpmlSpec
 
     "return answers" in {
       mockGetPensionChargesT(
-        Right(Some(GetPensionChargesRequestModel("unused", None, None, None, None, Some(overseasPensionContributions))))
+        Right(Some(GetPensionChargesRequestModel("unused", None, None, None, Some(overseasPensionContributions))))
       )
       val result = (for {
         _   <- stubRepository.upsertAnswers(getShortServiceRefundsCtx, Json.toJson(shortServiceRefundsCtxStorageAnswers))
@@ -630,7 +629,7 @@ class PensionsServiceIpmlSpec
       mockGetPensionChargesT(Right(None))
       mockCreateOrAmendPensionChargesT(
         Right(None),
-        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, Some(overseasPensionContributions))
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
       )
 
       val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
@@ -645,17 +644,11 @@ class PensionsServiceIpmlSpec
       mockGetPensionChargesT(
         Right(
           Some(
-            GetPensionChargesRequestModel(
-              "unused",
-              None,
-              None,
-              None,
-              None,
-              Some(OverseasPensionContributions(Seq(), BigDecimal(0.0), BigDecimal(0.0))))))
+            GetPensionChargesRequestModel("unused", None, None, None, Some(OverseasPensionContributions(Seq(), BigDecimal(0.0), BigDecimal(0.0))))))
       )
       mockCreateOrAmendPensionChargesT(
         Right(None),
-        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, Some(overseasPensionContributions))
+        expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
       )
 
       val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue

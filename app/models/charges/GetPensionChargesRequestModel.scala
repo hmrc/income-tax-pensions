@@ -19,14 +19,12 @@ package models.charges
 import play.api.libs.json.{Json, OFormat}
 
 case class GetPensionChargesRequestModel(submittedOn: String,
-                                         pensionSavingsTaxCharges: Option[PensionSavingsTaxCharges],
                                          pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
                                          pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
                                          pensionContributions: Option[PensionContributions],
                                          overseasPensionContributions: Option[OverseasPensionContributions]) {
 
   def toCreateUpdatePensionChargesRequestModel: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(
-    pensionSavingsTaxCharges,
     pensionSchemeOverseasTransfers,
     pensionSchemeUnauthorisedPayments,
     pensionContributions,

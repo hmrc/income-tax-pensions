@@ -16,40 +16,19 @@
 
 package models
 
-import models.charges.{
-  Charge,
-  GetPensionChargesRequestModel,
-  LifetimeAllowance,
-  OverseasPensionContributions,
-  OverseasSchemeProvider,
-  PensionContributions,
-  PensionSavingsTaxCharges,
-  PensionSchemeOverseasTransfers,
-  PensionSchemeUnauthorisedPayments
-}
+import models.charges._
 import play.api.libs.json.{JsValue, Json}
 import utils.TestUtils
 
 class GetPensionChargesRequestModelSpec extends TestUtils {
 
   val minmalModel: GetPensionChargesRequestModel =
-    GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, None, None)
+    GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, None)
 
   val minimalJson: JsValue = Json.parse("""{"submittedOn": "2020-07-27T17:00:19Z"}""")
 
   val fullPensionChargesJson: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		}
-      |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
       |			"providerName": "overseas providerName 1 qualifying scheme",
@@ -103,17 +82,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
 
   val fullJsonWithQualifyingAndTaxRefsSwapped: JsValue = Json.parse("""{
       |	"submittedOn": "2020-07-27T17:00:19Z",
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		}
-      |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
       |			"providerName": "overseas providerName 1 tax ref",
@@ -162,21 +130,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       |		}],
       |		"shortServiceRefund": 1.11,
       |		"shortServiceRefundTaxPaid": 2.22
-      |	}
-      |}""".stripMargin)
-
-  val pensionSavingsTaxChargesOnlyJson: JsValue = Json.parse("""{
-      |	"submittedOn": "2020-07-27T17:00:19Z",
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 800.02,
-      |			"taxPaid": 200.02
-      |		}
       |	}
       |}""".stripMargin)
 
@@ -314,12 +267,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
   val pensionSchemeUnauthorisedPayments: PensionSchemeUnauthorisedPayments =
     PensionSchemeUnauthorisedPayments(pensionSchemeTaxRef, surcharge = Some(surcharge), noSurcharge = Some(noSurcharge))
 
-  val pensionSavingsTaxCharges: PensionSavingsTaxCharges = PensionSavingsTaxCharges(
-    pensionSchemeTaxRef,
-    lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid)),
-    benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount, taxPaid))
-  )
-
   val pensionSchemeOverseasTransfersWithTaxRef: PensionSchemeOverseasTransfers = PensionSchemeOverseasTransfers(
     Seq(overseasSchemeProviderWithTaxRef1, overseasSchemeProviderWithTaxRef2),
     transferCharge,
@@ -334,23 +281,19 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
 
   "The GetPensionChargesRequestModel" should {
 
-    val pensionSavingsTaxChargesOnlyModel =
-      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", Some(pensionSavingsTaxCharges), None, None, None, None)
-
     val pensionSchemeOverseasTransfersOnlyModel =
-      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, Some(pensionSchemeOverseasTransfersWithTaxRef), None, None, None)
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", Some(pensionSchemeOverseasTransfersWithTaxRef), None, None, None)
 
     val pensionSchemeUnauthorisedPaymentsOnlyModel =
-      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, Some(pensionSchemeUnauthorisedPayments), None, None)
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, Some(pensionSchemeUnauthorisedPayments), None, None)
 
-    val pensionContributionsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, Some(pensionContributions), None)
+    val pensionContributionsOnlyModel = GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, Some(pensionContributions), None)
 
     val overseasPensionContributionsOnlyModel =
-      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, None, Some(overseasPensionContributionsWithQualifyingScheme))
+      GetPensionChargesRequestModel("2020-07-27T17:00:19Z", None, None, None, Some(overseasPensionContributionsWithQualifyingScheme))
 
     val fullModelWithTaxRefsAndQualifyingSchemesSwapped: GetPensionChargesRequestModel = GetPensionChargesRequestModel(
       "2020-07-27T17:00:19Z",
-      Some(pensionSavingsTaxCharges),
       Some(pensionSchemeOverseasTransfersWithTaxRef),
       Some(pensionSchemeUnauthorisedPayments),
       Some(pensionContributions),
@@ -359,7 +302,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
 
     val fullGetPensionChargesRequestModel: GetPensionChargesRequestModel = GetPensionChargesRequestModel(
       "2020-07-27T17:00:19Z",
-      Some(pensionSavingsTaxCharges),
       Some(pensionSchemeOverseasTransfersWithQualifyingScheme),
       Some(pensionSchemeUnauthorisedPayments),
       Some(pensionContributions),
@@ -372,9 +314,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       }
       "there is a full model with the tax references and qualifying schemes flipped in the overseas arrays" in {
         Json.toJson(fullModelWithTaxRefsAndQualifyingSchemesSwapped) mustBe fullJsonWithQualifyingAndTaxRefsSwapped
-      }
-      "there is a only pension tax charges" in {
-        Json.toJson(pensionSavingsTaxChargesOnlyModel) mustBe pensionSavingsTaxChargesOnlyJson
       }
       "there is a only pension scheme overseas transfers" in {
         Json.toJson(pensionSchemeOverseasTransfersOnlyModel) mustBe pensionSchemeOverseasTransfersOnlyJson
@@ -399,9 +338,6 @@ class GetPensionChargesRequestModelSpec extends TestUtils {
       }
       "parsing full json with the tax references and qualifying schemes flipped in the overseas arrays" in {
         fullJsonWithQualifyingAndTaxRefsSwapped.as[GetPensionChargesRequestModel] mustBe fullModelWithTaxRefsAndQualifyingSchemesSwapped
-      }
-      "parsing and there are only pension tax charges" in {
-        pensionSavingsTaxChargesOnlyJson.as[GetPensionChargesRequestModel] mustBe pensionSavingsTaxChargesOnlyModel
       }
       "parsing and there are only pension scheme overseas transfers" in {
         pensionSchemeOverseasTransfersOnlyJson.as[GetPensionChargesRequestModel] mustBe pensionSchemeOverseasTransfersOnlyModel

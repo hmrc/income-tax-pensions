@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 case class StateBenefit(benefitId: UUID, startDate: LocalDate, amount: Option[BigDecimal], taxPaid: Option[BigDecimal])

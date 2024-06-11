@@ -24,7 +24,6 @@ object getPensionChargesRequestModel {
 
   val getPensionChargesRequestModel: GetPensionChargesRequestModel = GetPensionChargesRequestModel(
     submittedOn = "2020-07-27T17:00:19Z",
-    pensionSavingsTaxCharges = None, // TODO replace Nones with valid data when needed
     pensionSchemeOverseasTransfers = Some(
       PensionSchemeOverseasTransfers(
         overseasSchemeProvider = Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider),

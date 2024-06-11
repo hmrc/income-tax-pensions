@@ -15,17 +15,7 @@
  */
 
 import models._
-import models.charges.{
-  Charge,
-  CreateUpdatePensionChargesRequestModel,
-  LifetimeAllowance,
-  OverseasPensionContributions,
-  OverseasSchemeProvider,
-  PensionContributions,
-  PensionSavingsTaxCharges,
-  PensionSchemeOverseasTransfers,
-  PensionSchemeUnauthorisedPayments
-}
+import models.charges._
 import play.api.libs.json.{JsObject, JsValue, Json}
 
 package object api {
@@ -73,22 +63,6 @@ package object api {
       """
       {
         | "submittedOn": "2020-07-27T17:00:19Z",
-        |	"pensionSavingsTaxCharges": {
-        |		"pensionSchemeTaxReference": [
-        |			"00123456RA"
-        |		],
-        |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-        |			"amount": 123.45,
-        |			"taxPaid": 12.45
-        |		},
-        |		"benefitInExcessOfLifetimeAllowance": {
-        |			"amount": 123.45,
-        |			"taxPaid": 12.34
-        |		},
-        |		"isAnnualAllowanceReduced": true,
-        |		"taperedAnnualAllowance": true,
-        |		"moneyPurchasedAllowance": false
-        |	},
         |	"pensionSchemeOverseasTransfers": {
         |		"overseasSchemeProvider": [{
         |			"providerName": "Overseas Pensions Plc",
@@ -136,12 +110,6 @@ package object api {
         |}""".stripMargin
 
     val createUpdatePensionChargesRequest = CreateUpdatePensionChargesRequestModel(
-      pensionSavingsTaxCharges = Some(
-        PensionSavingsTaxCharges(
-          pensionSchemeTaxReference = Some(Seq("00123456RA")),
-          lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount = 123.45, taxPaid = 12.45)),
-          benefitInExcessOfLifetimeAllowance = Some(LifetimeAllowance(amount = 123.45, taxPaid = 12.34))
-        )),
       pensionSchemeOverseasTransfers = Some(
         PensionSchemeOverseasTransfers(
           overseasSchemeProvider = Seq(OverseasSchemeProvider(
@@ -193,19 +161,6 @@ package object api {
     val createUpdatePensionChargesJsonStr: String =
       """
       {
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": [
-      |			"00123456RA"
-      |		],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.45
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.34
-      |		}
-      |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
       |			"providerName": "Overseas Pensions Plc",
@@ -260,7 +215,6 @@ package object api {
     val minimumRequestPayload: JsObject =
       Json.toJsObject(
         CreateUpdatePensionChargesRequestModel(
-          pensionSavingsTaxCharges = None,
           pensionContributions = Some(
             PensionContributions(
               Seq("00123456RA"),

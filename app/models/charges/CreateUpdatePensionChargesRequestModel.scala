@@ -18,15 +18,13 @@ package models.charges
 
 import play.api.libs.json.{Json, OFormat}
 
-case class CreateUpdatePensionChargesRequestModel(pensionSavingsTaxCharges: Option[PensionSavingsTaxCharges],
-                                                  pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
+case class CreateUpdatePensionChargesRequestModel(pensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers],
                                                   pensionSchemeUnauthorisedPayments: Option[PensionSchemeUnauthorisedPayments],
                                                   pensionContributions: Option[PensionContributions],
                                                   overseasPensionContributions: Option[OverseasPensionContributions]) {
-  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, None)
+  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None)
 
-  def nonEmpty: Boolean = pensionSavingsTaxCharges.exists(_.nonEmpty) ||
-    pensionSchemeOverseasTransfers.exists(_.nonEmpty) ||
+  def nonEmpty: Boolean = pensionSchemeOverseasTransfers.exists(_.nonEmpty) ||
     pensionSchemeUnauthorisedPayments.exists(_.nonEmpty) ||
     pensionContributions.exists(_.nonEmpty) ||
     overseasPensionContributions.exists(_.nonEmpty)
@@ -35,5 +33,5 @@ case class CreateUpdatePensionChargesRequestModel(pensionSavingsTaxCharges: Opti
 object CreateUpdatePensionChargesRequestModel {
   implicit val format: OFormat[CreateUpdatePensionChargesRequestModel] = Json.format[CreateUpdatePensionChargesRequestModel]
 
-  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None, None)
+  def empty: CreateUpdatePensionChargesRequestModel = CreateUpdatePensionChargesRequestModel(None, None, None, None)
 }

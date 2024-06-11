@@ -28,7 +28,6 @@ class CreateUpdatePensionChargesRequestModelSpec extends AnyWordSpecLike {
     val cases = Table(
       ("model", "expected"),
       (empty, false),
-      (empty.copy(pensionSavingsTaxCharges = Some(PensionSavingsTaxCharges.empty.copy(pensionSchemeTaxReference = Some(List("some value"))))), true),
       (
         empty.copy(pensionSchemeOverseasTransfers =
           Some(PensionSchemeOverseasTransfers.empty.copy(overseasSchemeProvider = List(OverseasSchemeProvider("str1", "str2", "str3", None, None))))),

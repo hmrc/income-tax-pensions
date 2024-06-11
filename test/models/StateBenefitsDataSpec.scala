@@ -22,7 +22,7 @@ import utils.StateBenefitBuilder.aStateBenefit
 import utils.StateBenefitsDataBuilder.{aStateBenefitsData, aStateBenefitsDataJsValue}
 import utils.TestUtils
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 class StateBenefitsDataSpec extends TestUtils {
