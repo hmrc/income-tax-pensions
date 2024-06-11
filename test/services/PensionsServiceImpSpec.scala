@@ -31,7 +31,7 @@ import models.common.{Journey, JourneyContextWithNino, Mtditid}
 import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
-import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
+import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
@@ -59,7 +59,7 @@ import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
-class PensionsServiceIpmlSpec
+class PensionsServiceImpSpec
     extends TestUtils
     with MockPensionReliefsConnector
     with MockPensionChargesConnector
@@ -130,7 +130,7 @@ class PensionsServiceIpmlSpec
       (mockStateBenefitsService
         .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
         .expects(*, *)
-        .returning(EitherT.rightT[Future, ServiceError](anAllStateBenefitsData))
+        .returning(EitherT.rightT[Future, ServiceError](Some(anAllStateBenefitsData)))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -156,7 +156,7 @@ class PensionsServiceIpmlSpec
       (mockStateBenefitsService
         .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
         .expects(*, *)
-        .returning(EitherT.rightT[Future, ServiceError](AllStateBenefitsData.empty))
+        .returning(EitherT.rightT[Future, ServiceError](None))
 
       (mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
@@ -359,12 +359,12 @@ class PensionsServiceIpmlSpec
   "getStatePension" should {
     "get None if No downstream and DB answers" in {
       val service = createPensionWithStubStateBenefit(stubStateBenefit)
-      val result  = service.getStatePension(sampleCtx).value.futureValue.value.value
+      val result  = service.getStatePension(sampleCtx).value.futureValue.value
 
-      assert(result === IncomeFromPensionsStatePensionAnswers.empty)
+      assert(result === None)
     }
 
-    "get answers if No downstream but DB answers exist" in {
+    "get empty answers if no answers from downstream but DB answers exist" in {
       val service = createPensionWithStubStateBenefit(stubStateBenefit)
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
 
@@ -373,19 +373,13 @@ class PensionsServiceIpmlSpec
         res <- service.getStatePension(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(
-        result === Some(
-          IncomeFromPensionsStatePensionAnswers(
-            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
-            Some(StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(true))),
-            None
-          )))
+      assert(result === Some(IncomeFromPensionsStatePensionAnswers(None, None, None)))
     }
 
     "get answers from downstream" in {
       val service = createPensionWithStubStateBenefit(
         StubStateBenefitService(
-          getStateBenefitsResult = Right(stateBenefits.allStateBenefitsData)
+          getStateBenefitsResult = Right(Some(stateBenefits.allStateBenefitsData))
         ))
 
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))

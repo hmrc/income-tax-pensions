@@ -16,15 +16,9 @@
 
 package models
 
-import models.database.IncomeFromPensionsStatePensionStorageAnswers
-import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.libs.json.{JsValue, Json}
 import testdata.connector.stateBenefits._
-import testdata.database.incomeFromPensionsStatePensionStorageAnswers
-import testdata.frontend.stateBenefitAnswers
-
-import java.util.UUID
 
 class AllStateBenefitsDataSpec extends AnyWordSpecLike {
 
@@ -66,39 +60,5 @@ class AllStateBenefitsDataSpec extends AnyWordSpecLike {
           customerAddedStateBenefitsData = None
         ))
     }
-  }
-
-  "toIncomeFromPensionsStatePensionAnswers" should {
-    "return an empty" in {
-      val result = AllStateBenefitsData.empty.toIncomeFromPensionsStatePensionAnswers(None, None)
-      assert(result === IncomeFromPensionsStatePensionAnswers.empty)
-    }
-
-    "return all answers" in {
-      val result = allStateBenefitsData.toIncomeFromPensionsStatePensionAnswers(
-        Some("sessionId"),
-        Some(incomeFromPensionsStatePensionStorageAnswers.sampleAnswers))
-
-      assert(
-        result === IncomeFromPensionsStatePensionAnswers(
-          statePension = Some(stateBenefitAnswers.sample.copy(benefitId = Some(UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b")))),
-          statePensionLumpSum = Some(stateBenefitAnswers.sample.copy(benefitId = Some(UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b")))),
-          sessionId = Some("sessionId")
-        ))
-    }
-
-    "fallback to answers from database when no answers in IFS" in {
-      val result = AllStateBenefitsData.empty.toIncomeFromPensionsStatePensionAnswers(
-        Some("sessionId"),
-        Some(IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(true))))
-
-      assert(
-        result === IncomeFromPensionsStatePensionAnswers(
-          Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
-          Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-          sessionId = Some("sessionId")
-        ))
-    }
-
   }
 }

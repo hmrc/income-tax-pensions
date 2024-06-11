@@ -29,11 +29,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 case class StubStateBenefitService(
-    getStateBenefitsResult: Either[ServiceError, AllStateBenefitsData] = Right(AllStateBenefitsData.empty),
+    getStateBenefitsResult: Either[ServiceError, Option[AllStateBenefitsData]] = Right(None),
     var stateBenefits: List[IncomeFromPensionsStatePensionAnswers] = Nil
 ) extends StateBenefitService {
 
-  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData] =
+  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AllStateBenefitsData]] =
     EitherT.fromEither[Future](getStateBenefitsResult)
 
   def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
