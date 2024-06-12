@@ -32,20 +32,19 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 trait StateBenefitService {
-  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData]
+  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AllStateBenefitsData]]
   def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
 }
 
 @Singleton
 class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(implicit ec: ExecutionContext) extends StateBenefitService {
 
-  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[AllStateBenefitsData] = {
+  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AllStateBenefitsData]] = {
     implicit val updatedHc: HeaderCarrier = hc.withInternalId(ctx.mtditid.value)
 
     connector
       .getStateBenefits(ctx.nino, ctx.taxYear)(updatedHc)
       .leftMap(err => err.toServiceError)
-      .map(_.getOrElse(AllStateBenefitsData.empty))
   }
 
   def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
@@ -98,8 +97,8 @@ class StateBenefitServiceImpl @Inject() (connector: StateBenefitsConnector)(impl
   private def obtainExistingBenefitIds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[List[UUID]] =
     for {
       stateBenefitData <- getStateBenefits(ctx)
-      maybeExistingStateBenefits = stateBenefitData.stateBenefitsData
-      maybeSpId                  = maybeExistingStateBenefits.flatMap(_.statePension.map(_.benefitId))
-      maybeSpLumpSumId           = maybeExistingStateBenefits.flatMap(_.statePensionLumpSum.map(_.benefitId))
+      maybeExistingStateBenefits     = stateBenefitData.map(_.stateBenefitsData)
+      maybeSpId: Option[UUID]        = maybeExistingStateBenefits.flatMap(_.flatMap(_.statePension.map(_.benefitId)))
+      maybeSpLumpSumId: Option[UUID] = maybeExistingStateBenefits.flatMap(_.flatMap(_.statePensionLumpSum.map(_.benefitId)))
     } yield List(maybeSpId, maybeSpLumpSumId).flatten
 }

@@ -19,7 +19,7 @@ package models.statebenefit
 import models.common.JourneyContextWithNino
 import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.common
-import testdata.frontend.{incomeFromPensionsStatePensionAnswers, stateBenefitAnswers}
+import testdata.frontend.incomeFromPensionsStatePensionAnswers
 
 import java.time.{Instant, LocalDate}
 

@@ -17,32 +17,12 @@
 package models
 
 import connectors.OptionalContentHttpReads
-import models.database.IncomeFromPensionsStatePensionStorageAnswers
-import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
-                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
-
-  def toIncomeFromPensionsStatePensionAnswers(
-      sessionId: Option[String],
-      dbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): IncomeFromPensionsStatePensionAnswers = {
-    val statePension        = stateBenefitsData.flatMap(_.statePension).map(StateBenefitAnswers.fromStateBenefit)
-    val statePensionLumpSum = stateBenefitsData.flatMap(_.statePensionLumpSum).map(StateBenefitAnswers.fromStateBenefit)
-
-    IncomeFromPensionsStatePensionAnswers(
-      statePension = statePension.orElse(
-        dbAnswers.map(ans => StateBenefitAnswers.empty.copy(amountPaidQuestion = ans.statePension))
-      ),
-      statePensionLumpSum = statePensionLumpSum.orElse(
-        dbAnswers.map(ans => StateBenefitAnswers.empty.copy(amountPaidQuestion = ans.statePensionLumpSum))
-      ),
-      sessionId = sessionId
-    )
-  }
-}
+                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None)
 
 object AllStateBenefitsData {
   val empty: AllStateBenefitsData = AllStateBenefitsData(None, None)

@@ -152,7 +152,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       stateBenefits  <- stateBenfitService.getStateBenefits(ctx)
       maybeDbAnswers <- repository.getAnswers[IncomeFromPensionsStatePensionStorageAnswers](ctx.toJourneyContext(Journey.StatePension))
-    } yield Some(stateBenefits.toIncomeFromPensionsStatePensionAnswers(sessionId = None, maybeDbAnswers))
+    } yield maybeDbAnswers.map(_.toIncomeFromPensionsStatePensionAnswers(sessionId = None, stateBenefits))
 
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -325,7 +325,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
-      stateBenefits = Some(stateBenefitsData),
+      stateBenefits = stateBenefitsData,
       employmentPensions = employmentData.fold(none[EmploymentPensions])(EmploymentPensions.fromEmploymentResponse(_).some),
       pensionIncome = pensionIncomeData
     )).value

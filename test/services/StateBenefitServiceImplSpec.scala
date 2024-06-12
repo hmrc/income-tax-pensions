@@ -16,7 +16,6 @@
 
 package services
 
-import models.AllStateBenefitsData
 import models.common.JourneyContextWithNino
 import models.statebenefit.{ClaimCYAModel, StateBenefitsUserData}
 import org.scalatest.EitherValues._
@@ -37,15 +36,15 @@ class StateBenefitServiceImplSpec extends AnyWordSpecLike {
   val ctx = JourneyContextWithNino(common.taxYear, common.mtditid, common.nino)
 
   "getStateBenefits" should {
-    "return an empty object if no answers downstream" in new TestCase {
+    "return a None if there are no answers downstream" in new TestCase {
       val result = service.getStateBenefits(ctx).value.futureValue.value
-      assert(result === AllStateBenefitsData.empty)
+      assert(result === None)
     }
 
     "return answers from downstream" in new TestCase {
       override val service = new StateBenefitServiceImpl(StubStateBenefitsConnector(stateBenefitsResults = Some(stateBenefits.allStateBenefitsData)))
       val result           = service.getStateBenefits(ctx).value.futureValue.value
-      assert(result === stateBenefits.allStateBenefitsData)
+      assert(result === Some(stateBenefits.allStateBenefitsData))
     }
   }
 

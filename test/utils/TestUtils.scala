@@ -179,20 +179,6 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   )
   val fullPensionChargesModel = GetPensionChargesRequestModel(
     submittedOn = "2020-07-27T17:00:19Z",
-    pensionSavingsTaxCharges = Some(
-      PensionSavingsTaxCharges(
-        pensionSchemeTaxReference = Some(Seq("00123456RA", "00123456RB")),
-        lumpSumBenefitTakenInExcessOfLifetimeAllowance = Some(
-          LifetimeAllowance(
-            amount = 800.02,
-            taxPaid = 200.02
-          )),
-        benefitInExcessOfLifetimeAllowance = Some(
-          LifetimeAllowance(
-            amount = 800.02,
-            taxPaid = 200.02
-          ))
-      )),
     pensionSchemeOverseasTransfers = Some(
       PensionSchemeOverseasTransfers(
         overseasSchemeProvider = Seq(ukOverseasSchemeProvider, nonUkOverseasSchemeProvider),

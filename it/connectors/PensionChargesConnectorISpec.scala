@@ -278,7 +278,6 @@ class PensionChargesConnectorISpec extends WiremockSpec {
     s".createUpdatePensionCharges - $taxYear" should {
       val createUpdatePensionChargesRequestModel =
         CreateUpdatePensionChargesRequestModel(
-          pensionSavingsTaxCharges = None,
           pensionContributions = Some(
             PensionContributions(
               Seq("00123456RA"),
@@ -393,22 +392,6 @@ object PensionChargesConnectorISpec {
     """
       {
       | "submittedOn": "2020-07-27T17:00:19Z",
-      |	"pensionSavingsTaxCharges": {
-      |		"pensionSchemeTaxReference": [
-      |			"00123456RA"
-      |		],
-      |		"lumpSumBenefitTakenInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.45
-      |		},
-      |		"benefitInExcessOfLifetimeAllowance": {
-      |			"amount": 123.45,
-      |			"taxPaid": 12.34
-      |		},
-      |		"isAnnualAllowanceReduced": true,
-      |		"taperedAnnualAllowance": true,
-      |		"moneyPurchasedAllowance": false
-      |	},
       |	"pensionSchemeOverseasTransfers": {
       |		"overseasSchemeProvider": [{
       |			"providerName": "Overseas Pensions Plc",

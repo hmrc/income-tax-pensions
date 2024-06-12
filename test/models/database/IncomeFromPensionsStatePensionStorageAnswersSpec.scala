@@ -16,12 +16,33 @@
 
 package models.database
 
-import org.scalatest.wordspec.AnyWordSpecLike
-import IncomeFromPensionsStatePensionStorageAnswers._
+import models.database.IncomeFromPensionsStatePensionStorageAnswers._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import org.scalatest.wordspec.AnyWordSpecLike
+import testdata.connector.stateBenefits.allStateBenefitsData
+import testdata.database.incomeFromPensionsStatePensionStorageAnswers
 import testdata.frontend.incomeFromPensionsStatePensionAnswers
 
 class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
+
+  "toIncomeFromPensionsStatePensionAnswers" should {
+    "return all answers" in {
+      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers(
+        Some("sessionId"),
+        Some(allStateBenefitsData))
+
+      assert(result === incomeFromPensionsStatePensionAnswers.sample)
+    }
+
+    "overwrite answers from database with answers from IFS if needed" in {
+      val result =
+        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false))
+          .toIncomeFromPensionsStatePensionAnswers(Some("sessionId"), Some(allStateBenefitsData))
+
+      assert(result === incomeFromPensionsStatePensionAnswers.sample)
+    }
+  }
+
   "fromJourneyAnswers" should {
     "return empty answers" in {
       assert(fromJourneyAnswers(IncomeFromPensionsStatePensionAnswers.empty) === IncomeFromPensionsStatePensionStorageAnswers(None, None))

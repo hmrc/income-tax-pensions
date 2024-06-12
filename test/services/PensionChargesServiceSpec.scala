@@ -170,7 +170,6 @@ class PensionChargesServiceSpec extends TestUtils {
 
     val userData = CreateUpdatePensionChargesRequestModel(
       None,
-      None,
       pensionSchemeUnauthorisedPayments,
       None,
       None

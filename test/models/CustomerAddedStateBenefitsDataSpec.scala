@@ -21,7 +21,7 @@ import utils.CustomerAddedStateBenefitBuilder.aCustomerAddedStateBenefit
 import utils.CustomerAddedStateBenefitsDataBuilder.{aCustomerAddedStateBenefitsData, aCustomerAddedStateBenefitsDataJsValue}
 import utils.TestUtils
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import java.util.UUID
 
 class CustomerAddedStateBenefitsDataSpec extends TestUtils {

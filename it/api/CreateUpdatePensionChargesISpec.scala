@@ -61,11 +61,15 @@ class CreateUpdatePensionChargesISpec extends WiremockSpec with ScalaFutures {
       authorised()
       val badJson: JsValue = Json.parse("""{
           |	"submittedOn": "2020-07-27T17:00:19Z",
-          |	"pensionSavingsTaxCharges": {
+          |	"pensionSchemeUnauthorisedPayments": {
           |		"pensionSchemeTaxReference": ["00123456RA", "00123456RB"],
-          |		"benefitInExcessOfLifetimeAllowance": {
-          |			"amount": "bad",
-          |			"taxPaid": 200.02
+          |		"surcharge": {
+          |			"amount": 200.02,
+          |			"foreignTaxPaid": 100.01
+          |		},
+          |		"noSurcharge": {
+          |			"amount": "INVALID",
+          |			"foreignTaxPaid": 100.01
           |		}
           |	}
           |}""".stripMargin)
