@@ -18,24 +18,25 @@ package repositories
 
 import cats.data.EitherT
 import cats.implicits._
+import config.AppConfig
 import models.common._
 import models.database.JourneyAnswers
 import models.domain.ApiResultT
 import models.error.ServiceError
 import org.mongodb.scala._
 import org.mongodb.scala.bson._
+import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json, Reads}
-import repositories.ExpireAtCalculator.calculateExpireAt
 import services.journeyAnswers.getPersistedAnswers
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import utils.Logging
 
-import java.time.{Clock, Instant}
+import java.time.{Clock, Instant, ZoneOffset}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,7 +53,7 @@ trait JourneyAnswersRepository {
 }
 
 @Singleton
-class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clock)(implicit ec: ExecutionContext)
+class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clock, appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[JourneyAnswers](
       collectionName = "journey-answers",
       mongoComponent = mongo,
@@ -60,17 +61,17 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
       replaceIndexes = true,
       indexes = Seq(
         IndexModel(
-          Indexes.ascending("expireAt"),
+          ascending("updatedAt"),
           IndexOptions()
-            .name("expireAt")
-            .expireAfter(0, TimeUnit.SECONDS)
+            .expireAfter(appConfig.mongoTTL, TimeUnit.DAYS)
+            .name("UserDataTTL")
         ),
         IndexModel(
-          Indexes.ascending("mtditid", "taxYear", "journey"),
+          ascending("mtditid", "taxYear", "journey"),
           IndexOptions().name("mtditid_taxYear_journey")
         ),
         IndexModel(
-          Indexes.ascending("mtditid", "taxYear"),
+          ascending("mtditid", "taxYear"),
           IndexOptions().name("mtditid_taxYear")
         )
       )
@@ -161,7 +162,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
   private def createUpsert(ctx: JourneyContext)(fieldName: String, value: BsonValue, statusOnInsert: JourneyStatus) = {
     val now      = Instant.now(clock)
-    val expireAt = calculateExpireAt(now)
+    val expireAt = now.atZone(ZoneOffset.UTC).plusDays(appConfig.mongoTTL).toInstant
 
     Updates.combine(
       Updates.set(fieldName, value),
@@ -177,7 +178,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
   private def createUpsertStatus(ctx: JourneyContext)(status: JourneyStatus) = {
     val now      = Instant.now(clock)
-    val expireAt = calculateExpireAt(now)
+    val expireAt = now.atZone(ZoneOffset.UTC).plusDays(appConfig.mongoTTL).toInstant
 
     Updates.combine(
       Updates.set("status", status.entryName),

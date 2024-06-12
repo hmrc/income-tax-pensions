@@ -21,6 +21,7 @@ import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
+import scala.concurrent.duration.Duration
 
 class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
   val desBaseUrl: String = servicesConfig.baseUrl("des")
@@ -45,4 +46,5 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 
+  lazy val mongoTTL: Int = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
 }
