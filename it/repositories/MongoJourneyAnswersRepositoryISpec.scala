@@ -18,11 +18,13 @@ package repositories
 
 import cats.data.EitherT
 import cats.implicits._
+import config.AppConfig
 import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
 import models.common.JourneyStatus._
 import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
 import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.error.ServiceError
+import org.mockito.Mockito.when
 import org.scalatest.EitherValues._
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
@@ -33,13 +35,18 @@ import utils.TestUtils._
 import java.time.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.scalatestplus.mockito.MockitoSugar.mock
 
 class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport[JourneyAnswers] {
   private val now       = mkNow()
   private val clock     = mkClock(now)
   private val sampleCtx = JourneyContext(currTaxYear, mtditid, Journey.PaymentsIntoPensions)
 
-  override val repository = new MongoJourneyAnswersRepository(mongoComponent, clock)
+  private val mockAppConfig = mock[AppConfig]
+  when(mockAppConfig.mongoTTL) thenReturn 28
+  private val TTLinSeconds = mockAppConfig.mongoTTL * 3600 * 24
+
+  override val repository = new MongoJourneyAnswersRepository(mongoComponent, clock, mockAppConfig)
 
   override def beforeEach(): Unit = {
     clock.reset(now)
@@ -73,7 +80,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
         inserted <- repository.get(paymentsIntoPensionsCtx)
       } yield inserted.value).rightValue
 
-      val expectedExpireAt = ExpireAtCalculator.calculateExpireAt(now)
+      val expectedExpireAt = now.plusSeconds(TTLinSeconds)
       result shouldBe JourneyAnswers(
         mtditid,
         currTaxYear,
@@ -93,7 +100,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
         updated <- repository.get(paymentsIntoPensionsCtx)
       } yield updated.value).rightValue
 
-      val expectedExpireAt = ExpireAtCalculator.calculateExpireAt(now)
+      val expectedExpireAt = now.plusSeconds(TTLinSeconds)
       result shouldBe JourneyAnswers(
         mtditid,
         currTaxYear,
