@@ -30,7 +30,7 @@ import scala.reflect.ClassTag
 
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
-    getAllJourneyStatuses: List[JourneyNameAndStatus] = List.empty,
+    var getAllJourneyStatuses: List[JourneyNameAndStatus] = List.empty,
     getJourneyStatus: List[JourneyNameAndStatus] = List.empty,
     saveJourneyStatus: Unit = Right(()),
     upsertDateField: Either[ServiceError, Unit] = Right(()),
@@ -49,6 +49,7 @@ case class StubJourneyAnswersRepository(
 
   def testOnlyClearAllData(): ApiResultT[Unit] = {
     upsertAnswersList = Nil
+    getAllJourneyStatuses = Nil
     EitherT.rightT[Future, ServiceError](())
   }
 

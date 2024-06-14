@@ -31,6 +31,6 @@ class CommonTaskListController @Inject() (service: PensionsService, auth: Author
     with Logging {
 
   def getCommonTaskList(taxYear: TaxYear, nino: Nino): Action[AnyContent] = auth.async { implicit user =>
-    handleOptionalApiResult(service.getCommonTaskList(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
+    handleApiResultT(service.getCommonTaskList(JourneyContextWithNino(taxYear, user.getMtditid, nino)))
   }
 }

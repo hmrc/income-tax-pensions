@@ -34,7 +34,7 @@ object TaskTitle extends TaskTitle {
     paymentsIntoPensionsTitles.PaymentsIntoUk(),
     paymentsIntoPensionsTitles.PaymentsIntoOverseas(),
     paymentsIntoPensionsTitles.AnnualAllowances(),
-    paymentsIntoPensionsTitles.OverseasTransfer(),
+    paymentsIntoPensionsTitles.OverseasTransfer()
   )
 
   implicit val enumerable: Enumerable[TaskTitle] =

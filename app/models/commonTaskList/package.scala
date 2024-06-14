@@ -16,31 +16,47 @@
 
 package models
 
-import models.common.JourneyStatus.CheckOurRecords
+import models.common.Journey._
+import models.common.JourneyStatus._
 import models.common.{Journey, JourneyStatus, TaxYear}
 import models.domain.AllJourneys
 import models.frontend.JourneyFrontend
 
 package object commonTaskList {
 
-  private def unsafeToCommonTaskListEnum[A: Enumerable](raw: String): A =
-    implicitly[Enumerable[A]]
-      .withName(raw)
-      .getOrElse(throw new NoSuchElementException(s"Invalid TaskStatus: $raw"))
-
   private def getHref(frontendUrl: String, taxYear: TaxYear, journey: Journey, status: Option[JourneyStatus]): String = {
     val journeyUrlSuffix = JourneyFrontend(journey, status).urlSuffix
     s"$frontendUrl/pensions/$taxYear/$journeyUrlSuffix"
   }
 
-  private def getStatus(status: Option[JourneyStatus]): TaskStatus =
-    unsafeToCommonTaskListEnum[TaskStatus](status.getOrElse(CheckOurRecords).entryName)
+  private def getStatus(maybeStatus: Option[JourneyStatus]): TaskStatus =
+    maybeStatus
+      .map {
+        case CheckOurRecords => TaskStatus.CheckNow()
+        case NotStarted      => TaskStatus.NotStarted()
+        case InProgress      => TaskStatus.InProgress()
+        case Completed       => TaskStatus.Completed()
+      }
+      .getOrElse(TaskStatus.CheckNow())
+
+  private def getTaskTitle(journey: Journey): TaskTitle =
+    journey match {
+      case StatePension                 => TaskTitle.pensionsTitles.StatePension()
+      case UkPensionIncome              => TaskTitle.pensionsTitles.OtherUkPensions()
+      case UnauthorisedPayments         => TaskTitle.pensionsTitles.UnauthorisedPayments()
+      case ShortServiceRefunds          => TaskTitle.pensionsTitles.ShortServiceRefunds()
+      case IncomeFromOverseasPensions   => TaskTitle.pensionsTitles.IncomeFromOverseas()
+      case PaymentsIntoPensions         => TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoUk()
+      case AnnualAllowances             => TaskTitle.paymentsIntoPensionsTitles.AnnualAllowances()
+      case PaymentsIntoOverseasPensions => TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoOverseas()
+      case TransferIntoOverseasPensions => TaskTitle.paymentsIntoPensionsTitles.OverseasTransfer()
+    }
 
   def fromAllJourneys(allJourneys: AllJourneys, frontendUrl: String, taxYear: TaxYear): TaskListModel = {
     def createJourneySection(journey: Journey) = {
       val maybeStatus = allJourneys.getStatus(journey)
       TaskListSectionItem(
-        unsafeToCommonTaskListEnum[TaskTitle](journey.entryName),
+        getTaskTitle(journey),
         getStatus(maybeStatus),
         Some(getHref(frontendUrl, taxYear, journey, maybeStatus))
       )
