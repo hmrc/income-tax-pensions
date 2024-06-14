@@ -33,7 +33,7 @@ package object commonTaskList {
     maybeStatus
       .map {
         case CheckOurRecords => TaskStatus.CheckNow()
-        case NotStarted      => TaskStatus.NotStarted()
+        case NotStarted      => TaskStatus.InProgress()
         case InProgress      => TaskStatus.InProgress()
         case Completed       => TaskStatus.Completed()
       }

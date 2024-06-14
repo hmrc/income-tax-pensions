@@ -730,7 +730,7 @@ class PensionsServiceImpSpec
             Some(List(
               TaskListSectionItem(
                 TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoUk(),
-                TaskStatus.NotStarted(),
+                TaskStatus.InProgress(),
                 Some(
                   s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/payments-into-pensions/check-payments-into-pensions")
               ),
