@@ -23,7 +23,7 @@ import connectors._
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common._
-import models.commonTaskList.TaskListModel
+import models.commonTaskList.{TaskListModel, fromAllJourneys}
 import models.database._
 import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
@@ -368,7 +368,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     )
 
     allJourneys.map { all =>
-      val taskListModel = TaskListModel.fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
+      val taskListModel = fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
       Some(taskListModel)
     }
   }
