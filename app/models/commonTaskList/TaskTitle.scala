@@ -16,10 +16,28 @@
 
 package models.commonTaskList
 
-import play.api.libs.json.{Json, OFormat}
+import models.commonTaskList.taskItemTitles._
 
-case class TaskTitle(content: String)
+trait TaskTitle extends Enumerable.Implicits
 
-object TaskTitle {
-  implicit val format: OFormat[TaskTitle] = Json.format[TaskTitle]
+object TaskTitle extends TaskTitle {
+
+  val pensionsTitles: PensionsTitles.type                         = PensionsTitles
+  val paymentsIntoPensionsTitles: PaymentsIntoPensionsTitles.type = PaymentsIntoPensionsTitles
+
+  val values: Seq[TaskTitle] = Seq(
+    pensionsTitles.StatePension(),
+    pensionsTitles.OtherUkPensions(),
+    pensionsTitles.IncomeFromOverseas(),
+    pensionsTitles.UnauthorisedPayments(),
+    pensionsTitles.ShortServiceRefunds(),
+    paymentsIntoPensionsTitles.PaymentsIntoUk(),
+    paymentsIntoPensionsTitles.PaymentsIntoOverseas(),
+    paymentsIntoPensionsTitles.AnnualAllowances(),
+    paymentsIntoPensionsTitles.OverseasTransfer()
+  )
+
+  implicit val enumerable: Enumerable[TaskTitle] =
+    Enumerable(values.map(v => v.toString -> v): _*)
+
 }

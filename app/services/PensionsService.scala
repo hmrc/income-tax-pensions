@@ -23,7 +23,7 @@ import connectors._
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common._
-import models.commonTaskList.TaskListModel
+import models.commonTaskList.{TaskListModel, fromAllJourneys}
 import models.database._
 import models.domain.{AllJourneys, ApiResultT}
 import models.error.ServiceError
@@ -39,7 +39,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PensionsService {
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]]
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel]
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[PaymentsIntoPensionsAnswers]]
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
   def getUkPensionIncome(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[UkPensionIncomeAnswers]]
@@ -342,7 +342,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = {
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = {
 
     // TODO Right now we don't use answers to determine status, but we will have to as the db data is removed after 28 days
     val allJourneys = for {
@@ -368,8 +368,8 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     )
 
     allJourneys.map { all =>
-      val taskListModel = TaskListModel.fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
-      Some(taskListModel)
+      val taskListModel = fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
+      taskListModel
     }
   }
 }

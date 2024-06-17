@@ -27,7 +27,8 @@ import connectors.httpParsers.GetStateBenefitsHttpParser.GetStateBenefitsRespons
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, OverseasPensionContributions}
-import models.common.{Journey, JourneyContextWithNino, Mtditid}
+import models.common._
+import models.commonTaskList._
 import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
@@ -42,7 +43,8 @@ import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.{StubEmploymentService, StubJourneyStatusService, StubStateBenefitService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
-import testdata.connector.stateBenefits
+import testdata.commonTaskList.emptyCommonTaskListModel
+import testdata.connector.{getPensionReliefsModel, stateBenefits}
 import testdata.frontend.stateBenefitAnswers
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
@@ -76,7 +78,7 @@ class PensionsServiceImpSpec
   val stubStatusService: StubJourneyStatusService    = StubJourneyStatusService()
   val stubStateBenefit: StubStateBenefitService      = StubStateBenefitService()
 
-  def createPensionWithStubEmployment(stubEmploymentService: StubEmploymentService) =
+  def createPensionWithStubs(stubEmploymentService: StubEmploymentService, stubStatusService: StubJourneyStatusService = StubJourneyStatusService()) =
     new PensionsServiceImpl(
       mockAppConfig,
       mockReliefsConnector,
@@ -100,7 +102,7 @@ class PensionsServiceImpSpec
       stubRepository
     )
 
-  val service: PensionsService = createPensionWithStubEmployment(stubEmploymentService)
+  val service: PensionsService = createPensionWithStubs(stubEmploymentService)
 
   val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
@@ -292,7 +294,7 @@ class PensionsServiceImpSpec
     val ctx = sampleCtx.toJourneyContext(Journey.UkPensionIncome)
 
     "get None if No downstream and DB answers" in {
-      val service = createPensionWithStubEmployment(
+      val service = createPensionWithStubs(
         StubEmploymentService(
           loadEmploymentResult = EmploymentPensions(Nil).asRight
         ))
@@ -304,7 +306,7 @@ class PensionsServiceImpSpec
 
     "get uKPensionIncomesQuestion=false with no incomes if no downstream answers, but if db answers exist" in {
       val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
-      val service = createPensionWithStubEmployment(
+      val service = createPensionWithStubs(
         StubEmploymentService(
           loadEmploymentResult = EmploymentPensions(Nil).asRight
         ))
@@ -319,7 +321,7 @@ class PensionsServiceImpSpec
 
     "get uKPensionIncomesQuestion=false with no incomes" in {
       val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
-      val service = createPensionWithStubEmployment(
+      val service = createPensionWithStubs(
         StubEmploymentService(
           loadEmploymentResult = EmploymentPensionsBuilder.employmentPensionsData.asRight
         ))
@@ -337,7 +339,7 @@ class PensionsServiceImpSpec
     val employmentStub = StubEmploymentService(
       loadEmploymentResult = EmploymentPensionsBuilder.employmentPensionsData.asRight
     )
-    val service = createPensionWithStubEmployment(employmentStub)
+    val service = createPensionWithStubs(employmentStub)
 
     "upsert answers" in {
       val answers = UkPensionIncomeAnswers(uKPensionIncomesQuestion = true, List(sampleSingleUkPensionIncome))
@@ -652,6 +654,106 @@ class PensionsServiceImpSpec
       assert(stubRepository.upsertAnswersList.size === 1)
       val persistedAnswers = stubRepository.upsertAnswersList.head.as[ShortServiceRefundsStorageAnswers]
       assert(persistedAnswers === shortServiceRefundsCtxStorageAnswers)
+    }
+  }
+
+  "getCommonTaskList" should {
+    "return None when no data in DB and IFS" in {
+      mockGetPensionReliefsT(Right(None))
+      mockGetPensionChargesT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+
+      val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
+
+      val expected = emptyCommonTaskListModel(sampleCtx.taxYear)
+      assert(result === expected)
+    }
+
+    "return a full task list in a proper status" in {
+      val taxYear = sampleCtx.taxYear
+
+      val stubStatusService: StubJourneyStatusService = StubJourneyStatusService(getAllStatusesResult = List(
+        JourneyNameAndStatus(Journey.PaymentsIntoPensions, JourneyStatus.NotStarted),
+        JourneyNameAndStatus(Journey.UkPensionIncome, JourneyStatus.InProgress),
+        JourneyNameAndStatus(Journey.StatePension, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.AnnualAllowances, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.UnauthorisedPayments, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.PaymentsIntoOverseasPensions, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.IncomeFromOverseasPensions, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.TransferIntoOverseasPensions, JourneyStatus.Completed),
+        JourneyNameAndStatus(Journey.ShortServiceRefunds, JourneyStatus.Completed)
+      ))
+
+      val service: PensionsService = createPensionWithStubs(stubEmploymentService, stubStatusService)
+      mockGetPensionReliefsT(
+        Right(Some(getPensionReliefsModel.getPensionReliefsModel))
+      )
+      mockGetPensionChargesT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+
+      val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
+
+      val expected = TaskListModel(
+        List(
+          TaskListSection(
+            SectionTitle.PensionsTitle(),
+            Some(List(
+              TaskListSectionItem(
+                TaskTitle.pensionsTitles.StatePension(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/check-state-pension")
+              ),
+              TaskListSectionItem(
+                TaskTitle.pensionsTitles.OtherUkPensions(),
+                TaskStatus.InProgress(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/check-uk-pension-income")
+              ),
+              TaskListSectionItem(
+                TaskTitle.pensionsTitles.UnauthorisedPayments(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/unauthorised-payments-from-pensions/check-unauthorised-payments")
+              ),
+              TaskListSectionItem(
+                TaskTitle.pensionsTitles.ShortServiceRefunds(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/short-service-refunds/check-short-service-refund-details")
+              ),
+              TaskListSectionItem(
+                TaskTitle.pensionsTitles.IncomeFromOverseas(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/income-from-overseas-pensions/check-overseas-pension-income")
+              )
+            ))
+          ),
+          TaskListSection(
+            SectionTitle.PaymentsIntoPensionsTitle(),
+            Some(List(
+              TaskListSectionItem(
+                TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoUk(),
+                TaskStatus.InProgress(),
+                Some(
+                  s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/payments-into-pensions/check-payments-into-pensions")
+              ),
+              TaskListSectionItem(
+                TaskTitle.paymentsIntoPensionsTitles.AnnualAllowances(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/annual-allowance/check-annual-allowance")
+              ),
+              TaskListSectionItem(
+                TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoOverseas(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/payments-into-overseas-pensions/check-overseas-pension-details")
+              ),
+              TaskListSectionItem(
+                TaskTitle.paymentsIntoPensionsTitles.OverseasTransfer(),
+                TaskStatus.Completed(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/overseas-transfer-charges/transfer-charges/check-transfer-charges-details")
+              )
+            ))
+          )
+        ))
+
+      assert(result === expected)
     }
   }
 }

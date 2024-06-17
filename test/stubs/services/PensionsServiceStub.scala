@@ -93,5 +93,5 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
   def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] = ???
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     ???
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[TaskListModel]] = ???
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = ???
 }

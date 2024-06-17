@@ -26,10 +26,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class StubJourneyStatusService() extends JourneyStatusService {
+case class StubJourneyStatusService(getAllStatusesResult: List[JourneyNameAndStatus] = Nil) extends JourneyStatusService {
 
   def getAllStatuses(taxYear: TaxYear, mtditid: Mtditid)(implicit hc: HeaderCarrier): ApiResultT[List[JourneyNameAndStatus]] =
-    EitherT.rightT[Future, ServiceError](List.empty[JourneyNameAndStatus])
+    EitherT.rightT[Future, ServiceError](getAllStatusesResult)
 
   def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](List.empty[JourneyNameAndStatus])

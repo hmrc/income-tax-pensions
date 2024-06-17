@@ -16,15 +16,31 @@
 
 package models.commonTaskList
 
-import enumeratum._
+import play.api.libs.json.{Json, OWrites, Reads}
 
-sealed abstract class SectionTitle(override val entryName: String) extends EnumEntry {
-  override def toString: String = entryName
-}
+trait SectionTitle extends Enumerable.Implicits
 
-object SectionTitle extends Enum[SectionTitle] with utils.PlayJsonEnum[SectionTitle] {
-  val values: IndexedSeq[SectionTitle] = findValues
+object SectionTitle extends SectionTitle {
 
-  case object PensionsTitle             extends SectionTitle("Pensions")
-  case object PaymentsIntoPensionsTitle extends SectionTitle("PaymentsIntoPensions")
+  case class PensionsTitle() extends WithName("Pensions") with SectionTitle
+  object PensionsTitle {
+    implicit val nonStrictReads: Reads[PensionsTitle] = Reads.pure(PensionsTitle())
+    implicit val writes: OWrites[PensionsTitle]       = OWrites[PensionsTitle](_ => Json.obj())
+  }
+
+  case class PaymentsIntoPensionsTitle() extends WithName("PaymentsIntoPensions") with SectionTitle
+  object PaymentsIntoPensionsTitle {
+    // implicit val format: OFormat[PaymentsIntoPensionsTitle] = Json.format[PaymentsIntoPensionsTitle]
+    implicit val nonStrictReads: Reads[PaymentsIntoPensionsTitle] = Reads.pure(PaymentsIntoPensionsTitle())
+    implicit val writes: OWrites[PaymentsIntoPensionsTitle]       = OWrites[PaymentsIntoPensionsTitle](_ => Json.obj())
+  }
+
+  val values: Seq[SectionTitle] = Seq(
+    PensionsTitle(),
+    PaymentsIntoPensionsTitle()
+  )
+
+  implicit val enumerable: Enumerable[SectionTitle] =
+    Enumerable(values.map(v => v.toString -> v): _*)
+
 }
