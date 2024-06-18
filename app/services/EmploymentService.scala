@@ -45,7 +45,8 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
   def getEmployment(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[EmploymentPensions] = {
     implicit val updatedHc: HeaderCarrier = hc.withInternalId(ctx.mtditid.value)
 
-    EitherT(connector.getEmployments(ctx.nino, ctx.taxYear)(updatedHc))
+    connector
+      .getEmployments(ctx.nino, ctx.taxYear)(updatedHc)
       .map {
         case Some(e) => EmploymentPensions.fromEmploymentResponse(e)
         case None    => EmploymentPensions.empty
@@ -81,13 +82,9 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
   }
 
   private def doDelete(employmentIds: Seq[String], ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
-    EitherT(
-      employmentIds
-        .traverse[Future, DownstreamErrorOr[Unit]] { id =>
-          connector.deleteEmployment(ctx.nino, ctx.taxYear, id)(hc, ec)
-        }
-        .map(sequence)).collapse
-      .leftMap(err => err.toServiceError)
+    employmentIds.traverse { id =>
+      connector.deleteEmployment(ctx.nino, ctx.taxYear, id)(hc, ec)
+    }.void
 
   // TODO Moved from FE, we need to simplify this
   private def sequence[A, B](s: Seq[Either[A, B]]): Either[A, Seq[B]] =
@@ -107,13 +104,9 @@ class EmploymentServiceImpl @Inject() (connector: EmploymentConnector)(implicit 
   private def doSave(answers: UkPensionIncomeAnswers, ctx: JourneyContextWithNino)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): ApiResultT[Unit] =
-    EitherT(
-      answers.uKPensionIncomes
-        .traverse[Future, DownstreamErrorOr[Unit]] { answers =>
-          val request = CreateUpdateEmploymentRequest.fromAnswers(answers)
-          connector.saveEmployment(ctx.nino, ctx.taxYear, request)
-        }
-        .map(sequence)).collapse
-      .leftMap(err => err.toServiceError)
+    answers.uKPensionIncomes.traverse { answers =>
+      val request = CreateUpdateEmploymentRequest.fromAnswers(answers)
+      connector.saveEmployment(ctx.nino, ctx.taxYear, request)
+    }.void
 
 }
