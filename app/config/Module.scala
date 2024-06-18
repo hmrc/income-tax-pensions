@@ -29,7 +29,6 @@ class Module extends AbstractModule {
     bind(classOf[AppConfig]).asEagerSingleton()
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
     bind(classOf[JourneyAnswersRepository]).to(classOf[MongoJourneyAnswersRepository])
-    bind(classOf[PensionReliefsService]).to(classOf[PensionReliefsServiceImpl])
     bind(classOf[EmploymentService]).to(classOf[EmploymentServiceImpl])
     bind(classOf[PensionsService]).to(classOf[PensionsServiceImpl])
     bind(classOf[JourneyStatusService]).to(classOf[JourneyStatusServiceImpl])

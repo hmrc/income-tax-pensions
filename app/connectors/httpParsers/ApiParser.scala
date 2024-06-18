@@ -18,7 +18,6 @@ package connectors.httpParsers
 
 import cats.implicits._
 import connectors.DownstreamErrorOr
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.{handleAPIError, logMessage}
 import models.{APIErrorBodyModel, APIErrorModel, APIErrorsBodyModel}
 import play.api.Logging
 import play.api.http.Status._
@@ -121,25 +120,28 @@ object ApiParser {
       unsafeLogPagerDutyAlertOnError(method, url, response)
   }
 
-  def unsafeLogPagerDutyAlertOnError(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Unit] =
+  def unsafeLogPagerDutyAlertOnError(method: String, url: String, response: HttpResponse): DownstreamErrorOr[Unit] = {
+    def parser = CommonDownstreamParser(method, url, response)
+
     response.status match {
       case OK | CREATED | ACCEPTED | NO_CONTENT => ().asRight
 
       case BAD_REQUEST =>
-        pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(method, url, response))
-        handleAPIError(response)
+        pagerDutyLog(FOURXX_RESPONSE_FROM_API, parser.logMessage(method, url, response))
+        parser.handleAPIError(response)
 
       case INTERNAL_SERVER_ERROR =>
-        pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(method, url, response))
-        handleAPIError(response)
+        pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, parser.logMessage(method, url, response))
+        parser.handleAPIError(response)
 
       case SERVICE_UNAVAILABLE =>
-        pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(method, url, response))
-        handleAPIError(response)
+        pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, parser.logMessage(method, url, response))
+        parser.handleAPIError(response)
 
       case _ =>
-        pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(method, url, response))
-        handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
+        pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, parser.logMessage(method, url, response))
+        parser.handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
     }
+  }
 
 }

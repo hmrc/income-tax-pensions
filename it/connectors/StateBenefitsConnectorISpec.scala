@@ -20,8 +20,8 @@ import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.AppConfig
 import connectors.StateBenefitsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
+import models.AllStateBenefitsData
 import models.error.ServiceError.DownstreamError
-import models.{APIErrorBodyModel, APIErrorModel, AllStateBenefitsData, DesErrorBodyModel, DesErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
