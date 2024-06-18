@@ -21,14 +21,6 @@ import testdata.paymentsIntoOverseasPensions.{mmrOverseasPensionContribution, tc
 
 object getPensionIncomeModel {
 
-  val getPensionIncomeModel: GetPensionIncomeModel =
-    GetPensionIncomeModel(
-      submittedOn = "2022-07-28T07:59:39.041Z",
-      deletedOn = Some("2022-07-28T07:59:39.041Z"),
-      foreignPension = Some(Seq(foreignPension)),
-      overseasPensionContribution = Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution))
-    )
-
   val foreignPension = ForeignPension(
     countryCode = "FRA",
     taxableAmount = 1999.99,
@@ -37,4 +29,13 @@ object getPensionIncomeModel {
     specialWithholdingTax = Some(1999.99),
     foreignTaxCreditRelief = Some(false)
   )
+
+  val getPensionIncomeModel: GetPensionIncomeModel =
+    GetPensionIncomeModel(
+      submittedOn = "2022-07-28T07:59:39.041Z",
+      deletedOn = Some("2022-07-28T07:59:39.041Z"),
+      foreignPension = Some(Seq(foreignPension)),
+      overseasPensionContribution = Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution))
+    )
+
 }

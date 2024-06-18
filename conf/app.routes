@@ -31,42 +31,5 @@ PUT           /:taxYear/short-service-refunds/:nino/answers                     
 
 # Journey Statuses
 GET           /journey-statuses/taxYear/:taxYear                                 controllers.JourneyStatusController.getAllStatuses(taxYear: Int)
-
 GET           /journey-status/:journey/taxYear/:taxYear                          controllers.JourneyStatusController.getJourneyStatus(taxYear: Int, journey: Journey)
-
 PUT           /journey-status/:journey/taxYear/:taxYear                          controllers.JourneyStatusController.saveJourneyStatus(taxYear: Int, journey: Journey)
-
-# Pension Charges
-
-GET           /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.getPensionCharges(nino: String, taxYear: Int)
-
-DELETE        /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.deletePensionCharges(nino: String, taxYear: Int)
-
-PUT           /pension-charges/nino/:nino/taxYear/:taxYear                       controllers.PensionChargesController.createUpdatePensionCharges(nino:String, taxYear: Int)
-
-PUT           /pension-charges/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionChargesController.savePensionChargesData(nino:String, taxYear: Int)
-
-DELETE        /pension-charges/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionChargesController.deletePensionChargesData(nino:String, taxYear: Int)
-
-
-# Pension Reliefs
-GET           /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.getPensionReliefs(nino: String, taxYear: Int)
-
-PUT           /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.createOrAmendPensionReliefs(nino: String, taxYear: Int)
-
-DELETE        /pension-reliefs/nino/:nino/taxYear/:taxYear                       controllers.PensionReliefsController.deletePensionReliefs(nino: String, taxYear: Int)
-
-PUT           /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionReliefsController.savePensionReliefsUserData(nino:String, taxYear: Int)
-
-DELETE        /pension-reliefs/session-data/nino/:nino/taxYear/:taxYear          controllers.PensionReliefsController.deletePensionReliefsUserData(nino:String, taxYear: Int)
-
-# Pension Income
-GET           /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.getPensionIncome(nino: String, taxYear: Int)
-
-PUT           /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.createOrAmendPensionIncome(nino: String, taxYear: Int)
-
-DELETE        /pension-income/nino/:nino/taxYear/:taxYear                        controllers.PensionIncomeController.deletePensionIncome(nino: String, taxYear: Int)
-
-PUT           /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.savePensionIncomeSessionData(nino: String, taxYear: Int)
-
-DELETE        /pension-income/session-data/nino/:nino/taxYear/:taxYear           controllers.PensionIncomeController.deletePensionIncomeSessionData(nino: String, taxYear: Int)
