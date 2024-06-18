@@ -16,7 +16,7 @@
 
 package services
 
-import connectors.{PensionChargesConnector, SubmissionConnector}
+import connectors.PensionChargesConnector
 import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import models.ServiceErrorModel
 import models.charges.CreateUpdatePensionChargesRequestModel
@@ -26,7 +26,7 @@ import utils.FutureEitherOps
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector, submissionConnector: SubmissionConnector) {
+class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector) {
 
   def getPensionCharges(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionChargesResponse] =
     chargesConnector.getPensionCharges(nino, taxYear)
@@ -34,17 +34,11 @@ class PensionChargesService @Inject() (chargesConnector: PensionChargesConnector
   def saveUserPensionChargesData(nino: String, mtditid: String, taxYear: Int, userData: CreateUpdatePensionChargesRequestModel)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
-    (for {
-      _      <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield result).value
+    FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.createUpdatePensionCharges(nino, taxYear, userData)).value
 
   def deleteUserPensionChargesData(nino: String, mtditid: String, taxYear: Int)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
-    (for {
-      _      <- FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.deletePensionCharges(nino, taxYear))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield result).value
+    FutureEitherOps[ServiceErrorModel, Unit](chargesConnector.deletePensionCharges(nino, taxYear)).value
 
 }

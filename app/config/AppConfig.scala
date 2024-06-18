@@ -27,7 +27,6 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
 
-  val submissionBaseUrl: String    = s"${servicesConfig.baseUrl(serviceName = "income-tax-submission")}/income-tax-submission-service"
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
 

@@ -17,8 +17,8 @@
 package services
 
 import cats.data.EitherT
+import connectors.PensionReliefsConnector
 import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
-import connectors.{PensionReliefsConnector, SubmissionConnector}
 import models.{CreateOrUpdatePensionReliefsModel, ServiceErrorModel}
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,9 +38,7 @@ trait PensionReliefsService {
 }
 
 @Singleton
-class PensionReliefsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector,
-                                           submissionConnector: SubmissionConnector,
-                                           repository: JourneyAnswersRepository)
+class PensionReliefsServiceImpl @Inject() (reliefsConnector: PensionReliefsConnector, repository: JourneyAnswersRepository)
     extends PensionReliefsService {
 
   def getPensionReliefs(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionReliefsResponse] =
@@ -52,17 +50,13 @@ class PensionReliefsServiceImpl @Inject() (reliefsConnector: PensionReliefsConne
 //    val ctx = JourneyContext(TaxYear(taxYear), Mtditid(mtditid), Journey.PaymentsIntoPensions)
     // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
     (for {
-      _      <- EitherT(reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
-      result <- EitherT(submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
+      _ <- EitherT(reliefsConnector.createOrAmendPensionReliefs(nino, taxYear, userData))
 //      _      <- repository.upsertAnswers(ctx, Json.obj())
       // TODO Uncomment when implementing FE (pass journey name somehow, in the URL?)
-    } yield result).value
+    } yield ()).value
 
   def deleteUserPensionReliefsData(nino: String, mtditid: String, taxYear: Int)(implicit
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[Either[ServiceErrorModel, Unit]] =
-    (for {
-      _      <- FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.deletePensionReliefs(nino, taxYear))
-      result <- FutureEitherOps[ServiceErrorModel, Unit](submissionConnector.refreshPensionsResponse(nino, mtditid, taxYear))
-    } yield result).value
+    FutureEitherOps[ServiceErrorModel, Unit](reliefsConnector.deletePensionReliefs(nino, taxYear)).value
 }

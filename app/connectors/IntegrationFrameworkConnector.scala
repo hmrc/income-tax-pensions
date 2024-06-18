@@ -20,8 +20,6 @@ import cats.data.EitherT
 import config.AppConfig
 import connectors.httpParsers.ApiParser
 import models.domain.ApiResultT
-import models.stub
-import models.stub.APIUser
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.Logging
 
@@ -38,10 +36,9 @@ class IntegrationFrameworkConnectorImpl @Inject() (val http: HttpClient, val app
 
   // It's a public method outside of the trait because it is only used in testOnly
   def testClearData(nino: String)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
-    val url     = s"${appConfig.ifBaseUrl}/user"
-    val request = APIUser(nino)
+    val url = s"${appConfig.ifBaseUrl}/nino/$nino"
 
-    val res = http.POST(url, request)(stub.APIUser.format.writes, parser(Some("test-only-stub")), hc, ec)
+    val res = http.DELETE(url)(parser(Some("test-only-stub")), hc, ec)
     EitherT(res).leftMap(_.toServiceError)
   }
 }

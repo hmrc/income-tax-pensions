@@ -32,9 +32,8 @@ class PensionChargesServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val chargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
-  val submissionConnector: SubmissionConnector  = mock[SubmissionConnector]
 
-  val service: PensionChargesService = new PensionChargesService(chargesConnector, submissionConnector)
+  val service: PensionChargesService = new PensionChargesService(chargesConnector)
 
   val expectedChargesResult: GetPensionChargesResponse = Right(Some(fullPensionChargesModel))
 
@@ -50,11 +49,6 @@ class PensionChargesServiceSpec extends TestUtils {
         (chargesConnector
           .createUpdatePensionCharges(_: String, _: Int, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
           .expects(nino, taxYear, userData, *)
-          .returning(Future.successful(Right(())))
-
-        (submissionConnector
-          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
         val Right(result) = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
@@ -87,11 +81,6 @@ class PensionChargesServiceSpec extends TestUtils {
         .expects(nino, taxYear, userData, *)
         .returning(Future.successful(Right(())))
 
-      (submissionConnector
-        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, mtditid, taxYear, *)
-        .returning(Future.successful(expectedErrorResult))
-
       val result = await(service.saveUserPensionChargesData(nino, mtditid, taxYear, userData))
 
       result mustBe expectedErrorResult
@@ -107,11 +96,6 @@ class PensionChargesServiceSpec extends TestUtils {
         (chargesConnector
           .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
-          .returning(Future.successful(Right(())))
-
-        (submissionConnector
-          .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, mtditid, taxYear, *)
           .returning(Future.successful(Right(())))
 
         val Right(result) = await(service.deleteUserPensionChargesData(nino, mtditid, taxYear))
@@ -140,11 +124,6 @@ class PensionChargesServiceSpec extends TestUtils {
         .deletePensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(())))
-
-      (submissionConnector
-        .refreshPensionsResponse(_: String, _: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, mtditid, taxYear, *)
-        .returning(Future.successful(expectedErrorResult))
 
       val result = await(service.deleteUserPensionChargesData(nino, mtditid, taxYear))
 

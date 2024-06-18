@@ -18,21 +18,8 @@ package models.stub
 
 import play.api.libs.json.{Json, OFormat}
 
-final case class APIUser(nino: String,
-                         dividends: List[String] = Nil,
-                         dividendsIncome: List[String] = Nil,
-                         interest: List[String] = Nil,
-                         savingsIncome: List[String] = Nil,
-                         giftAid: List[String] = Nil,
-                         employment: List[String] = Nil,
-                         pensions: List[String] = Nil,
-                         cis: List[String] = Nil,
-                         stateBenefits: List[String] = Nil,
-                         insurancePolicies: List[String] = Nil,
-                         selfEmployment: List[String] = Nil,
-                         otherEmploymentsIncome: List[String] = Nil,
-                         property: List[String] = Nil)
+final case class ApiUser(nino: String)
 
-object APIUser {
-  implicit val format: OFormat[APIUser] = Json.format[APIUser]
+object ApiUser {
+  implicit val format: OFormat[ApiUser] = Json.format[ApiUser]
 }
