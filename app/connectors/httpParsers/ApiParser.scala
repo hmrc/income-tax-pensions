@@ -18,7 +18,6 @@ package connectors.httpParsers
 
 import cats.implicits._
 import connectors.DownstreamErrorOr
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.{handleAPIError, logMessage}
 import models.{APIErrorBodyModel, APIErrorModel, APIErrorsBodyModel}
 import play.api.Logging
 import play.api.http.Status._

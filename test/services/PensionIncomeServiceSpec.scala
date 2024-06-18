@@ -49,7 +49,7 @@ class PensionIncomeServiceSpec extends TestUtils {
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
         result mustBe ()
 
@@ -66,7 +66,7 @@ class PensionIncomeServiceSpec extends TestUtils {
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
         result mustBe ()
 
@@ -83,7 +83,7 @@ class PensionIncomeServiceSpec extends TestUtils {
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
         result mustBe ()
 
@@ -100,7 +100,7 @@ class PensionIncomeServiceSpec extends TestUtils {
           .expects(nino, taxYear, pensionIncomeModel, *)
           .returning(Future.successful(Right(())))
 
-        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+        val Right(result) = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
         result mustBe ()
 
@@ -120,7 +120,7 @@ class PensionIncomeServiceSpec extends TestUtils {
         .expects(nino, taxYear, pensionIncomeModel, *)
         .returning(Future.successful(expectedErrorResult))
 
-      val result = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+      val result = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
       result mustBe expectedErrorResult
 
@@ -139,7 +139,7 @@ class PensionIncomeServiceSpec extends TestUtils {
         .expects(nino, taxYear, pensionIncomeModel, *)
         .returning(Future.successful(Right(())))
 
-      val result = await(service.savePensionIncomeSessionData(nino, taxYear, mtditid, pensionIncomeModel))
+      val result = await(service.savePensionIncomeSessionData(nino, taxYear, pensionIncomeModel))
 
       result mustBe expectedErrorResult
 
@@ -156,7 +156,7 @@ class PensionIncomeServiceSpec extends TestUtils {
           .expects(nino, taxYear, *)
           .returning(Future.successful(Right(())))
 
-        val Right(result) = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+        val Right(result) = await(service.deletePensionIncomeSessionData(nino, taxYear))
 
         result mustBe ()
 
@@ -171,7 +171,7 @@ class PensionIncomeServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
 
-      val result = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+      val result = await(service.deletePensionIncomeSessionData(nino, taxYear))
 
       result mustBe expectedErrorResult
 
@@ -185,7 +185,7 @@ class PensionIncomeServiceSpec extends TestUtils {
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(())))
 
-      val result = await(service.deletePensionIncomeSessionData(nino, taxYear, mtditid))
+      val result = await(service.deletePensionIncomeSessionData(nino, taxYear))
 
       result mustBe expectedErrorResult
     }

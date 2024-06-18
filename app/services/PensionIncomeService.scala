@@ -23,18 +23,17 @@ import models.{CreateUpdatePensionIncomeModel, ServiceErrorModel}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class PensionIncomeService @Inject() (connector: PensionIncomeConnector)(implicit ec: ExecutionContext) {
+class PensionIncomeService @Inject() (connector: PensionIncomeConnector) {
 
   def getPensionIncome(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetPensionIncomeResponse] =
     connector.getPensionIncome(nino, taxYear)
 
-  def savePensionIncomeSessionData(nino: String, taxYear: Int, mtditid: String, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
+  def savePensionIncomeSessionData(nino: String, taxYear: Int, pensionIncome: CreateUpdatePensionIncomeModel)(implicit
       hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] =
     EitherT(connector.createOrAmendPensionIncome(nino, taxYear, pensionIncome)).value
 
-  def deletePensionIncomeSessionData(nino: String, taxYear: Int, mtditid: String)(implicit
-      hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] =
+  def deletePensionIncomeSessionData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, Unit]] =
     EitherT(connector.deletePensionIncome(nino, taxYear)).value
 }
