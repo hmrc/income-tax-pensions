@@ -16,6 +16,7 @@
 
 package services
 
+import cats.conversions.all.autoWidenFunctor
 import cats.data.{EitherT, NonEmptyList}
 import cats.implicits._
 import config.AppConfig
@@ -25,8 +26,9 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common._
 import models.commonTaskList.{TaskListModel, fromAllJourneys}
 import models.database._
-import models.domain.{AllJourneys, ApiResultT}
+import models.domain.{AllJourneys, ApiResult, ApiResultT}
 import models.error.ServiceError
+import models.error.ServiceError.DownstreamError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.submission.EmploymentPensions
@@ -34,6 +36,7 @@ import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps
+import utils.Logging
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -75,7 +78,8 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
                                      employmentService: EmploymentService,
                                      statusService: JourneyStatusService,
                                      repository: JourneyAnswersRepository)(implicit ec: ExecutionContext)
-    extends PensionsService {
+    extends PensionsService
+    with Logging {
 
   private def createOrDeleteReliefsWhenEmpty(ctx: JourneyContextWithNino,
                                              updatedReliefs: PensionReliefs,
@@ -341,23 +345,34 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       hc: HeaderCarrier): DownstreamOutcome[Option[GetPensionIncomeModel]] =
     pensionIncomeConnector.getPensionIncome(nino, taxYear)(hc.withInternalId(mtditid))
 
+  private def handleFutureError[A](apiCall: => ApiResultT[A]): Future[ApiResult[A]] = {
+    val result = apiCall.value.recover { err =>
+      logger.error("Handing Future caused error", err)
+      Left(DownstreamError(err.getMessage))
+    }
+
+    result
+  }
+
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = {
 
     // TODO Right now we don't use answers to determine status, but we will have to as the db data is removed after 28 days
     val allJourneys = for {
-      paymentsIntoPensons              <- getPaymentsIntoPensions(ctx)
-      ukPensionIncome                  <- getUkPensionIncome(ctx)
-      annualAllowances                 <- getAnnualAllowances(ctx)
-      unauthorisedPaymentsFromPensions <- getUnauthorisedPaymentsFromPensions(ctx)
-      incomeFromOverseasPensions       <- getIncomeFromOverseasPensions(ctx)
-      paymentsIntoOverseasPensions     <- getPaymentsIntoOverseasPensions(ctx)
-      transfersIntoOverseasPensions    <- getTransfersIntoOverseasPensions(ctx)
-      shortServiceRefunds              <- getShortServiceRefunds(ctx)
-      statuses                         <- statusService.getAllStatuses(ctx.taxYear, ctx.mtditid)
-    } yield AllJourneys(
+      paymentsIntoPensons              <- handleFutureError(getPaymentsIntoPensions(ctx))
+      ukPensionIncome                  <- handleFutureError(getUkPensionIncome(ctx))
+      statePension                     <- handleFutureError(getStatePension(ctx))
+      annualAllowances                 <- handleFutureError(getAnnualAllowances(ctx))
+      unauthorisedPaymentsFromPensions <- handleFutureError(getUnauthorisedPaymentsFromPensions(ctx))
+      incomeFromOverseasPensions       <- handleFutureError(getIncomeFromOverseasPensions(ctx))
+      paymentsIntoOverseasPensions     <- handleFutureError(getPaymentsIntoOverseasPensions(ctx))
+      transfersIntoOverseasPensions    <- handleFutureError(getTransfersIntoOverseasPensions(ctx))
+      shortServiceRefunds              <- handleFutureError(getShortServiceRefunds(ctx))
+      statuses                         <- handleFutureError(statusService.getAllStatuses(ctx.taxYear, ctx.mtditid))
+    } yield AllJourneys.fromAnswersAndStatuses(
       paymentsIntoPensons,
       ukPensionIncome,
+      statePension,
       annualAllowances,
       unauthorisedPaymentsFromPensions,
       incomeFromOverseasPensions,
@@ -367,9 +382,11 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       statuses
     )
 
-    allJourneys.map { all =>
+    val result = allJourneys.map { all =>
       val taskListModel = fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
       taskListModel
     }
+
+    EitherT.right(result)
   }
 }
