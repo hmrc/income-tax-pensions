@@ -16,7 +16,6 @@
 
 package services
 
-import cats.conversions.all.autoWidenFunctor
 import cats.data.{EitherT, NonEmptyList}
 import cats.implicits._
 import config.AppConfig
