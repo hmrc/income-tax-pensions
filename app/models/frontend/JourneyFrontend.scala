@@ -17,6 +17,7 @@
 package models.frontend
 
 import models.common.Journey._
+import models.common.JourneyStatus.CheckOurRecords
 import models.common.{Journey, JourneyStatus}
 
 final case class JourneyFrontend(journey: Journey, status: Option[JourneyStatus]) {
@@ -25,7 +26,7 @@ final case class JourneyFrontend(journey: Journey, status: Option[JourneyStatus]
     *
     * TODO It won't work when we introduce TTL=28 days
     */
-  private val isCya: Boolean = status.isDefined
+  private val isCya: Boolean = status.isDefined && !status.contains(CheckOurRecords)
 
   def urlSuffix: String = journey match {
     case PaymentsIntoPensions =>

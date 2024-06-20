@@ -61,7 +61,7 @@ import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
-class PensionsServiceImpSpec
+class PensionsServiceImplSpec
     extends TestUtils
     with MockPensionReliefsConnector
     with MockPensionChargesConnector
@@ -78,12 +78,16 @@ class PensionsServiceImpSpec
   val stubStatusService: StubJourneyStatusService    = StubJourneyStatusService()
   val stubStateBenefit: StubStateBenefitService      = StubStateBenefitService()
 
-  def createPensionWithStubs(stubEmploymentService: StubEmploymentService, stubStatusService: StubJourneyStatusService = StubJourneyStatusService()) =
+  def createPensionWithStubs(
+      stubEmploymentService: StubEmploymentService,
+      stubStateBenefitService: StubStateBenefitService = StubStateBenefitService(),
+      stubStatusService: StubJourneyStatusService = StubJourneyStatusService()
+  ) =
     new PensionsServiceImpl(
       mockAppConfig,
       mockReliefsConnector,
       mockChargesConnector,
-      mockStateBenefitsService,
+      stubStateBenefitService,
       mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
@@ -663,7 +667,18 @@ class PensionsServiceImpSpec
       mockGetPensionChargesT(Right(None))
       mockGetPensionIncomeT(Right(None))
 
-      val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
+      val underTest: PensionsService = new PensionsServiceImpl(
+        mockAppConfig,
+        mockReliefsConnector,
+        mockChargesConnector,
+        StubStateBenefitService(),
+        mockIncomeConnector,
+        StubEmploymentService(Right(EmploymentPensions.empty)),
+        StubJourneyStatusService(),
+        StubJourneyAnswersRepository()
+      )
+
+      val result = underTest.getCommonTaskList(sampleCtx).value.futureValue.value
 
       val expected = emptyCommonTaskListModel(sampleCtx.taxYear)
       assert(result === expected)
@@ -684,7 +699,7 @@ class PensionsServiceImpSpec
         JourneyNameAndStatus(Journey.ShortServiceRefunds, JourneyStatus.Completed)
       ))
 
-      val service: PensionsService = createPensionWithStubs(stubEmploymentService, stubStatusService)
+      val service: PensionsService = createPensionWithStubs(stubEmploymentService, stubStateBenefit, stubStatusService)
       mockGetPensionReliefsT(
         Right(Some(getPensionReliefsModel.getPensionReliefsModel))
       )
