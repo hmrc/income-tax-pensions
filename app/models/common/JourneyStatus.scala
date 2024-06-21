@@ -37,4 +37,7 @@ object JourneyStatus extends Enum[JourneyStatus] with utils.PlayJsonEnum[Journey
 
   /** The completion page has been passed with answer Yes */
   case object Completed extends JourneyStatus("completed")
+
+  /** Use this status if answers cannot be fetched */
+  case object UnderMaintenance extends JourneyStatus("underMaintenance")
 }

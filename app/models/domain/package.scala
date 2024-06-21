@@ -23,4 +23,5 @@ import scala.concurrent.Future
 
 package object domain {
   type ApiResultT[A] = EitherT[Future, ServiceError, A]
+  type ApiResult[A]  = Either[ServiceError, A]
 }

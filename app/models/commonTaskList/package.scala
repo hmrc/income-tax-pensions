@@ -32,10 +32,11 @@ package object commonTaskList {
   private def getStatus(maybeStatus: Option[JourneyStatus]): TaskStatus =
     maybeStatus
       .map {
-        case CheckOurRecords => TaskStatus.CheckNow()
-        case NotStarted      => TaskStatus.InProgress()
-        case InProgress      => TaskStatus.InProgress()
-        case Completed       => TaskStatus.Completed()
+        case CheckOurRecords  => TaskStatus.CheckNow()
+        case NotStarted       => TaskStatus.InProgress()
+        case InProgress       => TaskStatus.InProgress()
+        case Completed        => TaskStatus.Completed()
+        case UnderMaintenance => TaskStatus.Completed() // TODO Waiting for Common task list to support the new status
       }
       .getOrElse(TaskStatus.CheckNow())
 
