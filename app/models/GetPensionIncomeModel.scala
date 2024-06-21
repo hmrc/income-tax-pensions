@@ -90,13 +90,12 @@ case class GetPensionIncomeModel(
 ) {
   def toCreateUpdatePensionIncomeModel: CreateUpdatePensionIncomeModel = CreateUpdatePensionIncomeModel(foreignPension, overseasPensionContribution)
 
-  def toIncomeFromOverseasPensions(maybeDbAnswers: Option[IncomeFromOverseasPensionsStorageAnswers]): Option[IncomeFromOverseasPensionsAnswers] =
-    maybeDbAnswers.map { dbAnswers =>
+  def toIncomeFromOverseasPensions: Option[IncomeFromOverseasPensionsAnswers] =
+    foreignPension.map(pension =>
       IncomeFromOverseasPensionsAnswers(
-        dbAnswers.paymentsFromOverseasPensionsQuestion,
-        foreignPension.getOrElse(Seq.empty).map(_.toPensionScheme)
-      )
-    }
+        Some(pension.nonEmpty),
+        pension.map(_.toPensionScheme)
+      ))
 }
 object GetPensionIncomeModel {
   implicit val format: OFormat[GetPensionIncomeModel] = Json.format[GetPensionIncomeModel]

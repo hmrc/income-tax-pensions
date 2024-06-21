@@ -30,6 +30,21 @@ case class OverseasPensionScheme(customerReference: Option[String] = None,
                                  qopsReference: Option[String] = None,
                                  sf74Reference: Option[String] = None) {
 
+  def isFinished: Boolean =
+    customerReference.isDefined &&
+      employerPaymentsAmount.isDefined &&
+      reliefType.exists { reliefType =>
+        reliefType match {
+          case TaxReliefQuestion.MigrantMemberRelief => true // As the only question in the Migrant Member Relief sub-journey is optional.
+          case TaxReliefQuestion.DoubleTaxationRelief =>
+            alphaTwoCountryCode.isDefined &&
+            alphaThreeCountryCode.isDefined &&
+            doubleTaxationReliefAmount.isDefined
+          case TaxReliefQuestion.TransitionalCorrespondingRelief => sf74Reference.isDefined
+          case TaxReliefQuestion.NoTaxRelief                     => true
+          case _                                                 => false
+        }
+      }
   def toOverseasPensionsContributions: OverseasPensionContribution = OverseasPensionContribution(
     customerReference = customerReference,
     exemptEmployersPensionContribs = employerPaymentsAmount.getOrElse(0),

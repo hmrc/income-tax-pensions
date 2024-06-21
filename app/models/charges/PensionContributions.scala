@@ -29,19 +29,23 @@ case class PensionContributions(pensionSchemeTaxReference: Seq[String],
                                 moneyPurchasedAllowance: Option[Boolean]) {
 
   def toAnnualAllowances(maybeDbAnswers: Option[AnnualAllowancesStorageAnswers]): Option[AnnualAllowancesAnswers] =
-    maybeDbAnswers.map { dbAnswers =>
+    if (nonEmpty) {
       val aboveAllowanceGateway: Boolean = inExcessOfTheAnnualAllowance != 0
       val taxPaidGateway: Boolean        = annualAllowanceTaxPaid != 0
-      AnnualAllowancesAnswers(
-        reducedAnnualAllowanceQuestion = isAnnualAllowanceReduced,
-        moneyPurchaseAnnualAllowance = moneyPurchasedAllowance,
-        taperedAnnualAllowance = taperedAnnualAllowance,
-        aboveAnnualAllowanceQuestion = if (aboveAllowanceGateway) true.some else dbAnswers.aboveAnnualAllowanceQuestion,
-        aboveAnnualAllowance = if (aboveAllowanceGateway) inExcessOfTheAnnualAllowance.some else None,
-        pensionProvidePaidAnnualAllowanceQuestion = if (taxPaidGateway) true.some else dbAnswers.pensionProvidePaidAnnualAllowanceQuestion,
-        taxPaidByPensionProvider = if (taxPaidGateway) annualAllowanceTaxPaid.some else None,
-        pensionSchemeTaxReferences = if (pensionSchemeTaxReference.isEmpty) None else pensionSchemeTaxReference.some
-      )
+      Some(
+        AnnualAllowancesAnswers(
+          reducedAnnualAllowanceQuestion = isAnnualAllowanceReduced,
+          moneyPurchaseAnnualAllowance = moneyPurchasedAllowance,
+          taperedAnnualAllowance = taperedAnnualAllowance,
+          aboveAnnualAllowanceQuestion = if (aboveAllowanceGateway) true.some else maybeDbAnswers.flatMap(_.aboveAnnualAllowanceQuestion),
+          aboveAnnualAllowance = if (aboveAllowanceGateway) inExcessOfTheAnnualAllowance.some else None,
+          pensionProvidePaidAnnualAllowanceQuestion =
+            if (taxPaidGateway) true.some else maybeDbAnswers.flatMap(_.pensionProvidePaidAnnualAllowanceQuestion),
+          taxPaidByPensionProvider = if (taxPaidGateway) annualAllowanceTaxPaid.some else None,
+          pensionSchemeTaxReferences = if (pensionSchemeTaxReference.isEmpty) None else pensionSchemeTaxReference.some
+        ))
+    } else {
+      None
     }
 
   def nonEmpty: Boolean =

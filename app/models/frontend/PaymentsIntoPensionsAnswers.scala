@@ -16,7 +16,9 @@
 
 package models.frontend
 
-import models.PensionReliefs
+import models.database.PaymentsIntoPensionsStorageAnswers
+import models.domain.PensionAnswers
+import models.{GetPensionReliefsModel, PensionReliefs}
 import play.api.libs.json.{Json, OFormat}
 
 final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
@@ -27,7 +29,25 @@ final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
                                              retirementAnnuityContractPaymentsQuestion: Option[Boolean],
                                              totalRetirementAnnuityContractPayments: Option[BigDecimal],
                                              workplacePensionPaymentsQuestion: Option[Boolean],
-                                             totalWorkplacePensionPayments: Option[BigDecimal]) {
+                                             totalWorkplacePensionPayments: Option[BigDecimal])
+    extends PensionAnswers {
+
+  def isFinished: Boolean = {
+    val hasRasPensionPaymentAnswer = hasAnswer(rasPensionPaymentQuestion, totalRASPaymentsAndTaxRelief)
+    val hasOneOffRASPaymentsAnswer = hasAnswer(rasPensionPaymentQuestion, oneOffRasPaymentPlusTaxReliefQuestion, totalOneOffRasPaymentPlusTaxRelief)
+    val hasRetirementAnnuityContractPaymentsAnswer =
+      hasAnswer(pensionTaxReliefNotClaimedQuestion, retirementAnnuityContractPaymentsQuestion, totalRetirementAnnuityContractPayments)
+    val hasWorkplacePensionPaymentsAnswer =
+      hasAnswer(pensionTaxReliefNotClaimedQuestion, workplacePensionPaymentsQuestion, totalWorkplacePensionPayments)
+
+    List(
+      hasRasPensionPaymentAnswer,
+      hasOneOffRASPaymentsAnswer,
+      hasRetirementAnnuityContractPaymentsAnswer,
+      hasWorkplacePensionPaymentsAnswer
+    ).forall(identity)
+  }
+
   def toPensionReliefs(overseasPensionSchemeContributions: Option[BigDecimal]): PensionReliefs = PensionReliefs(
     regularPensionContributions = totalRASPaymentsAndTaxRelief,
     oneOffPensionContributionsPaid = totalOneOffRasPaymentPlusTaxRelief,
@@ -39,4 +59,11 @@ final case class PaymentsIntoPensionsAnswers(rasPensionPaymentQuestion: Boolean,
 
 object PaymentsIntoPensionsAnswers {
   implicit val format: OFormat[PaymentsIntoPensionsAnswers] = Json.format[PaymentsIntoPensionsAnswers]
+
+  def mkAnswers(maybeDownstreamAnswers: Option[GetPensionReliefsModel],
+                maybeDbAnswers: Option[PaymentsIntoPensionsStorageAnswers]): Option[PaymentsIntoPensionsAnswers] =
+    maybeDownstreamAnswers
+      .getOrElse(GetPensionReliefsModel("", None, PensionReliefs.empty))
+      .toPaymentsIntoPensions(maybeDbAnswers)
+
 }

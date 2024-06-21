@@ -21,7 +21,7 @@ import cats.implicits._
 import models.common.JourneyContextWithNino
 import models.domain.ApiResultT
 import models.error.ServiceError
-import models.frontend.UkPensionIncomeAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
 import services.EmploymentService
 import uk.gov.hmrc.http.HeaderCarrier

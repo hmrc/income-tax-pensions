@@ -16,7 +16,9 @@
 
 package models.frontend
 
-import models.charges.PensionSchemeOverseasTransfers
+import models.charges.{GetPensionChargesRequestModel, PensionSchemeOverseasTransfers}
+import models.database.TransfersIntoOverseasPensionsStorageAnswers
+import models.domain.PensionAnswers
 import play.api.libs.json.{Json, OFormat}
 import utils.Constants.zero
 
@@ -25,7 +27,14 @@ case class TransfersIntoOverseasPensionsAnswers(transferPensionSavings: Option[B
                                                 overseasTransferChargeAmount: Option[BigDecimal] = None,
                                                 pensionSchemeTransferCharge: Option[Boolean] = None,
                                                 pensionSchemeTransferChargeAmount: Option[BigDecimal] = None,
-                                                transferPensionScheme: Seq[TransferPensionScheme] = Nil) {
+                                                transferPensionScheme: Seq[TransferPensionScheme] = Nil)
+    extends PensionAnswers {
+  def isFinished: Boolean =
+    transferPensionSavings.exists(x =>
+      !x || overseasTransferCharge.exists(x =>
+        !x || overseasTransferChargeAmount.isDefined && pensionSchemeTransferCharge.exists(x =>
+          !x || pensionSchemeTransferChargeAmount.isDefined && transferPensionScheme.nonEmpty && transferPensionScheme.forall(tps =>
+            tps.isFinished))))
 
   def toPensionSchemeOverseasTransfers: Option[PensionSchemeOverseasTransfers] =
     if (transferPensionSavings.contains(true) && overseasTransferCharge.contains(true)) {
@@ -40,4 +49,10 @@ case class TransfersIntoOverseasPensionsAnswers(transferPensionSavings: Option[B
 
 object TransfersIntoOverseasPensionsAnswers {
   implicit val format: OFormat[TransfersIntoOverseasPensionsAnswers] = Json.format[TransfersIntoOverseasPensionsAnswers]
+
+  def mkAnswers(maybeDownstreamAnswers: Option[GetPensionChargesRequestModel],
+                maybeDbAnswers: Option[TransfersIntoOverseasPensionsStorageAnswers]): Option[TransfersIntoOverseasPensionsAnswers] =
+    maybeDbAnswers
+      .getOrElse(TransfersIntoOverseasPensionsStorageAnswers.empty)
+      .toTransfersIntoOverseasPensions(maybeDownstreamAnswers)
 }

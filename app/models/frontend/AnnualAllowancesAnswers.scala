@@ -16,7 +16,9 @@
 
 package models.frontend
 
-import models.charges.PensionContributions
+import models.charges.{GetPensionChargesRequestModel, PensionContributions}
+import models.database.AnnualAllowancesStorageAnswers
+import models.domain.PensionAnswers
 import play.api.libs.json.{Json, OFormat}
 
 final case class AnnualAllowancesAnswers(reducedAnnualAllowanceQuestion: Option[Boolean],
@@ -26,7 +28,24 @@ final case class AnnualAllowancesAnswers(reducedAnnualAllowanceQuestion: Option[
                                          aboveAnnualAllowance: Option[BigDecimal],
                                          pensionProvidePaidAnnualAllowanceQuestion: Option[Boolean],
                                          taxPaidByPensionProvider: Option[BigDecimal],
-                                         pensionSchemeTaxReferences: Option[Seq[String]]) {
+                                         pensionSchemeTaxReferences: Option[Seq[String]])
+    extends PensionAnswers {
+
+  // TODO Copied from frontend, requires simplification/review
+  def isFinished: Boolean =
+    reducedAnnualAllowanceQuestion.exists(x =>
+      !x || {
+        (moneyPurchaseAnnualAllowance.getOrElse(false) || taperedAnnualAllowance.getOrElse(false)) &&
+        aboveAnnualAllowanceQuestion.exists(x =>
+          !x || {
+            aboveAnnualAllowance.isDefined &&
+            pensionProvidePaidAnnualAllowanceQuestion.exists(x =>
+              !x || {
+                taxPaidByPensionProvider.isDefined && pensionSchemeTaxReferences.exists(_.nonEmpty)
+              })
+          })
+      })
+
   // TODO in the API_1868 schema pensionSchemeTaxReferences requires a minimum of one entry, this is causing an error if any gateway answers are 'false'
   def toPensionChargesContributions: PensionContributions = PensionContributions(
     pensionSchemeTaxReference = pensionSchemeTaxReferences.getOrElse(Nil),
@@ -40,4 +59,13 @@ final case class AnnualAllowancesAnswers(reducedAnnualAllowanceQuestion: Option[
 
 object AnnualAllowancesAnswers {
   implicit val format: OFormat[AnnualAllowancesAnswers] = Json.format[AnnualAllowancesAnswers]
+
+  def empty: AnnualAllowancesAnswers = AnnualAllowancesAnswers(None, None, None, None, None, None, None, None)
+
+  def mkAnswers(downstreamAnswers: Option[GetPensionChargesRequestModel],
+                maybeDbAnswers: Option[AnnualAllowancesStorageAnswers]): Option[AnnualAllowancesAnswers] =
+    downstreamAnswers
+      .flatMap(_.pensionContributions.flatMap(_.toAnnualAllowances(maybeDbAnswers)))
+      .orElse(maybeDbAnswers.map(_.toAnnualAllowancesAnswers))
+
 }

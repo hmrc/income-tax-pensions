@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package models.database
+package models.frontend
 
-import models.frontend.ukpensionincome.UkPensionIncomeAnswers
-import play.api.libs.json.{Json, OFormat}
-
-final case class UkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: Boolean)
-
-object UkPensionIncomeStorageAnswers {
-  implicit val format: OFormat[UkPensionIncomeStorageAnswers] = Json.format[UkPensionIncomeStorageAnswers]
-
-  def fromJourneyAnswers(answers: UkPensionIncomeAnswers): UkPensionIncomeStorageAnswers =
-    UkPensionIncomeStorageAnswers(answers.uKPensionIncomesQuestion)
+object TaxReliefQuestion {
+  val NoTaxRelief                     = "No tax relief"
+  val TransitionalCorrespondingRelief = "Transitional corresponding relief"
+  val DoubleTaxationRelief            = "Double taxation relief"
+  val MigrantMemberRelief             = "Migrant member relief"
 }

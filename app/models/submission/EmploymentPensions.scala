@@ -19,8 +19,7 @@ package models.submission
 import cats.implicits.catsSyntaxOptionId
 import models.database.UkPensionIncomeStorageAnswers
 import models.employment.AllEmploymentData
-import models.frontend.UkPensionIncomeAnswers
-import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
+import models.frontend.ukpensionincome.{SingleUkPensionIncomeAnswers, UkPensionIncomeAnswers}
 import play.api.libs.json.{Json, OFormat}
 
 final case class EmploymentPensions(employmentData: List[EmploymentPensionModel]) {

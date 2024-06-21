@@ -22,7 +22,7 @@ import models.ServiceErrorModel
 import models.employment.CreateUpdateEmploymentRequest.{CreateUpdateEmployment, CreateUpdateEmploymentData, PayModel}
 import models.employment.{AllEmploymentData, CreateUpdateEmploymentRequest, EmploymentSource}
 import models.error.ServiceError.DownstreamError
-import models.frontend.UkPensionIncomeAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
 import org.scalatest.EitherValues._
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper

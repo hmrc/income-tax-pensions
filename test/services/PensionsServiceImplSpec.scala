@@ -33,7 +33,8 @@ import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
-import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
+import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._

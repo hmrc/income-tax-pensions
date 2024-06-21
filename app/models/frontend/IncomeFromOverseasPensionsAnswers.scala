@@ -17,14 +17,20 @@
 package models.frontend
 
 import cats.data.NonEmptyList
-import models.ForeignPension
 import models.common.Country
+import models.database.IncomeFromOverseasPensionsStorageAnswers
+import models.domain.PensionAnswers
+import models.{ForeignPension, GetPensionIncomeModel}
 import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromOverseasPensionsAnswers(
     paymentsFromOverseasPensionsQuestion: Option[Boolean] = None,
     overseasIncomePensionSchemes: Seq[PensionScheme] = Nil
-) {
+) extends PensionAnswers {
+  def isFinished: Boolean =
+    paymentsFromOverseasPensionsQuestion.exists(x =>
+      if (!x) true else overseasIncomePensionSchemes.nonEmpty && overseasIncomePensionSchemes.forall(_.isFinished))
+
   def toForeignPension: Option[NonEmptyList[ForeignPension]] = {
     val foreignPensions = overseasIncomePensionSchemes.toList.map { scheme =>
       ForeignPension(
@@ -41,6 +47,16 @@ final case class IncomeFromOverseasPensionsAnswers(
   }
 }
 
+object IncomeFromOverseasPensionsAnswers {
+  implicit val format: OFormat[IncomeFromOverseasPensionsAnswers] = Json.format[IncomeFromOverseasPensionsAnswers]
+
+  def mkAnswers(maybeDownstreamAnswers: Option[GetPensionIncomeModel],
+                maybeDbAnswers: Option[IncomeFromOverseasPensionsStorageAnswers]): Option[IncomeFromOverseasPensionsAnswers] =
+    maybeDownstreamAnswers
+      .getOrElse(GetPensionIncomeModel.empty)
+      .toIncomeFromOverseasPensions
+}
+
 case class PensionScheme(alphaThreeCode: Option[String] = None,
                          alphaTwoCode: Option[String] = None,
                          pensionPaymentAmount: Option[BigDecimal] = None,
@@ -48,12 +64,17 @@ case class PensionScheme(alphaThreeCode: Option[String] = None,
                          specialWithholdingTaxQuestion: Option[Boolean] = None,
                          specialWithholdingTaxAmount: Option[BigDecimal] = None,
                          foreignTaxCreditReliefQuestion: Option[Boolean] = None,
-                         taxableAmount: Option[BigDecimal] = None)
-
-object IncomeFromOverseasPensionsAnswers {
-  implicit val format: OFormat[IncomeFromOverseasPensionsAnswers] = Json.format[IncomeFromOverseasPensionsAnswers]
+                         taxableAmount: Option[BigDecimal] = None) {
+  def isFinished: Boolean =
+    this.alphaTwoCode.isDefined &&
+      this.pensionPaymentAmount.isDefined &&
+      this.pensionPaymentTaxPaid.isDefined &&
+      this.specialWithholdingTaxQuestion.exists(value => !value || (value && this.specialWithholdingTaxAmount.nonEmpty)) &&
+      foreignTaxCreditReliefQuestion.isDefined &&
+      taxableAmount.isDefined
 }
 
 object PensionScheme {
   implicit val format: OFormat[PensionScheme] = Json.format[PensionScheme]
+
 }

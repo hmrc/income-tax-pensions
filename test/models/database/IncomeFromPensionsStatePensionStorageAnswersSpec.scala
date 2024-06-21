@@ -27,17 +27,14 @@ class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
 
   "toIncomeFromPensionsStatePensionAnswers" should {
     "return all answers" in {
-      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers(
-        Some("sessionId"),
-        Some(allStateBenefitsData))
+      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers
 
       assert(result === incomeFromPensionsStatePensionAnswers.sample)
     }
 
     "overwrite answers from database with answers from IFS if needed" in {
       val result =
-        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false))
-          .toIncomeFromPensionsStatePensionAnswers(Some("sessionId"), Some(allStateBenefitsData))
+        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false)).toIncomeFromPensionsStatePensionAnswers
 
       assert(result === incomeFromPensionsStatePensionAnswers.sample)
     }

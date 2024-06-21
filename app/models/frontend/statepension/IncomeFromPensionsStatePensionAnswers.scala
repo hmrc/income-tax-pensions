@@ -16,13 +16,19 @@
 
 package models.frontend.statepension
 
+import models.AllStateBenefitsData
+import models.database.IncomeFromPensionsStatePensionStorageAnswers
+import models.domain.PensionAnswers
 import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromPensionsStatePensionAnswers(
     statePension: Option[StateBenefitAnswers],
     statePensionLumpSum: Option[StateBenefitAnswers],
     sessionId: Option[String]
-) {
+) extends PensionAnswers {
+  def isFinished: Boolean =
+    statePension.exists(_.isFinished) || statePensionLumpSum.exists(_.isFinished)
+
   def removeEmptyAmounts: IncomeFromPensionsStatePensionAnswers =
     copy(
       statePension = if (statePension.exists(_.amount.isEmpty)) None else statePension,
@@ -34,4 +40,21 @@ object IncomeFromPensionsStatePensionAnswers {
   implicit val format: OFormat[IncomeFromPensionsStatePensionAnswers] = Json.format[IncomeFromPensionsStatePensionAnswers]
 
   val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None, None)
+
+  def mkAnswers(downstreamAnswers: Option[AllStateBenefitsData],
+                maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): Option[IncomeFromPensionsStatePensionAnswers] =
+    downstreamAnswers
+      .map { answers: AllStateBenefitsData =>
+        val maybeStatePension        = answers.stateBenefitsData.flatMap(_.statePension).map(StateBenefitAnswers.fromStateBenefit)
+        val maybeStatePensionLumpSum = answers.stateBenefitsData.flatMap(_.statePensionLumpSum).map(StateBenefitAnswers.fromStateBenefit)
+
+        IncomeFromPensionsStatePensionAnswers(
+          statePension = maybeStatePension,
+          statePensionLumpSum = maybeStatePensionLumpSum,
+          sessionId = None
+        )
+      }
+      .orElse(
+        maybeDbAnswers.map(_.toIncomeFromPensionsStatePensionAnswers)
+      )
 }

@@ -25,15 +25,6 @@ case class OverseasRefundPensionScheme(
     alphaTwoCountryCode: Option[String] = None,
     alphaThreeCountryCode: Option[String] = None
 ) {
-
-  def toOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider(
-    providerName = name.getOrElse(""),
-    providerAddress = providerAddress.getOrElse(""),
-    providerCountryCode = alphaThreeCountryCode.getOrElse(""),
-    qualifyingRecognisedOverseasPensionScheme = qualifyingRecognisedOverseasPensionScheme.map(qops => Seq(addQopsSubmissionPrefix(qops))),
-    pensionSchemeTaxReference = None
-  )
-
   // Why do we have alpha 2 and 3 country codes?
   def isFinished: Boolean =
     name.isDefined &&
@@ -42,6 +33,13 @@ case class OverseasRefundPensionScheme(
       alphaTwoCountryCode.isDefined &&
       alphaThreeCountryCode.isDefined
 
+  def toOverseasSchemeProvider: OverseasSchemeProvider = OverseasSchemeProvider(
+    providerName = name.getOrElse(""),
+    providerAddress = providerAddress.getOrElse(""),
+    providerCountryCode = alphaThreeCountryCode.getOrElse(""),
+    qualifyingRecognisedOverseasPensionScheme = qualifyingRecognisedOverseasPensionScheme.map(qops => Seq(addQopsSubmissionPrefix(qops))),
+    pensionSchemeTaxReference = None
+  )
 }
 
 object OverseasRefundPensionScheme {

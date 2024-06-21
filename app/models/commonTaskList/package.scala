@@ -32,8 +32,11 @@ package object commonTaskList {
   private def getStatus(maybeStatus: Option[JourneyStatus]): TaskStatus =
     maybeStatus
       .map {
-        case CheckOurRecords  => TaskStatus.CheckNow()
-        case NotStarted       => TaskStatus.InProgress()
+        case CheckOurRecords => TaskStatus.CheckNow()
+        case NotStarted      =>
+          // For Common Task List, they default our NotStarted to InProgress if all answers are answered
+          // and user have not yet answered 'Have you completed the journey'
+          TaskStatus.InProgress()
         case InProgress       => TaskStatus.InProgress()
         case Completed        => TaskStatus.Completed()
         case UnderMaintenance => TaskStatus.Completed() // TODO Waiting for Common task list to support the new status

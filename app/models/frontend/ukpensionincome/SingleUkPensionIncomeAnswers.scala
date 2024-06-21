@@ -28,7 +28,15 @@ final case class SingleUkPensionIncomeAnswers(
     amount: Option[BigDecimal],
     taxPaid: Option[BigDecimal],
     isCustomerEmploymentData: Option[Boolean]
-)
+) {
+  def isFinished: Boolean =
+    pensionId.isDefined &&
+      startDate.isDefined &&
+      pensionSchemeName.isDefined &&
+      pensionSchemeRef.isDefined &&
+      amount.isDefined &&
+      taxPaid.isDefined
+}
 
 object SingleUkPensionIncomeAnswers {
   implicit val format: OFormat[SingleUkPensionIncomeAnswers] = Json.format[SingleUkPensionIncomeAnswers]

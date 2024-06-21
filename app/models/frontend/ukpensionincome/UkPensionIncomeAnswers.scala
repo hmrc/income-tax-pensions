@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package models.frontend
+package models.frontend.ukpensionincome
 
-import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
+import models.database.UkPensionIncomeStorageAnswers
+import models.domain.PensionAnswers
+import models.submission.EmploymentPensions
 import play.api.libs.json.{Json, OFormat}
 
 final case class UkPensionIncomeAnswers(
     uKPensionIncomesQuestion: Boolean,
     uKPensionIncomes: List[SingleUkPensionIncomeAnswers]
-)
+) extends PensionAnswers {
+  def isFinished: Boolean =
+    !uKPensionIncomesQuestion || (uKPensionIncomes.nonEmpty && uKPensionIncomes.forall(_.isFinished))
+}
 
 object UkPensionIncomeAnswers {
   implicit val format: OFormat[UkPensionIncomeAnswers] = Json.format[UkPensionIncomeAnswers]
+
+  def mkAnswers(downstreamAnswers: EmploymentPensions, maybeDbAnswers: Option[UkPensionIncomeStorageAnswers]): Option[UkPensionIncomeAnswers] =
+    downstreamAnswers.toUkPensionIncomeAnswers(maybeDbAnswers)
 }
