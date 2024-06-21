@@ -18,7 +18,6 @@ package models
 
 import cats.implicits.catsSyntaxOptionId
 import models.common.Country
-import models.database.IncomeFromOverseasPensionsStorageAnswers
 import models.frontend.OverseasPensionScheme.{DoubleTaxationRelief, MigrantMemberRelief, NoTaxRelief, TransitionalCorrespondingRelief}
 import models.frontend.{IncomeFromOverseasPensionsAnswers, OverseasPensionScheme, PensionScheme}
 import play.api.libs.json.{Json, OFormat}
