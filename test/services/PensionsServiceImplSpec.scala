@@ -32,9 +32,9 @@ import models.commonTaskList._
 import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
-import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
-import models.frontend.{PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers}
+import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers}
 import models.submission.EmploymentPensions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._
@@ -372,7 +372,7 @@ class PensionsServiceImplSpec
       assert(result === None)
     }
 
-    "get empty answers if no answers from downstream but DB answers exist" in {
+    "return answers from downstream even when DB answers does not exist" in {
       val service = createPensionWithStubStateBenefit(stubStateBenefit)
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
 
@@ -381,7 +381,14 @@ class PensionsServiceImplSpec
         res <- service.getStatePension(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result === Some(IncomeFromPensionsStatePensionAnswers(None, None, None)))
+      assert(
+        result ===
+          Some(
+            IncomeFromPensionsStatePensionAnswers(
+              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+              None)))
+
     }
 
     "get answers from downstream" in {
@@ -418,7 +425,7 @@ class PensionsServiceImplSpec
       assert(result.value === None)
     }
 
-    "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
+    "get answers from DB, even if no IFS answers (best effort)" in {
       mockGetPensionChargesT(Right(None))
 
       val result = (for {
@@ -426,7 +433,9 @@ class PensionsServiceImplSpec
         res <- service.getAnnualAllowances(sampleCtx)
       } yield res).value.futureValue.value
 
-      assert(result === None)
+      assert(
+        result ===
+          Some(AnnualAllowancesAnswers(None, None, None, Some(true), None, Some(true), None, None)))
     }
 
     "return answers" in {
@@ -716,28 +725,28 @@ class PensionsServiceImplSpec
             Some(List(
               TaskListSectionItem(
                 TaskTitle.pensionsTitles.StatePension(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/check-state-pension")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/state-pension")
               ),
               TaskListSectionItem(
                 TaskTitle.pensionsTitles.OtherUkPensions(),
-                TaskStatus.InProgress(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/check-uk-pension-income")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/uk-pension-income")
               ),
               TaskListSectionItem(
                 TaskTitle.pensionsTitles.UnauthorisedPayments(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/unauthorised-payments-from-pensions/check-unauthorised-payments")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/unauthorised-payments-from-pensions/unauthorised-payments")
               ),
               TaskListSectionItem(
                 TaskTitle.pensionsTitles.ShortServiceRefunds(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/short-service-refunds/check-short-service-refund-details")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/short-service-refunds/taxable-short-service-refunds")
               ),
               TaskListSectionItem(
                 TaskTitle.pensionsTitles.IncomeFromOverseas(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/income-from-overseas-pensions/check-overseas-pension-income")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/income-from-overseas-pensions/pension-overseas-income-status")
               )
             ))
           ),
@@ -752,18 +761,18 @@ class PensionsServiceImplSpec
               ),
               TaskListSectionItem(
                 TaskTitle.paymentsIntoPensionsTitles.AnnualAllowances(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/annual-allowance/check-annual-allowance")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/annual-allowance/reduced-annual-allowance")
               ),
               TaskListSectionItem(
                 TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoOverseas(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/payments-into-overseas-pensions/check-overseas-pension-details")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/payments-into-overseas-pensions/payments-into-schemes")
               ),
               TaskListSectionItem(
                 TaskTitle.paymentsIntoPensionsTitles.OverseasTransfer(),
-                TaskStatus.Completed(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/overseas-transfer-charges/transfer-charges/check-transfer-charges-details")
+                TaskStatus.CheckNow(),
+                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/overseas-transfer-charges/transfer-pension-savings")
               )
             ))
           )

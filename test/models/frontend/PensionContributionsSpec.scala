@@ -36,9 +36,14 @@ class PensionContributionsSpec extends AnyWordSpecLike {
         assert(pensionContributions.toAnnualAllowances(maybeDbAnswers = Some(storageAnswers)) === Some(annualAllowancesAnswers))
       }
     }
-    "return None when there are no database answers" in {
-      assert(pensionContributions.toAnnualAllowances(maybeDbAnswers = None) === None)
+    "return Downstream answers when there are no database answers" in {
+      assert(pensionContributions.toAnnualAllowances(maybeDbAnswers = None) === Some(annualAllowancesAnswers))
     }
+
+    "return None when there are no database and downstream answers" in {
+      assert(PensionContributions.empty.toAnnualAllowances(maybeDbAnswers = None) === None)
+    }
+
   }
 
   "nonEmpty" should {
