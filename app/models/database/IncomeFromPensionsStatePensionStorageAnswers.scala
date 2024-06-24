@@ -16,26 +16,17 @@
 
 package models.database
 
-import models.AllStateBenefitsData
 import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import play.api.libs.json.{Json, OFormat}
 
 final case class IncomeFromPensionsStatePensionStorageAnswers(statePension: Option[Boolean], statePensionLumpSum: Option[Boolean]) {
 
-  def toIncomeFromPensionsStatePensionAnswers(sessionId: Option[String],
-                                              maybeStateBenefits: Option[AllStateBenefitsData]): IncomeFromPensionsStatePensionAnswers = {
-
-    val maybeStatePension: Option[StateBenefitAnswers] =
-      maybeStateBenefits.flatMap(_.stateBenefitsData.flatMap(_.statePension)).map(StateBenefitAnswers.fromStateBenefit)
-    val maybeStatePensionLumpSum: Option[StateBenefitAnswers] =
-      maybeStateBenefits.flatMap(_.stateBenefitsData.flatMap(_.statePensionLumpSum)).map(StateBenefitAnswers.fromStateBenefit)
-
+  def toIncomeFromPensionsStatePensionAnswers: IncomeFromPensionsStatePensionAnswers =
     IncomeFromPensionsStatePensionAnswers(
-      statePension = maybeStatePension,
-      statePensionLumpSum = maybeStatePensionLumpSum,
-      sessionId = sessionId
+      statePension = statePension.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
+      statePensionLumpSum = statePensionLumpSum.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
+      sessionId = None
     )
-  }
 }
 
 object IncomeFromPensionsStatePensionStorageAnswers {

@@ -30,6 +30,7 @@ import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
@@ -117,10 +118,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoPensions))
-      paymentsIntoPensionsAnswers = maybeReliefs
-        .getOrElse(GetPensionReliefsModel("", None, PensionReliefs.empty))
-        .toPaymentsIntoPensions(maybeDbAnswers)
-    } yield paymentsIntoPensionsAnswers
+    } yield PaymentsIntoPensionsAnswers.mkAnswers(maybeReliefs, maybeDbAnswers)
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoPensionsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = PaymentsIntoPensionsStorageAnswers.fromJourneyAnswers(answers)
@@ -139,7 +137,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       employment     <- employmentService.getEmployment(ctx)
       maybeDbAnswers <- repository.getAnswers[UkPensionIncomeStorageAnswers](ctx.toJourneyContext(Journey.UkPensionIncome))
-    } yield employment.toUkPensionIncomeAnswers(maybeDbAnswers)
+    } yield UkPensionIncomeAnswers.mkAnswers(employment, maybeDbAnswers)
 
   def upsertUkPensionIncome(ctx: JourneyContextWithNino, answers: UkPensionIncomeAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = UkPensionIncomeStorageAnswers.fromJourneyAnswers(answers)
@@ -155,7 +153,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       stateBenefits  <- stateBenfitService.getStateBenefits(ctx)
       maybeDbAnswers <- repository.getAnswers[IncomeFromPensionsStatePensionStorageAnswers](ctx.toJourneyContext(Journey.StatePension))
-    } yield maybeDbAnswers.map(_.toIncomeFromPensionsStatePensionAnswers(sessionId = None, stateBenefits))
+    } yield IncomeFromPensionsStatePensionAnswers.mkAnswers(stateBenefits, maybeDbAnswers)
 
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -174,8 +172,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[AnnualAllowancesStorageAnswers](ctx.toJourneyContext(Journey.AnnualAllowances))
-      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionContributions.flatMap(_.toAnnualAllowances(maybeDbAnswers)))
-    } yield annualAllowancesAnswers
+    } yield AnnualAllowancesAnswers.mkAnswers(maybeCharges, maybeDbAnswers)
 
   def upsertAnnualAllowances(ctx: JourneyContextWithNino, answers: AnnualAllowancesAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = AnnualAllowancesStorageAnswers.fromJourneyAnswers(answers)
@@ -195,8 +192,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[UnauthorisedPaymentsStorageAnswers](ctx.toJourneyContext(Journey.UnauthorisedPayments))
-      annualAllowancesAnswers = maybeCharges.flatMap(_.pensionSchemeUnauthorisedPayments.map(_.toUnauthorisedPayments(maybeDbAnswers)))
-    } yield annualAllowancesAnswers
+    } yield UnauthorisedPaymentsAnswers.mkAnswers(maybeCharges, maybeDbAnswers)
 
   def upsertUnauthorisedPaymentsFromPensions(ctx: JourneyContextWithNino, answers: UnauthorisedPaymentsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -217,8 +213,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeIncome    <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[IncomeFromOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.IncomeFromOverseasPensions))
-      incomeFromOverseasPensions = maybeIncome.getOrElse(GetPensionIncomeModel.empty).toIncomeFromOverseasPensions(maybeDbAnswers)
-    } yield incomeFromOverseasPensions
+    } yield IncomeFromOverseasPensionsAnswers.mkAnswers(maybeIncome, maybeDbAnswers)
 
   def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, answers: IncomeFromOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -241,9 +236,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       maybeReliefs   <- reliefsConnector.getPensionReliefsT(ctx.nino, ctx.taxYear)
       maybeIncomes   <- pensionIncomeConnector.getPensionIncomeT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[PaymentsIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions))
-      paymentsIntoOverseasPensionsAnswers: Option[PaymentsIntoOverseasPensionsAnswers] = maybeDbAnswers.flatMap(
-        _.toPaymentsIntoOverseasPensionsAnswers(maybeIncomes, maybeReliefs))
-    } yield paymentsIntoOverseasPensionsAnswers
+    } yield PaymentsIntoOverseasPensionsAnswers.mkAnswers(maybeReliefs, maybeIncomes, maybeDbAnswers)
 
   def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, answers: PaymentsIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -272,8 +265,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[TransfersIntoOverseasPensionsStorageAnswers](ctx.toJourneyContext(Journey.TransferIntoOverseasPensions))
-      transfersIntoOverseasPensionsAnswers = maybeDbAnswers.flatMap(_.toTransfersIntoOverseasPensions(maybeCharges))
-    } yield transfersIntoOverseasPensionsAnswers
+    } yield TransfersIntoOverseasPensionsAnswers.mkAnswers(maybeCharges, maybeDbAnswers)
 
   def upsertTransfersIntoOverseasPensions(ctx: JourneyContextWithNino, answers: TransfersIntoOverseasPensionsAnswers)(implicit
       hc: HeaderCarrier): ApiResultT[Unit] = {
@@ -294,8 +286,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     for {
       maybeCharges   <- chargesConnector.getPensionChargesT(ctx.nino, ctx.taxYear)
       maybeDbAnswers <- repository.getAnswers[ShortServiceRefundsStorageAnswers](ctx.toJourneyContext(Journey.ShortServiceRefunds))
-      shortServiceRefundsAnswers = maybeDbAnswers.flatMap(_.toShortServiceRefundsAnswers(maybeCharges))
-    } yield shortServiceRefundsAnswers
+    } yield ShortServiceRefundsAnswers.mkAnswers(maybeCharges, maybeDbAnswers)
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
     val storageAnswers = ShortServiceRefundsStorageAnswers.fromJourneyAnswers(answers)
@@ -356,7 +347,6 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
   def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = {
 
-    // TODO Right now we don't use answers to determine status, but we will have to as the db data is removed after 28 days
     val allJourneys = for {
       paymentsIntoPensons              <- handleFutureError(getPaymentsIntoPensions(ctx))
       ukPensionIncome                  <- handleFutureError(getUkPensionIncome(ctx))
@@ -367,7 +357,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       paymentsIntoOverseasPensions     <- handleFutureError(getPaymentsIntoOverseasPensions(ctx))
       transfersIntoOverseasPensions    <- handleFutureError(getTransfersIntoOverseasPensions(ctx))
       shortServiceRefunds              <- handleFutureError(getShortServiceRefunds(ctx))
-      statuses                         <- handleFutureError(statusService.getAllStatuses(ctx.taxYear, ctx.mtditid))
+      persistedStatuses                <- handleFutureError(statusService.getAllStatuses(ctx.taxYear, ctx.mtditid))
     } yield AllJourneys.fromAnswersAndStatuses(
       paymentsIntoPensons,
       ukPensionIncome,
@@ -378,7 +368,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       paymentsIntoOverseasPensions,
       transfersIntoOverseasPensions,
       shortServiceRefunds,
-      statuses
+      persistedStatuses
     )
 
     val result = allJourneys.map { all =>

@@ -16,14 +16,26 @@
 
 package models.frontend
 
-import models.database.PaymentsIntoOverseasPensionsStorageAnswer
+import models.database.{PaymentsIntoOverseasPensionsStorageAnswer, PaymentsIntoOverseasPensionsStorageAnswers}
+import models.domain.PensionAnswers
+import models.{GetPensionIncomeModel, GetPensionReliefsModel}
 import play.api.libs.json.{Json, OFormat}
 
 case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuestions: Option[Boolean] = None,
                                                paymentsIntoOverseasPensionsAmount: Option[BigDecimal] = None,
                                                employerPaymentsQuestion: Option[Boolean] = None,
                                                taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None,
-                                               schemes: List[OverseasPensionScheme] = List.empty[OverseasPensionScheme]) {
+                                               schemes: List[OverseasPensionScheme] = List.empty[OverseasPensionScheme])
+    extends PensionAnswers {
+  def isFinished: Boolean =
+    paymentsIntoOverseasPensionsQuestions.exists(x =>
+      if (!x) {
+        true
+      } else {
+        paymentsIntoOverseasPensionsAmount.isDefined &&
+        employerPaymentsQuestion.exists(x =>
+          if (!x) true else taxPaidOnEmployerPaymentsQuestion.exists(x => if (x) true else schemes.nonEmpty && schemes.forall(_.isFinished)))
+      })
 
   def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer =
     PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
@@ -31,4 +43,11 @@ case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuest
 
 object PaymentsIntoOverseasPensionsAnswers {
   implicit val format: OFormat[PaymentsIntoOverseasPensionsAnswers] = Json.format[PaymentsIntoOverseasPensionsAnswers]
+
+  def mkAnswers(maybeReliefsAnswers: Option[GetPensionReliefsModel],
+                maybeIncomeAnswers: Option[GetPensionIncomeModel],
+                maybeDbAnswers: Option[PaymentsIntoOverseasPensionsStorageAnswers]): Option[PaymentsIntoOverseasPensionsAnswers] =
+    maybeDbAnswers
+      .getOrElse(PaymentsIntoOverseasPensionsStorageAnswers.empty)
+      .toPaymentsIntoOverseasPensionsAnswers(maybeIncomeAnswers, maybeReliefsAnswers)
 }

@@ -49,6 +49,8 @@ final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Bo
 object ShortServiceRefundsStorageAnswers {
   implicit val format: OFormat[ShortServiceRefundsStorageAnswers] = Json.format[ShortServiceRefundsStorageAnswers]
 
+  def empty: ShortServiceRefundsStorageAnswers = ShortServiceRefundsStorageAnswers(None, None)
+
   def fromJourneyAnswers(answers: ShortServiceRefundsAnswers): ShortServiceRefundsStorageAnswers =
     ShortServiceRefundsStorageAnswers(
       answers.shortServiceRefund,

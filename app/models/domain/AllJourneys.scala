@@ -16,16 +16,18 @@
 
 package models.domain
 
-import cats.implicits.catsSyntaxOptionId
+import cats.implicits.toBifunctorOps
 import models.common.Journey._
 import models.common.JourneyStatus.CheckOurRecords
 import models.common.{Journey, JourneyNameAndStatus, JourneyStatus}
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 
 final case class AllJourneys(
     paymentsIntoPensions: Option[PaymentsIntoPensionsAnswers],
     ukPensionIncome: Option[UkPensionIncomeAnswers],
+    statePension: Option[IncomeFromPensionsStatePensionAnswers],
     annualAllowances: Option[AnnualAllowancesAnswers],
     authorisedPaymentsFromPensions: Option[UnauthorisedPaymentsAnswers],
     incomeFromOverseasPensions: Option[IncomeFromOverseasPensionsAnswers],
@@ -34,35 +36,27 @@ final case class AllJourneys(
     shortServiceRefunds: Option[ShortServiceRefundsAnswers],
     statuses: List[JourneyNameAndStatus]
 ) {
-  def getStatus(journey: Journey): Option[JourneyStatus] =
-    AllJourneys.getStatus(statuses, journey)
+  def getStatus(journey: Journey): Option[JourneyStatus] = {
+    val persistedStatus = statuses.find(_.name == journey).map(_.journeyStatus)
+    persistedStatus
+  }
 
-  def updateStatus(journey: Journey, maybeNewStatus: Option[JourneyStatus]): AllJourneys = {
-    val newStatuses = maybeNewStatus
-      .map { newStatus =>
-        if (statuses.map(_.name).contains(journey)) {
-          val newStatuses = statuses.map { status =>
-            if (status.name == journey) status.copy(journeyStatus = newStatus)
-            else status
-          }
-          newStatuses
-        } else {
-          JourneyNameAndStatus(journey, newStatus) :: statuses
-        }
-      }
-      .getOrElse(statuses)
+  def updateStatus(journey: Journey, newStatus: JourneyStatus): AllJourneys = {
+    val newStatuses = statuses.map { status =>
+      if (status.name == journey) status.copy(journeyStatus = newStatus)
+      else status
+    }
 
-    copy(statuses = newStatuses)
+    if (newStatuses.map(_.name).contains(journey)) copy(statuses = newStatuses)
+    else copy(statuses = JourneyNameAndStatus(journey, newStatus) :: newStatuses)
   }
 }
 
 object AllJourneys {
-  def empty: AllJourneys = new AllJourneys(None, None, None, None, None, None, None, None, Nil)
-
-  def getStatus(statuses: List[JourneyNameAndStatus], journey: Journey): Option[JourneyStatus] =
-    statuses.find(_.name == journey).map(_.journeyStatus)
+  def empty: AllJourneys = new AllJourneys(None, None, None, None, None, None, None, None, None, Nil)
 
   private def allUnderMaintenance: AllJourneys = new AllJourneys(
+    None,
     None,
     None,
     None,
@@ -94,37 +88,67 @@ object AllJourneys {
       paymentsIntoOverseasPensions: ApiResult[Option[PaymentsIntoOverseasPensionsAnswers]],
       transfersIntoOverseasPensions: ApiResult[Option[TransfersIntoOverseasPensionsAnswers]],
       shortServiceRefunds: ApiResult[Option[ShortServiceRefundsAnswers]],
-      maybeStatuses: ApiResult[List[JourneyNameAndStatus]]
+      maybePersistedStatuses: ApiResult[List[JourneyNameAndStatus]]
   ): AllJourneys = {
-    def toUnderMaintenanceOnError(statuses: List[JourneyNameAndStatus], journey: Journey): JourneyStatus = journey match {
-      case PaymentsIntoPensions         => toCommonTaskListStatus(paymentsIntoPensions, getStatus(statuses, journey))
-      case UkPensionIncome              => toCommonTaskListStatus(ukPensionIncome, getStatus(statuses, journey))
-      case StatePension                 => toCommonTaskListStatus(statePension, getStatus(statuses, journey))
-      case AnnualAllowances             => toCommonTaskListStatus(annualAllowances, getStatus(statuses, journey))
-      case UnauthorisedPayments         => toCommonTaskListStatus(unauthorisedPaymentsFromPensions, getStatus(statuses, journey))
-      case PaymentsIntoOverseasPensions => toCommonTaskListStatus(paymentsIntoOverseasPensions, getStatus(statuses, journey))
-      case IncomeFromOverseasPensions   => toCommonTaskListStatus(incomeFromOverseasPensions, getStatus(statuses, journey))
-      case TransferIntoOverseasPensions => toCommonTaskListStatus(transfersIntoOverseasPensions, getStatus(statuses, journey))
-      case ShortServiceRefunds          => toCommonTaskListStatus(shortServiceRefunds, getStatus(statuses, journey))
+    def updateAnswersWithStatus(allJourneys: AllJourneys, journey: Journey): AllJourneys = {
+      val persistedStatus = allJourneys.getStatus(journey)
+
+      journey match {
+        case PaymentsIntoPensions =>
+          val (answers, status) = toCommonTaskListStatus(paymentsIntoPensions, persistedStatus)
+          allJourneys.copy(paymentsIntoPensions = answers).updateStatus(journey, status)
+        case UkPensionIncome =>
+          val (answers, status) = toCommonTaskListStatus(ukPensionIncome, persistedStatus)
+          allJourneys.copy(ukPensionIncome = answers).updateStatus(journey, status)
+        case StatePension =>
+          val (answers, status) = toCommonTaskListStatus(statePension, persistedStatus)
+          allJourneys.copy(statePension = answers).updateStatus(journey, status)
+        case AnnualAllowances =>
+          val (answers, status) = toCommonTaskListStatus(annualAllowances, persistedStatus)
+          allJourneys.copy(annualAllowances = answers).updateStatus(journey, status)
+        case UnauthorisedPayments =>
+          val (answers, status) = toCommonTaskListStatus(unauthorisedPaymentsFromPensions, persistedStatus)
+          allJourneys.copy(authorisedPaymentsFromPensions = answers).updateStatus(journey, status)
+        case PaymentsIntoOverseasPensions =>
+          val (answers, status) = toCommonTaskListStatus(paymentsIntoOverseasPensions, persistedStatus)
+          allJourneys.copy(paymentsIntoOverseasPensions = answers).updateStatus(journey, status)
+        case IncomeFromOverseasPensions =>
+          val (answers, status) = toCommonTaskListStatus(incomeFromOverseasPensions, persistedStatus)
+          allJourneys.copy(incomeFromOverseasPensions = answers).updateStatus(journey, status)
+        case TransferIntoOverseasPensions =>
+          val (answers, status) = toCommonTaskListStatus(transfersIntoOverseasPensions, persistedStatus)
+          allJourneys.copy(transfersIntoOverseasPensions = answers).updateStatus(journey, status)
+        case ShortServiceRefunds =>
+          val (answers, status) = toCommonTaskListStatus(shortServiceRefunds, persistedStatus)
+          allJourneys.copy(shortServiceRefunds = answers).updateStatus(journey, status)
+      }
     }
 
-    val allJourneys = maybeStatuses
+    val allJourneys = maybePersistedStatuses
       .map(statuses => empty.copy(statuses = statuses))
       .getOrElse(allUnderMaintenance)
 
-    val allJourneysWithProperStatuses = Journey.values.foldLeft(allJourneys) { case (updated, journey) =>
-      updated.updateStatus(journey, toUnderMaintenanceOnError(updated.statuses, journey).some)
+    val updatedAllJourneys = Journey.values.foldLeft(allJourneys) { case (updated, journey) =>
+      updateAnswersWithStatus(updated, journey)
     }
 
-    allJourneysWithProperStatuses
+    updatedAllJourneys
   }
 
-  private def toCommonTaskListStatus(result: ApiResult[_], currentStatus: Option[JourneyStatus]): JourneyStatus = {
-    val maybeUnderMaintenance = result.left.toOption.map(_ => JourneyStatus.UnderMaintenance)
-    val maybeStatus           = maybeUnderMaintenance.orElse(currentStatus)
-    val status                = maybeStatus.getOrElse(CheckOurRecords)
+  private def toCommonTaskListStatus[A <: PensionAnswers](result: ApiResult[Option[A]],
+                                                          persistedStatus: Option[JourneyStatus]): (Option[A], JourneyStatus) = {
+    val maybeStatus = result.bimap(
+      _ => None -> JourneyStatus.UnderMaintenance,
+      maybeAnswer =>
+        maybeAnswer
+          .map { answer =>
+            val newStatus = answer.getStatus(persistedStatus)
+            maybeAnswer -> newStatus
+          }
+          .getOrElse(None -> CheckOurRecords)
+    )
 
-    status
+    maybeStatus.merge
   }
 
 }

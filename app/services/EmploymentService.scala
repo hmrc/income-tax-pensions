@@ -24,7 +24,7 @@ import models.common.JourneyContextWithNino
 import models.domain.ApiResultT
 import models.employment.CreateUpdateEmploymentRequest
 import models.error.ServiceError
-import models.frontend.UkPensionIncomeAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.EitherTOps.EitherTExtensions

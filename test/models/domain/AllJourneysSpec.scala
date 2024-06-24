@@ -23,6 +23,7 @@ import models.error.ServiceError
 import models.error.ServiceError.DownstreamError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import org.scalatest.wordspec.AnyWordSpecLike
 import testdata.annualAllowances
 import testdata.frontend.incomeFromPensionsStatePensionAnswers

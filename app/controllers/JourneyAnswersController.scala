@@ -19,8 +19,8 @@ package controllers
 import controllers.predicates.AuthorisedAction
 import models.common._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
-import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoPensionsAnswers, UkPensionIncomeAnswers}
 import models.frontend._
+import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.PensionsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController

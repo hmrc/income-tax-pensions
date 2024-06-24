@@ -17,7 +17,9 @@
 package models.frontend
 
 import cats.implicits.catsSyntaxOptionId
-import models.charges.{Charge, PensionSchemeUnauthorisedPayments}
+import models.charges.{Charge, GetPensionChargesRequestModel, PensionSchemeUnauthorisedPayments}
+import models.database.UnauthorisedPaymentsStorageAnswers
+import models.domain.PensionAnswers
 import play.api.libs.json.{Json, OFormat}
 
 case class UnauthorisedPaymentsAnswers(
@@ -31,7 +33,40 @@ case class UnauthorisedPaymentsAnswers(
     noSurchargeTaxAmount: Option[BigDecimal],
     ukPensionSchemesQuestion: Option[Boolean],
     pensionSchemeTaxReference: Option[List[String]]
-) {
+) extends PensionAnswers {
+
+  // TODO Copied from frontend, requires simplification/review
+  def isFinished: Boolean = {
+    // `surchargeQuestion` and `noSurchargeQuestion` represent (optional) checkboxes in the UI. If they are not checked,
+    //    their corresponding optional boolean values here will be `Some(false)`
+    val isSurchargeComplete = surchargeQuestion.exists { bool =>
+      if (bool) surchargeAmount.isDefined && isTaxQuestionComplete(surchargeTaxAmountQuestion, surchargeTaxAmount)
+      else true
+    }
+    val isNoSurchargeComplete = noSurchargeQuestion.exists { bool =>
+      if (bool) noSurchargeAmount.isDefined && isTaxQuestionComplete(noSurchargeTaxAmountQuestion, noSurchargeTaxAmount)
+      else true
+    }
+
+    val hasPensionSchemesAndPSTR = ukPensionSchemesQuestion.exists { bool =>
+      if (bool) pensionSchemeTaxReference.nonEmpty else true
+    }
+
+    val arePstrQuestionsComplete =
+      if (surchargeQuestion.contains(true) || noSurchargeQuestion.contains(true))
+        hasPensionSchemesAndPSTR
+      else
+        isSurchargeComplete && isNoSurchargeComplete // if both surcharges are false, we don't need to ask about UK pension schemes
+
+    isSurchargeComplete && isNoSurchargeComplete && arePstrQuestionsComplete
+  }
+
+  private def isTaxQuestionComplete(maybeBool: Option[Boolean], amountField: Option[BigDecimal]): Boolean =
+    maybeBool.exists { bool =>
+      if (bool) amountField.nonEmpty
+      else true
+    }
+
   def toPensionCharges: PensionSchemeUnauthorisedPayments =
     PensionSchemeUnauthorisedPayments(
       pensionSchemeTaxReference = pensionSchemeTaxReference,
@@ -55,4 +90,11 @@ case class UnauthorisedPaymentsAnswers(
 
 object UnauthorisedPaymentsAnswers {
   implicit val format: OFormat[UnauthorisedPaymentsAnswers] = Json.format[UnauthorisedPaymentsAnswers]
+
+  def mkAnswers(maybeDownstreamAnswers: Option[GetPensionChargesRequestModel],
+                maybeDbAnswers: Option[UnauthorisedPaymentsStorageAnswers]): Option[UnauthorisedPaymentsAnswers] =
+    maybeDownstreamAnswers.flatMap(
+      _.pensionSchemeUnauthorisedPayments.map(_.toUnauthorisedPayments(maybeDbAnswers))
+    )
+
 }

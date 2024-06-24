@@ -28,6 +28,9 @@ case class TransferPensionScheme(ukTransferCharge: Option[Boolean] = None,
                                  alphaTwoCountryCode: Option[String] = None,
                                  alphaThreeCountryCode: Option[String] = None) {
 
+  def isFinished: Boolean =
+    name.isDefined && providerAddress.isDefined && ukTransferCharge.isDefined && schemeReference.isDefined && alphaThreeCountryCode.isDefined
+
   def toOverseasSchemeProvider: OverseasSchemeProvider = {
     val isUkScheme = ukTransferCharge.contains(true)
     val pstr       = if (isUkScheme) schemeReference.map(Seq(_)) else none[Seq[String]]

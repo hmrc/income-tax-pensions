@@ -30,7 +30,26 @@ case class StateBenefitAnswers(
     amount: Option[BigDecimal],
     taxPaidQuestion: Option[Boolean] = None,
     taxPaid: Option[BigDecimal]
-)
+) {
+  def isFinished: Boolean = {
+    val notClaiming = amountPaidQuestion.contains(false)
+
+    // Fields common across the state pension and state pension lump sum journeys
+    val areCommonAnswered = amount.isDefined &&
+      startDateQuestion.isDefined &&
+      startDate.isDefined
+
+    val areClaimingLumpSum = taxPaidQuestion.contains(true)
+
+    val isLumpSumFinished =
+      if (areClaimingLumpSum) taxPaid.isDefined
+      else true
+
+    val claimIsFinished = areCommonAnswered && isLumpSumFinished
+
+    notClaiming || claimIsFinished
+  }
+}
 
 object StateBenefitAnswers {
   implicit val format: OFormat[StateBenefitAnswers] = Json.format[StateBenefitAnswers]

@@ -20,7 +20,13 @@ import models.frontend.AnnualAllowancesAnswers
 import play.api.libs.json.{Json, OFormat}
 
 final case class AnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion: Option[Boolean],
-                                                pensionProvidePaidAnnualAllowanceQuestion: Option[Boolean])
+                                                pensionProvidePaidAnnualAllowanceQuestion: Option[Boolean]) {
+  def toAnnualAllowancesAnswers: AnnualAllowancesAnswers =
+    AnnualAllowancesAnswers.empty.copy(
+      aboveAnnualAllowanceQuestion = aboveAnnualAllowanceQuestion,
+      pensionProvidePaidAnnualAllowanceQuestion = pensionProvidePaidAnnualAllowanceQuestion
+    )
+}
 
 object AnnualAllowancesStorageAnswers {
   implicit val format: OFormat[AnnualAllowancesStorageAnswers] = Json.format[AnnualAllowancesStorageAnswers]

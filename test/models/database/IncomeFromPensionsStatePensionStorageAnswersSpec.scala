@@ -17,29 +17,33 @@
 package models.database
 
 import models.database.IncomeFromPensionsStatePensionStorageAnswers._
-import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import org.scalatest.wordspec.AnyWordSpecLike
-import testdata.connector.stateBenefits.allStateBenefitsData
 import testdata.database.incomeFromPensionsStatePensionStorageAnswers
 import testdata.frontend.incomeFromPensionsStatePensionAnswers
 
 class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
 
   "toIncomeFromPensionsStatePensionAnswers" should {
-    "return all answers" in {
-      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers(
-        Some("sessionId"),
-        Some(allStateBenefitsData))
+    "return true if true persisted" in {
+      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers
 
-      assert(result === incomeFromPensionsStatePensionAnswers.sample)
+      assert(
+        result === IncomeFromPensionsStatePensionAnswers(
+          Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+          Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+          None))
     }
 
-    "overwrite answers from database with answers from IFS if needed" in {
+    "return false if false persisted" in {
       val result =
-        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false))
-          .toIncomeFromPensionsStatePensionAnswers(Some("sessionId"), Some(allStateBenefitsData))
+        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false)).toIncomeFromPensionsStatePensionAnswers
 
-      assert(result === incomeFromPensionsStatePensionAnswers.sample)
+      assert(
+        result === IncomeFromPensionsStatePensionAnswers(
+          Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
+          Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
+          None))
     }
   }
 

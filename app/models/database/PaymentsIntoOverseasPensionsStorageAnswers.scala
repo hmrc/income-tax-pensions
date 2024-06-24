@@ -47,4 +47,6 @@ final case class PaymentsIntoOverseasPensionsStorageAnswers(paymentsIntoOverseas
 
 object PaymentsIntoOverseasPensionsStorageAnswers {
   implicit val format: OFormat[PaymentsIntoOverseasPensionsStorageAnswers] = Json.format[PaymentsIntoOverseasPensionsStorageAnswers]
+
+  def empty: PaymentsIntoOverseasPensionsStorageAnswers = PaymentsIntoOverseasPensionsStorageAnswers(None, None, None)
 }
