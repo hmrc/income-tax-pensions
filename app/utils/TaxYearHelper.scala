@@ -52,7 +52,7 @@ object TaxYearHelper {
     if (isTysApi(taxYear, apiNum)) s"${ifTysTaxYearConverter(taxYear)}/$nino" else s"$nino/${desIfTaxYearConverter(taxYear)}"
 
   def apiVersion(taxYear: Int, apiNum: String, tysMap: Map[(String, Int), String] = tysApiOrderedMap): String =
-    findLatestTys(taxYear, apiNum, tysMap).map(_._2).getOrElse(apiNum)
+    estTys(taxYear, apiNum, tysMap).map(_._2).getOrElse(apiNum)
 
   private def findLatestTys(taxYear: Int, apiNum: String, tysMap: Map[(String, Int), String]): Option[((String, Int), String)] =
     tysMap.find { case ((api, year), _) => api == apiNum && year <= taxYear }
