@@ -31,7 +31,6 @@ import models.error.ServiceError.DownstreamError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
-import models.submission.EmploymentPensions
 import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -314,13 +313,12 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
       chargesData       <- EitherT(getCharges(nino, taxYear))
       stateBenefitsData <- stateBenfitService.getStateBenefits(ctx)
       pensionIncomeData <- EitherT(getPensionIncome(nino, taxYear, mtditid))
-//      employmentData    <- EitherT(getEmployments(nino, taxYear, mtditid))
-      employmentData = None // TODO It's broken for 2025, fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
+      employmentData    <- employmentService.getEmployment(ctx).leftMap(err => err: ServiceErrorModel)
     } yield AllPensionsData(
       pensionReliefs = reliefsData,
       pensionCharges = chargesData,
       stateBenefits = stateBenefitsData,
-      employmentPensions = employmentData.fold(none[EmploymentPensions])(EmploymentPensions.fromEmploymentResponse(_).some),
+      employmentPensions = employmentData.some,
       pensionIncome = pensionIncomeData
     )).value
   }
