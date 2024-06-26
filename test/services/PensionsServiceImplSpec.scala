@@ -56,6 +56,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EitherTTestOps.convertScalaFuture
+import utils.EmploymentPensionsBuilder.employmentPensionsData
 import utils.TestUtils.currTaxYear
 import utils.{EmploymentPensionsBuilder, TestUtils}
 
@@ -80,7 +81,7 @@ class PensionsServiceImplSpec
 
   def createPensionWithStubs(
       stubEmploymentService: StubEmploymentService,
-      stubStateBenefitService: StubStateBenefitService = StubStateBenefitService(),
+      stubStateBenefitService: StateBenefitService = StubStateBenefitService(),
       stubStatusService: StubJourneyStatusService = StubJourneyStatusService()
   ) =
     new PensionsServiceImpl(
@@ -106,7 +107,8 @@ class PensionsServiceImplSpec
       stubRepository
     )
 
-  val service: PensionsService = createPensionWithStubs(stubEmploymentService)
+  val service: PensionsService         = createPensionWithStubs(stubEmploymentService)
+  val serviceWithMock: PensionsService = createPensionWithStubs(stubEmploymentService, mockStateBenefitsService)
 
   val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
@@ -121,8 +123,8 @@ class PensionsServiceImplSpec
 
   "getAllPensionsData" should {
 
-    // TODO fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
-    "get all data and return a full AllPensionsData model" ignore {
+    "get all data and return a full AllPensionsData model" in {
+
       (mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -143,13 +145,13 @@ class PensionsServiceImplSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedPensionIncomeResult))
 
-      val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
+      val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
 
       result mustBe Right(fullPensionsModel)
     }
 
-    // TODO fix in https://jira.tools.tax.service.gov.uk/browse/SASS-8136
-    "return a Right if all connectors return None" ignore {
+    "return a Right if all connectors return None" in {
+
       (mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -170,9 +172,9 @@ class PensionsServiceImplSpec
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
+      val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
 
-      result mustBe Right(AllPensionsData(None, None, None, None, None))
+      result mustBe Right(AllPensionsData(None, None, None, Some(employmentPensionsData), None))
     }
 
     "return an error if a connector call fails" in {
