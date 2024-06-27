@@ -149,7 +149,7 @@ class PensionsServiceImplSpec
       result mustBe Right(fullPensionsModel)
     }
 
-    "return a Right if all connectors return None" in {
+    "return a Right when all except EmploymentConnector return None" in {
       (mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
