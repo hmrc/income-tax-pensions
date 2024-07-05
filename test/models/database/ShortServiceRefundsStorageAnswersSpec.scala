@@ -21,7 +21,7 @@ import models.frontend.ShortServiceRefundsAnswers
 import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.services.StubEncryptionService
 import testdata.connector.getPensionChargesRequestModel._
-import testdata.encryption.textAndKey
+import testdata.encryption.textAndKeyAes
 import testdata.shortServiceRefunds._
 
 class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
@@ -63,7 +63,7 @@ class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
       val answers           = ShortServiceRefundsStorageAnswers(Some(true), Some(false))
       val encryptionService = StubEncryptionService()
 
-      val actual = answers.encrypted(encryptionService, textAndKey)
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
 
       assert(
         actual === EncryptedShortServiceRefundsStorageAnswers(

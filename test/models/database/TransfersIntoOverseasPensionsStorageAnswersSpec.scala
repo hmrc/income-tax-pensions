@@ -21,7 +21,7 @@ import com.codahale.metrics.SharedMetricRegistries
 import models.encryption.EncryptedValue
 import stubs.services.StubEncryptionService
 import testdata.connector.getPensionChargesRequestModel.getPensionChargesRequestModel
-import testdata.encryption.textAndKey
+import testdata.encryption.textAndKeyAes
 import testdata.transfersIntoOverseasPensions.{transfersIntoOverseasPensionsAnswers, transfersIntoOverseasPensionsStorageAnswers}
 import utils.TestUtils
 
@@ -49,7 +49,7 @@ class TransfersIntoOverseasPensionsStorageAnswersSpec extends TestUtils {
       val answers           = TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(false), Some(true))
       val encryptionService = StubEncryptionService()
 
-      val actual = answers.encrypted(encryptionService, textAndKey)
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
 
       assert(
         actual === EncryptedTransfersIntoOverseasPensionsStorageAnswers(

@@ -23,7 +23,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.services.StubEncryptionService
 import testdata.database.incomeFromPensionsStatePensionStorageAnswers
 import testdata.frontend.incomeFromPensionsStatePensionAnswers
-import testdata.encryption.textAndKey
+import testdata.encryption.textAndKeyAes
 
 class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
 
@@ -67,7 +67,7 @@ class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
       val answers           = IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(true))
       val encryptionService = StubEncryptionService()
 
-      val actual = answers.encrypted(encryptionService, textAndKey)
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
 
       assert(
         actual === EncryptedIncomeFromPensionsStatePensionStorageAnswers(

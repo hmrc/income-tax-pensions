@@ -31,7 +31,6 @@ import models.error.ServiceError.DownstreamError
 import models.frontend._
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
-import play.api.libs.json.Json
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.HeaderCarrierUtils.HeaderCarrierOps

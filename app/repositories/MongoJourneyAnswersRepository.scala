@@ -311,11 +311,11 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
   private def getDecryptedAnswers[DecAns, EncAns <: EncryptedStorageAnswers[DecAns]: Reads](ctx: JourneyContext)(implicit
       ct: ClassTag[EncAns]): ApiResultT[Option[DecAns]] = {
-    val textAndKey: TextAndKeyAes = TextAndKeyAes(ctx.mtditid.value, appConfig.encryptionKey)
+    val textAndKeyAes: TextAndKey = TextAndKey(ctx.mtditid.value, appConfig.encryptionKey)
 
     for {
       maybeEncryptedDbAnswers <- getAnswers(ctx)
-      maybeDbAnswers          <- maybeEncryptedDbAnswers.traverse(_.decryptedT(encryptionService, textAndKey))
+      maybeDbAnswers          <- maybeEncryptedDbAnswers.traverse(_.decryptedT(encryptionService, textAndKeyAes))
     } yield maybeDbAnswers
   }
 }

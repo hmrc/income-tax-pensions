@@ -28,7 +28,7 @@ class EncryptedIncomeFromOverseasPensionsStorageAnswersSpec extends AnyWordSpecL
         List(EncryptedPensionSchemeStorageAnswers(Some(encryptedFalse), Some(encryptedFalse))))
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKey)
+      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKeyAes)
 
       assert(actual === IncomeFromOverseasPensionsStorageAnswers(Some(true), List(PensionSchemeStorageAnswers(Some(false), Some(false)))))
     }

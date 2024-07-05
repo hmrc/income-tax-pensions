@@ -26,7 +26,7 @@ class EncryptedUkPensionIncomeStorageAnswersSpec extends AnyWordSpecLike {
       val encryptedAnswers  = EncryptedUkPensionIncomeStorageAnswers(encryptedTrue)
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKey)
+      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKeyAes)
 
       assert(actual === UkPensionIncomeStorageAnswers(true))
     }

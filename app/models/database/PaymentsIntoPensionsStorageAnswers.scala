@@ -32,7 +32,7 @@ final case class PaymentsIntoPensionsStorageAnswers(rasPensionPaymentQuestion: B
                                                     workplacePensionPaymentsQuestion: Option[Boolean])
     extends StorageAnswers[PaymentsIntoPensionsStorageAnswers] {
 
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedPaymentsIntoPensionsStorageAnswers =
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedPaymentsIntoPensionsStorageAnswers =
     EncryptedPaymentsIntoPensionsStorageAnswers(
       rasPensionPaymentQuestion.encrypted,
       oneOffRasPaymentPlusTaxReliefQuestion.map(_.encrypted),
@@ -63,7 +63,7 @@ final case class EncryptedPaymentsIntoPensionsStorageAnswers(rasPensionPaymentQu
                                                              workplacePensionPaymentsQuestion: Option[EncryptedValue])
     extends EncryptedStorageAnswers[PaymentsIntoPensionsStorageAnswers] {
 
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): PaymentsIntoPensionsStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): PaymentsIntoPensionsStorageAnswers =
     PaymentsIntoPensionsStorageAnswers(
       rasPensionPaymentQuestion.decrypted[Boolean],
       oneOffRasPaymentPlusTaxReliefQuestion.map(_.decrypted[Boolean]),

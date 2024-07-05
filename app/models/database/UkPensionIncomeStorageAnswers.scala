@@ -26,7 +26,7 @@ import utils.EncryptableSyntax.EncryptableOps
 import utils.EncryptorInstances.booleanEncryptor
 
 final case class UkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: Boolean) extends StorageAnswers[UkPensionIncomeStorageAnswers] {
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedStorageAnswers[UkPensionIncomeStorageAnswers] =
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedStorageAnswers[UkPensionIncomeStorageAnswers] =
     EncryptedUkPensionIncomeStorageAnswers(
       uKPensionIncomesQuestion.encrypted
     )
@@ -42,7 +42,7 @@ object UkPensionIncomeStorageAnswers {
 final case class EncryptedUkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: EncryptedValue)
     extends EncryptedStorageAnswers[UkPensionIncomeStorageAnswers] {
 
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): UkPensionIncomeStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): UkPensionIncomeStorageAnswers =
     UkPensionIncomeStorageAnswers(
       uKPensionIncomesQuestion.decrypted[Boolean]
     )

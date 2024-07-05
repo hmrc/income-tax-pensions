@@ -22,6 +22,7 @@ import config.AppConfig
 import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
 import models.common.JourneyStatus._
 import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
+import models.database.JourneyAnswers
 import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.error.ServiceError
 import org.mockito.Mockito.when
@@ -29,7 +30,9 @@ import org.scalatest.EitherValues._
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import stubs.services.StubEncryptionService
 import support.MongoTestSupport
+import testdata._
 import utils.EitherTTestOps._
 import utils.TestUtils._
 

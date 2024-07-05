@@ -22,7 +22,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.services.StubEncryptionService
 import testdata.connector.getPensionIncomeModel._
 import testdata.connector.getPensionReliefsModel.getPensionReliefsModel
-import testdata.encryption.textAndKey
+import testdata.encryption.textAndKeyAes
 import testdata.paymentsIntoOverseasPensions.{emptyPiopStorageAnswers, paymentsIntoOverseasPensionsAnswers, piopStorageAnswers}
 
 class PaymentsIntoOverseasPensionsStorageAnswersSpec extends AnyWordSpecLike {
@@ -53,7 +53,7 @@ class PaymentsIntoOverseasPensionsStorageAnswersSpec extends AnyWordSpecLike {
       val answers           = PaymentsIntoOverseasPensionsStorageAnswers(Some(true), Some(false), Some(true))
       val encryptionService = StubEncryptionService()
 
-      val actual = answers.encrypted(encryptionService, textAndKey)
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
 
       assert(
         actual === EncryptedPaymentsIntoOverseasPensionsStorageAnswers(

@@ -26,7 +26,7 @@ class EncryptedIncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordS
       val encryptedAnswers  = EncryptedIncomeFromPensionsStatePensionStorageAnswers(Some(encryptedTrue), Some(encryptedFalse))
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKey)
+      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKeyAes)
 
       assert(actual === IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(false)))
     }

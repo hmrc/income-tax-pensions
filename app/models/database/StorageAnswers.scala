@@ -26,16 +26,16 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 trait StorageAnswers[A] {
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedStorageAnswers[A]
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedStorageAnswers[A]
 }
 
 trait EncryptedStorageAnswers[A] {
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): A
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): A
 
-  def decryptedT(aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes)(implicit ec: ExecutionContext): EitherT[Future, ServiceError, A] =
-    EitherT.fromEither[Future](decrypted(aesGCMCrypto, textAndKey))
+  def decryptedT(aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey)(implicit ec: ExecutionContext): EitherT[Future, ServiceError, A] =
+    EitherT.fromEither[Future](decrypted(aesGCMCrypto, textAndKeyAes))
 
-  private def decrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Either[ServiceError, A] =
+  private def decrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): Either[ServiceError, A] =
     Try(unsafeDecrypted).toEither.left
       .map(err => CannotDecryptStorageDataError(err.getMessage))
 

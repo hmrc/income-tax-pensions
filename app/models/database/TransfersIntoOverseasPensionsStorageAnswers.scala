@@ -55,7 +55,7 @@ final case class TransfersIntoOverseasPensionsStorageAnswers(transferPensionSavi
 
   def encrypted(implicit
       aesGCMCrypto: EncryptionService,
-      textAndKey: TextAndKeyAes): EncryptedStorageAnswers[TransfersIntoOverseasPensionsStorageAnswers] =
+      textAndKeyAes: TextAndKey): EncryptedStorageAnswers[TransfersIntoOverseasPensionsStorageAnswers] =
     EncryptedTransfersIntoOverseasPensionsStorageAnswers(
       transferPensionSavings.map(_.encrypted),
       overseasTransferCharge.map(_.encrypted),
@@ -83,7 +83,7 @@ final case class EncryptedTransfersIntoOverseasPensionsStorageAnswers(transferPe
 
   protected[database] def unsafeDecrypted(implicit
       aesGCMCrypto: EncryptionService,
-      textAndKey: TextAndKeyAes): TransfersIntoOverseasPensionsStorageAnswers =
+      textAndKeyAes: TextAndKey): TransfersIntoOverseasPensionsStorageAnswers =
     TransfersIntoOverseasPensionsStorageAnswers(
       transferPensionSavings.map(_.decrypted[Boolean]),
       overseasTransferCharge.map(_.decrypted[Boolean]),

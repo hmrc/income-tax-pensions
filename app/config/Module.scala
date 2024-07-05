@@ -20,7 +20,6 @@ import com.google.inject.AbstractModule
 import connectors.{IntegrationFrameworkConnector, IntegrationFrameworkConnectorImpl, StateBenefitsConnector, StateBenefitsConnectorImpl}
 import repositories.{JourneyAnswersRepository, MongoJourneyAnswersRepository}
 import services._
-import uk.gov.hmrc.crypto.AesGCMCrypto
 
 import java.time.{Clock, ZoneOffset}
 

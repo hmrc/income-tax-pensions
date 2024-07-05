@@ -34,7 +34,7 @@ final case class AnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion: Op
       pensionProvidePaidAnnualAllowanceQuestion = pensionProvidePaidAnnualAllowanceQuestion
     )
 
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedStorageAnswers[AnnualAllowancesStorageAnswers] =
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedStorageAnswers[AnnualAllowancesStorageAnswers] =
     EncryptedAnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion.map(_.encrypted), pensionProvidePaidAnnualAllowanceQuestion.map(_.encrypted))
 }
 
@@ -52,7 +52,7 @@ final case class EncryptedAnnualAllowancesStorageAnswers(aboveAnnualAllowanceQue
                                                          pensionProvidePaidAnnualAllowanceQuestion: Option[EncryptedValue])
     extends EncryptedStorageAnswers[AnnualAllowancesStorageAnswers] {
 
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): AnnualAllowancesStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): AnnualAllowancesStorageAnswers =
     AnnualAllowancesStorageAnswers(
       aboveAnnualAllowanceQuestion.map(_.decrypted[Boolean]),
       pensionProvidePaidAnnualAllowanceQuestion.map(_.decrypted[Boolean]))

@@ -21,7 +21,7 @@ import models.error.ServiceError.CannotDecryptStorageDataError
 import org.scalatest.wordspec.AnyWordSpecLike
 import services.EncryptionService
 import stubs.services.StubEncryptionService
-import testdata.encryption.{encryptedFalse, textAndKey}
+import testdata.encryption.{encryptedFalse, textAndKeyAes}
 import utils.EitherTTestOps.convertScalaFuture
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,25 +32,25 @@ class EncryptedStorageAnswersSpec extends AnyWordSpecLike {
 
     "return error if cannot be decrypted" in {
       final case class EncryptedAnswer(value: EncryptedValue) extends EncryptedStorageAnswers[Answer] {
-        protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Answer =
+        protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): Answer =
           throw new RuntimeException("cannot be decrypted")
       }
       val encryptedAnswer   = EncryptedAnswer(encryptedFalse)
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswer.decryptedT(encryptionService, textAndKey).value.futureValue
+      val actual = encryptedAnswer.decryptedT(encryptionService, textAndKeyAes).value.futureValue
       assert(actual === Left(CannotDecryptStorageDataError("cannot be decrypted")))
     }
 
     "return decrypted value" in {
       final case class EncryptedAnswer(value: EncryptedValue) extends EncryptedStorageAnswers[Answer] {
-        protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Answer =
+        protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): Answer =
           Answer(true)
       }
       val encryptedAnswer   = EncryptedAnswer(encryptedFalse)
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswer.decryptedT(encryptionService, textAndKey).value.futureValue
+      val actual = encryptedAnswer.decryptedT(encryptionService, textAndKeyAes).value.futureValue
       assert(actual === Right(Answer(true)))
 
     }

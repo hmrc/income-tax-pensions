@@ -26,7 +26,7 @@ class EncryptedTransfersIntoOverseasPensionsStorageAnswersSpec extends AnyWordSp
       val encryptedAnswers  = EncryptedTransfersIntoOverseasPensionsStorageAnswers(Some(encryptedTrue), Some(encryptedFalse), Some(encryptedTrue))
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKey)
+      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKeyAes)
 
       assert(actual === TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(false), Some(true)))
     }

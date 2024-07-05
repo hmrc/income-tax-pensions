@@ -31,7 +31,7 @@ class EncryptedUnauthorisedPaymentsStorageAnswersSpec extends AnyWordSpecLike {
         Some(encryptedTrue))
       val encryptionService = StubEncryptionService()
 
-      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKey)
+      val actual = encryptedAnswers.unsafeDecrypted(encryptionService, textAndKeyAes)
 
       assert(actual === UnauthorisedPaymentsStorageAnswers(Some(true), Some(false), Some(false), Some(false), Some(true)))
     }

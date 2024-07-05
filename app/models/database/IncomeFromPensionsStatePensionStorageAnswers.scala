@@ -37,7 +37,7 @@ final case class IncomeFromPensionsStatePensionStorageAnswers(statePension: Opti
 
   def encrypted(implicit
       aesGCMCrypto: EncryptionService,
-      textAndKey: TextAndKeyAes): EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] =
+      textAndKeyAes: TextAndKey): EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] =
     EncryptedIncomeFromPensionsStatePensionStorageAnswers(
       statePension.map(_.encrypted),
       statePensionLumpSum.map(_.encrypted)
@@ -58,7 +58,7 @@ final case class EncryptedIncomeFromPensionsStatePensionStorageAnswers(statePens
     extends EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] {
   protected[database] def unsafeDecrypted(implicit
       aesGCMCrypto: EncryptionService,
-      textAndKey: TextAndKeyAes): IncomeFromPensionsStatePensionStorageAnswers =
+      textAndKeyAes: TextAndKey): IncomeFromPensionsStatePensionStorageAnswers =
     IncomeFromPensionsStatePensionStorageAnswers(
       statePension.map(_.decrypted[Boolean]),
       statePensionLumpSum.map(_.decrypted[Boolean])

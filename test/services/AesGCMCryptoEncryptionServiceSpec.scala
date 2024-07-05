@@ -18,7 +18,7 @@ package services
 
 import com.codahale.metrics.SharedMetricRegistries
 import config.AppConfig
-import models.database.TextAndKeyAes
+import models.database.TextAndKey
 import models.encryption.{EncryptedValue, EncryptionDecryptionException}
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.Configuration
@@ -46,7 +46,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     "WM1yMH4KBGdXe65vl8Gzd37Ob2Bf1bFUSaMqXk78sNeorPFOSWwwhOj0Lcebm5nWRhjNgL4K2SV3GWEXyyqeIhWQ4fJIVQRHM9VjWCTyf7/1/f/ckAaMHqkF1XC8bnW9"
   )
 
-  implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(associatedText, secretKey)
+  implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, secretKey)
 
   val underTest = createUnderTest()
 
@@ -71,7 +71,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     }
 
     "return an EncryptionDecryptionError if the associated text is an empty string" in {
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes("", secretKey)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey("", secretKey)
 
       val actual = Try(underTest.encrypt(textToEncrypt)).failed.get
       assert(actual.isInstanceOf[EncryptionDecryptionException])
@@ -79,7 +79,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     }
 
     "return an EncryptionDecryptionError if the key is empty" in {
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(associatedText, "")
+      implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, "")
 
       val actual = Try(underTest.encrypt(textToEncrypt)).failed.get
 
@@ -88,7 +88,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     }
 
     "return an EncryptionDecryptionError if the key is invalid" in {
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(associatedText, "invalidKey")
+      implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, "invalidKey")
 
       val actual = Try(underTest.encrypt(textToEncrypt)).failed.get.asInstanceOf[EncryptionDecryptionException]
 
@@ -129,7 +129,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     }
 
     "return a EncryptionDecryptionException if the associatedText is different" in {
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes("idsngfbsadjvbdsvjb", secretKey)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey("idsngfbsadjvbdsvjb", secretKey)
 
       val decryptedAttempt = intercept[EncryptionDecryptionException](
         underTest.decrypt(encryptedTextTest.value, encryptedTextTest.nonce)
@@ -138,7 +138,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     }
 
     "return a EncryptionDecryptionException if the secretKey is different" in {
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes("idsngfbsadjvbdsvjb", secretKey2)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey("idsngfbsadjvbdsvjb", secretKey2)
 
       val decryptedAttempt = intercept[EncryptionDecryptionException](
         underTest.decrypt(encryptedTextTest.value, encryptedTextTest.nonce)
@@ -149,7 +149,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     "return an EncryptionDecryptionError if the associated text is an empty string" in {
       val emptyAssociatedText = ""
 
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(emptyAssociatedText, secretKey2)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey(emptyAssociatedText, secretKey2)
 
       val decryptedAttempt = intercept[EncryptionDecryptionException](
         underTest.decrypt(encryptedTextTest.value, encryptedTextTest.nonce)
@@ -160,7 +160,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     "return an EncryptionDecryptionError if the key is empty" in {
       val invalidSecretKey = ""
 
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(associatedText, invalidSecretKey)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, invalidSecretKey)
 
       val decryptedAttempt = intercept[EncryptionDecryptionException](
         underTest.decrypt(encryptedTextTest.value, encryptedTextTest.nonce)
@@ -171,7 +171,7 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
     "return an EncryptionDecryptionError if the key is invalid" in {
       val invalidSecretKey = "invalidKey"
 
-      implicit val textAndKey: TextAndKeyAes = TextAndKeyAes(associatedText, invalidSecretKey)
+      implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, invalidSecretKey)
 
       val decryptedAttempt = intercept[EncryptionDecryptionException](
         underTest.decrypt(encryptedTextTest.value, encryptedTextTest.nonce)

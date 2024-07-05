@@ -16,11 +16,11 @@
 
 package testdata
 
-import models.database.TextAndKeyAes
+import models.database.TextAndKey
 import models.encryption.EncryptedValue
 
 object encryption {
-  val textAndKey     = TextAndKeyAes("some-test", "some-key")
+  val textAndKeyAes  = TextAndKey("some-test", "some-key")
   val encryptedFalse = EncryptedValue("encrypted-false", "nonce")
   val encryptedTrue  = EncryptedValue("encrypted-true", "nonce")
 }
