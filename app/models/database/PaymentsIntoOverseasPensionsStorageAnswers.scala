@@ -53,7 +53,7 @@ final case class PaymentsIntoOverseasPensionsStorageAnswers(paymentsIntoOverseas
 
   def encrypted(implicit
       aesGCMCrypto: EncryptionService,
-      textAndKey: TextAndKey): EncryptedStorageAnswers[PaymentsIntoOverseasPensionsStorageAnswers] =
+      textAndKey: TextAndKeyAes): EncryptedStorageAnswers[PaymentsIntoOverseasPensionsStorageAnswers] =
     EncryptedPaymentsIntoOverseasPensionsStorageAnswers(
       paymentsIntoOverseasPensionsQuestions.map(_.encrypted),
       employerPaymentsQuestion.map(_.encrypted),
@@ -71,7 +71,9 @@ final case class EncryptedPaymentsIntoOverseasPensionsStorageAnswers(paymentsInt
                                                                      employerPaymentsQuestion: Option[EncryptedValue],
                                                                      taxPaidOnEmployerPaymentsQuestion: Option[EncryptedValue])
     extends EncryptedStorageAnswers[PaymentsIntoOverseasPensionsStorageAnswers] {
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): PaymentsIntoOverseasPensionsStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit
+      aesGCMCrypto: EncryptionService,
+      textAndKey: TextAndKeyAes): PaymentsIntoOverseasPensionsStorageAnswers =
     PaymentsIntoOverseasPensionsStorageAnswers(
       paymentsIntoOverseasPensionsQuestions.map(_.decrypted[Boolean]),
       employerPaymentsQuestion.map(_.decrypted[Boolean]),

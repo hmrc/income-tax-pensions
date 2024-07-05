@@ -186,7 +186,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
       _                <- upsertAnswers(ctx, Json.toJson(encryptedAnswers))
     } yield ()
 
-  private def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
+  private[repositories] def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
     logger.info(s"Repository ctx=${ctx.toString} persisting answers:\n===Repository===\n${Json.prettyPrint(newData)}\n===")
 
     val filter  = filterJourney(ctx)
@@ -294,7 +294,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     EitherT(futResult).void
   }
 
-  private def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] = {
+  private[repositories] def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] = {
     val filter = filterJourney(ctx)
     EitherT.right[ServiceError](
       collection
@@ -311,7 +311,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
   private def getDecryptedAnswers[DecAns, EncAns <: EncryptedStorageAnswers[DecAns]: Reads](ctx: JourneyContext)(implicit
       ct: ClassTag[EncAns]): ApiResultT[Option[DecAns]] = {
-    val textAndKey: TextAndKey = TextAndKey(ctx.mtditid.value, appConfig.encryptionKey)
+    val textAndKey: TextAndKeyAes = TextAndKeyAes(ctx.mtditid.value, appConfig.encryptionKey)
 
     for {
       maybeEncryptedDbAnswers <- getAnswers(ctx)

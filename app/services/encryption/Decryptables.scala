@@ -16,7 +16,7 @@
 
 package utils
 
-import models.database.TextAndKey
+import models.database.TextAndKeyAes
 import models.encryption.EncryptedValue
 import services.EncryptionService
 
@@ -24,48 +24,48 @@ import java.time.{Instant, LocalDate, Month}
 import java.util.UUID
 
 trait Decryptable[A] {
-  def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): A
+  def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): A
 }
 
 object DecryptorInstances {
   implicit val booleanDecryptor: Decryptable[Boolean] = new Decryptable[Boolean] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): Boolean =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Boolean =
       aesGCMCrypto.decrypt[Boolean](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val stringDecryptor: Decryptable[String] = new Decryptable[String] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): String =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): String =
       aesGCMCrypto.decrypt[String](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val bigDecimalDecryptor: Decryptable[BigDecimal] = new Decryptable[BigDecimal] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): BigDecimal =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): BigDecimal =
       aesGCMCrypto.decrypt[BigDecimal](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val monthDecryptor: Decryptable[Month] = new Decryptable[Month] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): Month =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Month =
       aesGCMCrypto.decrypt[Month](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val uuidDecryptor: Decryptable[UUID] = new Decryptable[UUID] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): UUID =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): UUID =
       aesGCMCrypto.decrypt[UUID](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val instantDecryptor: Decryptable[Instant] = new Decryptable[Instant] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): Instant =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): Instant =
       aesGCMCrypto.decrypt[Instant](encryptedValue.value, encryptedValue.nonce)
   }
 
   implicit val localDateDecryptor: Decryptable[LocalDate] = new Decryptable[LocalDate] {
-    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): LocalDate =
+    override def decrypt(encryptedValue: EncryptedValue)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): LocalDate =
       aesGCMCrypto.decrypt[LocalDate](encryptedValue.value, encryptedValue.nonce)
   }
 }
 
 object DecryptableSyntax {
   implicit class DecryptableOps(encryptedValue: EncryptedValue) {
-    def decrypted[A](implicit d: Decryptable[A], aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): A = d.decrypt(encryptedValue)
+    def decrypted[A](implicit d: Decryptable[A], aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): A = d.decrypt(encryptedValue)
   }
 }

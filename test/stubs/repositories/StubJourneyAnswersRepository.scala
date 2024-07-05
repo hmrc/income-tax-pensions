@@ -69,7 +69,8 @@ case class StubJourneyAnswersRepository(
 
   def upsertEncryptedAnswers[A](ctx: JourneyContext, storageAnswers: StorageAnswers[A]): ApiResultT[Unit] = ???
 
-  def getDecryptedAnswers[DecAns, A <: EncryptedStorageAnswers[DecAns] : Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[DecAns]] = ???
+  def getDecryptedAnswers[DecAns, A <: EncryptedStorageAnswers[DecAns]: Reads](ctx: JourneyContext)(implicit
+      ct: ClassTag[A]): ApiResultT[Option[DecAns]] = ???
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoPensionsStorageAnswers]] = ???
 
@@ -93,7 +94,8 @@ case class StubJourneyAnswersRepository(
 
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoOverseasPensionsStorageAnswers]] = ???
 
-  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] = ???
+  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
+    ???
 
   def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromOverseasPensionsStorageAnswers]] = ???
 
@@ -101,7 +103,8 @@ case class StubJourneyAnswersRepository(
 
   def getTransferIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[TransfersIntoOverseasPensionsStorageAnswers]] = ???
 
-  def upsertTransferIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: TransfersIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] = ???
+  def upsertTransferIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: TransfersIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
+    ???
 
   def getShortServiceRefunds(ctx: JourneyContextWithNino): ApiResultT[Option[ShortServiceRefundsStorageAnswers]] = ???
 

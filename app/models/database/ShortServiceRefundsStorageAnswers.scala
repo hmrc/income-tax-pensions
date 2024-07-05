@@ -52,7 +52,7 @@ final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Bo
         ))
   }
 
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers] =
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers] =
     EncryptedShortServiceRefundsStorageAnswers(
       shortServiceRefund.map(_.encrypted),
       nonUKTaxOnShortServiceRefund.map(_.encrypted)
@@ -75,7 +75,7 @@ final case class EncryptedShortServiceRefundsStorageAnswers(shortServiceRefund: 
                                                             nonUKTaxOnShortServiceRefund: Option[EncryptedValue] = None)
     extends EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers] {
 
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): ShortServiceRefundsStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): ShortServiceRefundsStorageAnswers =
     ShortServiceRefundsStorageAnswers(
       shortServiceRefund.map(_.decrypted[Boolean]),
       nonUKTaxOnShortServiceRefund.map(_.decrypted[Boolean])

@@ -16,7 +16,7 @@
 
 package utils
 
-import models.database.TextAndKey
+import models.database.TextAndKeyAes
 import models.encryption.EncryptedValue
 import services.EncryptionService
 
@@ -24,48 +24,48 @@ import java.time.{Instant, LocalDate, Month}
 import java.util.UUID
 
 trait Encryptable[A] {
-  def encrypt(value: A)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue
+  def encrypt(value: A)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue
 }
 
 object EncryptorInstances {
 
   implicit val booleanEncryptor: Encryptable[Boolean] = new Encryptable[Boolean] {
-    override def encrypt(value: Boolean)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: Boolean)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 
   implicit val stringEncryptor: Encryptable[String] = new Encryptable[String] {
-    override def encrypt(value: String)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: String)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 
   implicit val bigDecimalEncryptor: Encryptable[BigDecimal] = new Encryptable[BigDecimal] {
-    def encrypt(value: BigDecimal)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue = aesGCMCrypto.encrypt(value)
+    def encrypt(value: BigDecimal)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue = aesGCMCrypto.encrypt(value)
   }
 
   implicit val monthEncryptor: Encryptable[Month] = new Encryptable[Month] {
-    override def encrypt(value: Month)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: Month)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 
   implicit val instantEncryptor: Encryptable[Instant] = new Encryptable[Instant] {
-    override def encrypt(value: Instant)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: Instant)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 
   implicit val localDateEncryptor: Encryptable[LocalDate] = new Encryptable[LocalDate] {
-    override def encrypt(value: LocalDate)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: LocalDate)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 
   implicit val uuidEncryptor: Encryptable[UUID] = new Encryptable[UUID] {
-    override def encrypt(value: UUID)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue =
+    override def encrypt(value: UUID)(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue =
       aesGCMCrypto.encrypt(value)
   }
 }
 
 object EncryptableSyntax {
   implicit class EncryptableOps[A](value: A)(implicit e: Encryptable[A]) {
-    def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedValue = e.encrypt(value)
+    def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedValue = e.encrypt(value)
   }
 }

@@ -196,4 +196,15 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
       assert(maybeAnswers.value.value === answers)
     }
   }
+
+  "paymentsIntoPensions" should {
+    "upsert and get" in {
+      val actual = (for {
+        _        <- repository.upsertPaymentsIntoPensions(journeyCtxWithNino, paymentsIntoPensions.paymentsIntoPensionsStorageAnswers)
+        inserted <- repository.getPaymentsIntoPensions(journeyCtxWithNino)
+      } yield inserted.value).rightValue
+
+      assert(actual === paymentsIntoPensions.paymentsIntoPensionsStorageAnswers)
+    }
+  }
 }

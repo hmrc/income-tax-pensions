@@ -18,7 +18,7 @@ package services
 
 import config.AppConfig
 import models.common.Mtditid
-import models.database.{EncryptedStorageAnswers, StorageAnswers, TextAndKey}
+import models.database.{EncryptedStorageAnswers, StorageAnswers, TextAndKeyAes}
 import models.encryption.{EncryptedValue, EncryptionDecryptionException}
 import models.error.ServiceError
 import models.error.ServiceError.CannotEncryptStorageDataError
@@ -33,8 +33,8 @@ import scala.util.{Failure, Success, Try}
 
 trait EncryptionService {
   def encryptUserData[A](mtditid: Mtditid, value: StorageAnswers[A]): Either[ServiceError, EncryptedStorageAnswers[A]]
-  def encrypt[A](valueToEncrypt: A)(implicit textAndKey: TextAndKey): EncryptedValue
-  def decrypt[A](valueToDecrypt: String, nonce: String)(implicit textAndKey: TextAndKey, converter: Converter[A]): A
+  def encrypt[A](valueToEncrypt: A)(implicit textAndKey: TextAndKeyAes): EncryptedValue
+  def decrypt[A](valueToDecrypt: String, nonce: String)(implicit textAndKey: TextAndKeyAes, converter: Converter[A]): A
 }
 
 @Singleton
@@ -48,14 +48,14 @@ class AesGCMCryptoEncryptionService @Inject() (appConfig: AppConfig) extends Enc
   private val METHOD_DECRYPT                = "decrypt"
 
   def encryptUserData[A](mtditid: Mtditid, value: StorageAnswers[A]): Either[ServiceError, EncryptedStorageAnswers[A]] = {
-    val textAndKey: TextAndKey = TextAndKey(mtditid.value, appConfig.encryptionKey)
+    val textAndKey: TextAndKeyAes = TextAndKeyAes(mtditid.value, appConfig.encryptionKey)
 
     Try(value.encrypted(this, textAndKey)).toEither.left.map(err => CannotEncryptStorageDataError(err.getMessage))
   }
 
   private def getCipherInstance: Cipher = Cipher.getInstance(ALGORITHM_TO_TRANSFORM_STRING)
 
-  def encrypt[A](valueToEncrypt: A)(implicit textAndKey: TextAndKey): EncryptedValue =
+  def encrypt[A](valueToEncrypt: A)(implicit textAndKey: TextAndKeyAes): EncryptedValue =
     if (appConfig.useEncryption) {
       val initialisationVector = generateInitialisationVector
       val nonce                = new String(Base64.getEncoder.encode(initialisationVector))
@@ -68,7 +68,7 @@ class AesGCMCryptoEncryptionService @Inject() (appConfig: AppConfig) extends Enc
       EncryptedValue(valueToEncrypt.toString, s"${valueToEncrypt.toString}-Nonce")
     }
 
-  def decrypt[A](valueToDecrypt: String, nonce: String)(implicit textAndKey: TextAndKey, converter: Converter[A]): A =
+  def decrypt[A](valueToDecrypt: String, nonce: String)(implicit textAndKey: TextAndKeyAes, converter: Converter[A]): A =
     if (appConfig.useEncryption) {
       val initialisationVector = Base64.getDecoder.decode(nonce)
       val gcmParameterSpec     = new GCMParameterSpec(TAG_BIT_LENGTH, initialisationVector)

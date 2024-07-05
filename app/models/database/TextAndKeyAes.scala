@@ -16,4 +16,4 @@
 
 package models.database
 
-case class TextAndKey(associatedText: String, aesKey: String)
+case class TextAndKeyAes(associatedText: String, aesKey: String)

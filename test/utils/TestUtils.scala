@@ -277,9 +277,16 @@ object TestUtils {
   val currTaxYearEnd: String   = TaxYear.endDate(currTaxYear)
 
   // more complex data
-  val journeyCtxWithNino: JourneyContextWithNino = JourneyContextWithNino(currTaxYear, mtditid, nino)
-  val paymentsIntoPensionsCtx: JourneyContext    = journeyCtxWithNino.toJourneyContext(Journey.PaymentsIntoPensions)
-  val unauthorisedPaymentsCtx: JourneyContext    = journeyCtxWithNino.toJourneyContext(Journey.UnauthorisedPayments)
+  val journeyCtxWithNino: JourneyContextWithNino      = JourneyContextWithNino(currTaxYear, mtditid, nino)
+  val paymentsIntoPensionsCtx: JourneyContext         = journeyCtxWithNino.toJourneyContext(Journey.PaymentsIntoPensions)
+  val ukPensionIncomeCtx: JourneyContext              = journeyCtxWithNino.toJourneyContext(Journey.UkPensionIncome)
+  val statePensionCtx: JourneyContext                 = journeyCtxWithNino.toJourneyContext(Journey.StatePension)
+  val annualAllowancesCtx: JourneyContext             = journeyCtxWithNino.toJourneyContext(Journey.AnnualAllowances)
+  val unauthorisedPaymentsCtx: JourneyContext         = journeyCtxWithNino.toJourneyContext(Journey.UnauthorisedPayments)
+  val paymentsIntoOverseasPensionsCtx: JourneyContext = journeyCtxWithNino.toJourneyContext(Journey.PaymentsIntoOverseasPensions)
+  val incomeFromOverseasPensionsCtx: JourneyContext   = journeyCtxWithNino.toJourneyContext(Journey.IncomeFromOverseasPensions)
+  val transferIntoOverseasPensionsCtx: JourneyContext = journeyCtxWithNino.toJourneyContext(Journey.TransferIntoOverseasPensions)
+  val shortServiceRefundsCtx: JourneyContext          = journeyCtxWithNino.toJourneyContext(Journey.ShortServiceRefunds)
 
   // operations
   def mkNow(): Instant                 = Instant.now().truncatedTo(ChronoUnit.SECONDS)

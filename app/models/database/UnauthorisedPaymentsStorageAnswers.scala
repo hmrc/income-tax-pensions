@@ -31,7 +31,7 @@ final case class UnauthorisedPaymentsStorageAnswers(surchargeQuestion: Option[Bo
                                                     noSurchargeTaxAmountQuestion: Option[Boolean],
                                                     ukPensionSchemesQuestion: Option[Boolean])
     extends StorageAnswers[UnauthorisedPaymentsStorageAnswers] {
-  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers] =
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers] =
     EncryptedUnauthorisedPaymentsStorageAnswers(
       surchargeQuestion.map(_.encrypted),
       noSurchargeQuestion.map(_.encrypted),
@@ -60,7 +60,7 @@ final case class EncryptedUnauthorisedPaymentsStorageAnswers(surchargeQuestion: 
                                                              noSurchargeTaxAmountQuestion: Option[EncryptedValue],
                                                              ukPensionSchemesQuestion: Option[EncryptedValue])
     extends EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers] {
-  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): UnauthorisedPaymentsStorageAnswers =
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKeyAes): UnauthorisedPaymentsStorageAnswers =
     UnauthorisedPaymentsStorageAnswers(
       surchargeQuestion.map(_.decrypted[Boolean]),
       noSurchargeQuestion.map(_.decrypted[Boolean]),
