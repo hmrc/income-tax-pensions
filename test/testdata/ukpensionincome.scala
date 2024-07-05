@@ -16,6 +16,7 @@
 
 package testdata
 
+import models.database.UkPensionIncomeStorageAnswers
 import models.frontend.ukpensionincome.SingleUkPensionIncomeAnswers
 
 object ukpensionincome {
@@ -30,5 +31,7 @@ object ukpensionincome {
     None,
     Some(true)
   )
+
+  val storageAnswers: UkPensionIncomeStorageAnswers = UkPensionIncomeStorageAnswers(true)
 
 }

@@ -21,10 +21,12 @@ import models.database.{EncryptedStorageAnswers, StorageAnswers, TextAndKey}
 import models.encryption.EncryptedValue
 import models.error.ServiceError
 import services.EncryptionService
+import testdata.encryption.textAndKeyAes
 import utils.TypeCaster
 
 case class StubEncryptionService() extends EncryptionService {
-  def encryptUserData[A](mtditid: Mtditid, value: StorageAnswers[A]): Either[ServiceError, EncryptedStorageAnswers[A]] = ???
+  def encryptUserData[A](mtditid: Mtditid, value: StorageAnswers[A]): Either[ServiceError, EncryptedStorageAnswers[A]] =
+    Right(value.encrypted(this, textAndKeyAes))
 
   def encrypt[A](valueToEncrypt: A)(implicit textAndKeyAes: TextAndKey): EncryptedValue =
     EncryptedValue(s"encrypted-$valueToEncrypt", "nonce")
