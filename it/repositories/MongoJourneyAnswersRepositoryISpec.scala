@@ -26,6 +26,7 @@ import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.error.ServiceError
 import org.mockito.Mockito.when
 import org.scalatest.EitherValues._
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.MongoTestSupport
@@ -35,7 +36,6 @@ import utils.TestUtils._
 import java.time.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import org.scalatestplus.mockito.MockitoSugar.mock
 
 class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport[JourneyAnswers] {
   private val now       = mkNow()
@@ -85,7 +85,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
         mtditid,
         currTaxYear,
         Journey.PaymentsIntoPensions,
-        NotStarted,
+        InProgress,
         Json.obj("field" -> "value"),
         expectedExpireAt,
         now,
@@ -105,7 +105,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
         mtditid,
         currTaxYear,
         Journey.PaymentsIntoPensions,
-        NotStarted,
+        InProgress,
         Json.obj("field" -> "updated"),
         expectedExpireAt,
         now,
