@@ -48,7 +48,10 @@ class AesGCMCryptoEncryptionServiceSpec extends AnyWordSpecLike {
 
   implicit val textAndKeyAes: TextAndKey = TextAndKey(associatedText, secretKey)
 
-  val underTest = createUnderTest()
+  val config = Configuration(
+    "useEncryption" -> "true"
+  )
+  val underTest = createUnderTest(config)
 
   "encrypt" should {
     "return plain text when turned off" in {
