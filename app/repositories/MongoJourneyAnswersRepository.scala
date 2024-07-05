@@ -25,6 +25,7 @@ import models.domain.ApiResultT
 import models.error.ServiceError
 import org.mongodb.scala._
 import org.mongodb.scala.bson._
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
@@ -86,7 +87,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
         .toFuture()
         .void)
 
-  private def filterJourney(ctx: JourneyContext) = Filters.and(
+  private def filterJourney(ctx: JourneyContext): Bson = Filters.and(
     Filters.eq("mtditid", ctx.mtditid.value),
     Filters.eq("taxYear", ctx.taxYear.endYear),
     Filters.eq("journey", ctx.journey.entryName)
@@ -112,7 +113,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
 
     val filter  = filterJourney(ctx)
     val bson    = BsonDocument(Json.stringify(newData))
-    val update  = createUpsert(ctx)("data", bson, JourneyStatus.NotStarted)
+    val update  = createUpsert(ctx)("data", bson, JourneyStatus.InProgress)
     val options = new UpdateOptions().upsert(true)
 
     handleUpdateExactlyOne(ctx, collection.updateOne(filter, update, options).toFuture())
@@ -141,7 +142,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
         .map(_.toList.map(a => JourneyNameAndStatus(a.journey, a.status))))
   }
 
-  private def filterAllJourneys(taxYear: TaxYear, mtditid: Mtditid) = Filters.and(
+  private def filterAllJourneys(taxYear: TaxYear, mtditid: Mtditid): Bson = Filters.and(
     Filters.eq("mtditid", mtditid.value),
     Filters.eq("taxYear", taxYear.endYear)
   )
@@ -160,7 +161,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     collection.updateOne(filter, update, options).toFuture()
   }
 
-  private def createUpsert(ctx: JourneyContext)(fieldName: String, value: BsonValue, statusOnInsert: JourneyStatus) = {
+  private def createUpsert(ctx: JourneyContext)(fieldName: String, value: BsonValue, statusOnInsert: JourneyStatus): Bson = {
     val now      = Instant.now(clock)
     val expireAt = now.atZone(ZoneOffset.UTC).plusDays(appConfig.mongoTTL).toInstant
 
@@ -176,7 +177,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     )
   }
 
-  private def createUpsertStatus(ctx: JourneyContext)(status: JourneyStatus) = {
+  private def createUpsertStatus(ctx: JourneyContext)(status: JourneyStatus): Bson = {
     val now      = Instant.now(clock)
     val expireAt = now.atZone(ZoneOffset.UTC).plusDays(appConfig.mongoTTL).toInstant
 
@@ -195,7 +196,7 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
   private def handleUpdateExactlyOne(ctx: JourneyContext, result: Future[UpdateResult])(implicit
       logger: Logger,
       ec: ExecutionContext): ApiResultT[Unit] = {
-    def insertedSuccessfully(result: UpdateResult) =
+    def insertedSuccessfully(result: UpdateResult): Boolean =
       result.getModifiedCount == 0 && result.getMatchedCount == 0 && Option(result.getUpsertedId).nonEmpty
     def updatedSuccessfully(result: UpdateResult) = result.getModifiedCount == 1
 
