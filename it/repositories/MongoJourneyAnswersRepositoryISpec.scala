@@ -206,7 +206,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
 
   "upsert and get answers" should {
     val cases: TableFor1[StorageAnswers[_]] = Table(
-      ("answers"),
+      "answers",
       paymentsIntoPensions.paymentsIntoPensionsStorageAnswers,
       ukpensionincome.storageAnswers,
       statePension.storageAnswers,
@@ -271,7 +271,7 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
           _             <- repository.upsertShortServiceRefunds(journeyCtxWithNino, ans)
           actualAnswers <- repository.getShortServiceRefunds(journeyCtxWithNino)
         } yield actualAnswers
-
+      case _ => fail("Wrong setup, missing type")
     }
 
     actual.value.futureValue.value.value

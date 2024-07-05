@@ -19,6 +19,7 @@ package repositories
 import cats.data.EitherT
 import cats.implicits._
 import config.AppConfig
+import models.common.Journey._
 import models.common._
 import models.database._
 import models.domain.ApiResultT
@@ -31,7 +32,7 @@ import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json, Reads}
+import play.api.libs.json.{JsValue, Json, OFormat, Reads, Writes}
 import services.{EncryptionService, getPersistedAnswers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -123,64 +124,107 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     getDecryptedAnswers[PaymentsIntoPensionsStorageAnswers, EncryptedPaymentsIntoPensionsStorageAnswers](
       ctx.toJourneyContext(Journey.PaymentsIntoPensions))
 
-  def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoPensionsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.PaymentsIntoPensions), storageAnswers)
+  def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoPensionsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[PaymentsIntoPensionsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[PaymentsIntoPensionsStorageAnswers](PaymentsIntoPensions)
+
+    upsertEncryptedAnswers[PaymentsIntoPensionsStorageAnswers](ctx.toJourneyContext(PaymentsIntoPensions), storageAnswers)
+  }
 
   def getUkPensionIncome(ctx: JourneyContextWithNino): ApiResultT[Option[UkPensionIncomeStorageAnswers]] =
     getDecryptedAnswers[UkPensionIncomeStorageAnswers, EncryptedUkPensionIncomeStorageAnswers](ctx.toJourneyContext(Journey.UkPensionIncome))
 
-  def upsertUkPensionIncome(ctx: JourneyContextWithNino, storageAnswers: UkPensionIncomeStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.UkPensionIncome), storageAnswers)
+  def upsertUkPensionIncome(ctx: JourneyContextWithNino, storageAnswers: UkPensionIncomeStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[UkPensionIncomeStorageAnswers]] =
+      EncryptedStorageAnswers.writes[UkPensionIncomeStorageAnswers](UkPensionIncome)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(UkPensionIncome), storageAnswers)
+  }
 
   def getStatePension(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromPensionsStatePensionStorageAnswers]] =
     getDecryptedAnswers[IncomeFromPensionsStatePensionStorageAnswers, EncryptedIncomeFromPensionsStatePensionStorageAnswers](
       ctx.toJourneyContext(Journey.StatePension))
 
-  def upsertStatePension(ctx: JourneyContextWithNino, storageAnswers: IncomeFromPensionsStatePensionStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.StatePension), storageAnswers)
+  def upsertStatePension(ctx: JourneyContextWithNino, storageAnswers: IncomeFromPensionsStatePensionStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers]] =
+      EncryptedStorageAnswers.writes[IncomeFromPensionsStatePensionStorageAnswers](StatePension)
 
-  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] =
+    upsertEncryptedAnswers(ctx.toJourneyContext(StatePension), storageAnswers)
+  }
+
+  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[PaymentsIntoPensionsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[PaymentsIntoPensionsStorageAnswers](PaymentsIntoPensions)
+
     getDecryptedAnswers[AnnualAllowancesStorageAnswers, EncryptedAnnualAllowancesStorageAnswers](ctx.toJourneyContext(Journey.AnnualAllowances))
+  }
 
-  def upsertAnnualAllowances(ctx: JourneyContextWithNino, storageAnswers: AnnualAllowancesStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.AnnualAllowances), storageAnswers)
+  def upsertAnnualAllowances(ctx: JourneyContextWithNino, storageAnswers: AnnualAllowancesStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[AnnualAllowancesStorageAnswers]] =
+      EncryptedStorageAnswers.writes[AnnualAllowancesStorageAnswers](AnnualAllowances)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(AnnualAllowances), storageAnswers)
+  }
 
   def getUnauthorisedPayments(ctx: JourneyContextWithNino): ApiResultT[Option[UnauthorisedPaymentsStorageAnswers]] =
     getDecryptedAnswers[UnauthorisedPaymentsStorageAnswers, EncryptedUnauthorisedPaymentsStorageAnswers](
       ctx.toJourneyContext(Journey.UnauthorisedPayments))
 
-  def upsertUnauthorisedPayments(ctx: JourneyContextWithNino, storageAnswers: UnauthorisedPaymentsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.UnauthorisedPayments), storageAnswers)
+  def upsertUnauthorisedPayments(ctx: JourneyContextWithNino, storageAnswers: UnauthorisedPaymentsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[UnauthorisedPaymentsStorageAnswers](UnauthorisedPayments)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(UnauthorisedPayments), storageAnswers)
+  }
 
   def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoOverseasPensionsStorageAnswers]] =
     getDecryptedAnswers[PaymentsIntoOverseasPensionsStorageAnswers, EncryptedPaymentsIntoOverseasPensionsStorageAnswers](
       ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions))
 
-  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.PaymentsIntoOverseasPensions), storageAnswers)
+  def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino,
+                                         storageAnswers: PaymentsIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[PaymentsIntoOverseasPensionsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[PaymentsIntoOverseasPensionsStorageAnswers](PaymentsIntoOverseasPensions)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(PaymentsIntoOverseasPensions), storageAnswers)
+  }
 
   def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromOverseasPensionsStorageAnswers]] =
     getDecryptedAnswers[IncomeFromOverseasPensionsStorageAnswers, EncryptedIncomeFromOverseasPensionsStorageAnswers](
       ctx.toJourneyContext(Journey.IncomeFromOverseasPensions))
 
-  def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: IncomeFromOverseasPensionsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.IncomeFromOverseasPensions), storageAnswers)
+  def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: IncomeFromOverseasPensionsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[IncomeFromOverseasPensionsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[IncomeFromOverseasPensionsStorageAnswers](IncomeFromOverseasPensions)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(IncomeFromOverseasPensions), storageAnswers)
+  }
 
   def getTransferIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[TransfersIntoOverseasPensionsStorageAnswers]] =
     getDecryptedAnswers[TransfersIntoOverseasPensionsStorageAnswers, EncryptedTransfersIntoOverseasPensionsStorageAnswers](
       ctx.toJourneyContext(Journey.TransferIntoOverseasPensions))
 
-  def upsertTransferIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: TransfersIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.TransferIntoOverseasPensions), storageAnswers)
+  def upsertTransferIntoOverseasPensions(ctx: JourneyContextWithNino,
+                                         storageAnswers: TransfersIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[TransfersIntoOverseasPensionsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[TransfersIntoOverseasPensionsStorageAnswers](TransferIntoOverseasPensions)
+
+    upsertEncryptedAnswers(ctx.toJourneyContext(TransferIntoOverseasPensions), storageAnswers)
+  }
 
   def getShortServiceRefunds(ctx: JourneyContextWithNino): ApiResultT[Option[ShortServiceRefundsStorageAnswers]] =
     getDecryptedAnswers[ShortServiceRefundsStorageAnswers, EncryptedShortServiceRefundsStorageAnswers](
       ctx.toJourneyContext(Journey.ShortServiceRefunds))
 
-  def upsertShortServiceRefunds(ctx: JourneyContextWithNino, storageAnswers: ShortServiceRefundsStorageAnswers): ApiResultT[Unit] =
-    upsertEncryptedAnswers(ctx.toJourneyContext(Journey.ShortServiceRefunds), storageAnswers)
+  def upsertShortServiceRefunds(ctx: JourneyContextWithNino, storageAnswers: ShortServiceRefundsStorageAnswers): ApiResultT[Unit] = {
+    implicit val format: OFormat[EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers]] =
+      EncryptedStorageAnswers.writes[ShortServiceRefundsStorageAnswers](ShortServiceRefunds)
 
-  private def upsertEncryptedAnswers[A](ctx: JourneyContext, storageAnswers: StorageAnswers[A]): ApiResultT[Unit] =
+    upsertEncryptedAnswers(ctx.toJourneyContext(ShortServiceRefunds), storageAnswers)
+  }
+
+  private def upsertEncryptedAnswers[A](ctx: JourneyContext, storageAnswers: StorageAnswers[A])(implicit
+      format: OFormat[EncryptedStorageAnswers[A]]): ApiResultT[Unit] =
     for {
       encryptedAnswers <- EitherT.fromEither[Future](encryptionService.encryptUserData[A](ctx.mtditid, storageAnswers))
       _                <- upsertAnswers(ctx, Json.toJson(encryptedAnswers))

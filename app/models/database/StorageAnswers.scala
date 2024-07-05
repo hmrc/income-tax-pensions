@@ -17,9 +17,11 @@
 package models.database
 
 import cats.data.EitherT
+import models.common.Journey
+import models.common.Journey._
 import models.error.ServiceError
 import models.error.ServiceError._
-import play.api.libs.json.Writes
+import play.api.libs.json.{JsObject, JsResult, JsValue, OFormat, OWrites, Writes}
 import services.EncryptionService
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,15 +44,19 @@ trait EncryptedStorageAnswers[A] {
 }
 
 object EncryptedStorageAnswers {
-  implicit def writes[A]: Writes[EncryptedStorageAnswers[A]] = Writes {
-    case e: EncryptedPaymentsIntoPensionsStorageAnswers           => EncryptedPaymentsIntoPensionsStorageAnswers.format.writes(e)
-    case e: EncryptedUkPensionIncomeStorageAnswers                => EncryptedUkPensionIncomeStorageAnswers.format.writes(e)
-    case e: EncryptedIncomeFromPensionsStatePensionStorageAnswers => EncryptedIncomeFromPensionsStatePensionStorageAnswers.format.writes(e)
-    case e: EncryptedAnnualAllowancesStorageAnswers               => EncryptedAnnualAllowancesStorageAnswers.format.writes(e)
-    case e: EncryptedUnauthorisedPaymentsStorageAnswers           => EncryptedUnauthorisedPaymentsStorageAnswers.format.writes(e)
-    case e: EncryptedPaymentsIntoOverseasPensionsStorageAnswers   => EncryptedPaymentsIntoOverseasPensionsStorageAnswers.format.writes(e)
-    case e: EncryptedIncomeFromOverseasPensionsStorageAnswers     => EncryptedIncomeFromOverseasPensionsStorageAnswers.format.writes(e)
-    case e: EncryptedTransfersIntoOverseasPensionsStorageAnswers  => EncryptedTransfersIntoOverseasPensionsStorageAnswers.format.writes(e)
-    case e: EncryptedShortServiceRefundsStorageAnswers            => EncryptedShortServiceRefundsStorageAnswers.format.writes(e)
+  def writes[A](journey: Journey): OFormat[EncryptedStorageAnswers[A]] = {
+    val oformat = journey match {
+      case PaymentsIntoPensions         => EncryptedPaymentsIntoPensionsStorageAnswers.format
+      case UkPensionIncome              => EncryptedUkPensionIncomeStorageAnswers.format
+      case StatePension                 => EncryptedIncomeFromPensionsStatePensionStorageAnswers.format
+      case AnnualAllowances             => EncryptedAnnualAllowancesStorageAnswers.format
+      case UnauthorisedPayments         => EncryptedUnauthorisedPaymentsStorageAnswers.format
+      case PaymentsIntoOverseasPensions => EncryptedPaymentsIntoOverseasPensionsStorageAnswers.format
+      case IncomeFromOverseasPensions   => EncryptedIncomeFromOverseasPensionsStorageAnswers.format
+      case TransferIntoOverseasPensions => EncryptedTransfersIntoOverseasPensionsStorageAnswers.format
+      case ShortServiceRefunds          => EncryptedShortServiceRefundsStorageAnswers.format
+    }
+
+    oformat.asInstanceOf[OFormat[EncryptedStorageAnswers[A]]]
   }
 }
