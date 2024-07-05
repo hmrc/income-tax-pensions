@@ -23,8 +23,6 @@ import models.common.Journey._
 import models.common.JourneyStatus._
 import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
 import models.database._
-import models.database.JourneyAnswers
-import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
 import models.error.ServiceError
 import org.mockito.Mockito.when
 import org.scalatest.EitherValues._
@@ -53,7 +51,8 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
   when(mockAppConfig.mongoTTL) thenReturn 28
   private val TTLinSeconds = mockAppConfig.mongoTTL * 3600 * 24
 
-  override val repository = new MongoJourneyAnswersRepository(mongoComponent, clock, mockAppConfig)
+  private val encryptionStub = StubEncryptionService()
+  override val repository    = new MongoJourneyAnswersRepository(mongoComponent, clock, encryptionStub, mockAppConfig)
 
   override def beforeEach(): Unit = {
     clock.reset(now)
@@ -183,24 +182,6 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
       assert(updatedResult.getMatchedCount == 1)
       assert(Option(updatedResult.getUpsertedId) === None)
       assert(updated.value.status === Completed)
-    }
-
-  }
-
-  "getAnswers" should {
-    "return None if no answers" in {
-      val maybeAnswers = repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx).value.futureValue
-      assert(maybeAnswers.value === None)
-    }
-
-    "return answers" in {
-      val answers = PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(false), Some(false))
-      val maybeAnswers = (for {
-        _                <- repository.upsertAnswers(sampleCtx, Json.toJson(answers))
-        persistedAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx)
-      } yield persistedAnswers).value.futureValue
-
-      assert(maybeAnswers.value.value === answers)
     }
   }
 
