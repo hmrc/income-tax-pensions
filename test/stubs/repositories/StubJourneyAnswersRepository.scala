@@ -35,9 +35,20 @@ case class StubJourneyAnswersRepository(
     saveJourneyStatus: Unit = Right(()),
     upsertDateField: Either[ServiceError, Unit] = Right(()),
     var upsertAnswersList: List[JsValue] = Nil,
-    upsertStatusField: Either[ServiceError, Unit] = Right(())
+    upsertStatusField: Either[ServiceError, Unit] = Right(()),
+    getPaymentsIntoPensionsRes: Either[ServiceError, Option[PaymentsIntoPensionsStorageAnswers]] = Right(None),
+    getUkPensionIncomeRes: Either[ServiceError, Option[UkPensionIncomeStorageAnswers]] = Right(None),
+    getStatePensionRes: Either[ServiceError, Option[IncomeFromPensionsStatePensionStorageAnswers]] = Right(None),
+    getAnnualAllowancesRes: Either[ServiceError, Option[AnnualAllowancesStorageAnswers]] = Right(None),
+    getUnauthorisedPaymentsRes: Either[ServiceError, Option[UnauthorisedPaymentsStorageAnswers]] = Right(None),
+    getPaymentsIntoOverseasPensionsRes: Either[ServiceError, Option[PaymentsIntoOverseasPensionsStorageAnswers]] = Right(None),
+    getIncomeFromOverseasPensionsRes: Either[ServiceError, Option[IncomeFromOverseasPensionsStorageAnswers]] = Right(None),
+    getTransferIntoOverseasPensionsRes: Either[ServiceError, Option[TransfersIntoOverseasPensionsStorageAnswers]] = Right(None),
+    getShortServiceRefundsRes: Either[ServiceError, Option[ShortServiceRefundsStorageAnswers]] = Right(None)
 ) extends JourneyAnswersRepository {
   implicit val ec: ExecutionContext = ExecutionContext.global
+
+  private def rightT[A](a: Either[ServiceError, Option[A]]): ApiResultT[Option[A]] = EitherT.fromEither[Future](a)
 
   def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
     upsertAnswersList ::= newData
@@ -72,41 +83,50 @@ case class StubJourneyAnswersRepository(
   def getDecryptedAnswers[DecAns, A <: EncryptedStorageAnswers[DecAns]: Reads](ctx: JourneyContext)(implicit
       ct: ClassTag[A]): ApiResultT[Option[DecAns]] = ???
 
-  def getPaymentsIntoPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoPensionsStorageAnswers]] = ???
+  def getPaymentsIntoPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoPensionsStorageAnswers]] =
+    rightT(getPaymentsIntoPensionsRes)
 
   def upsertPaymentsIntoPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoPensionsStorageAnswers): ApiResultT[Unit] = ???
 
-  def getUkPensionIncome(ctx: JourneyContextWithNino): ApiResultT[Option[UkPensionIncomeStorageAnswers]] = ???
+  def getUkPensionIncome(ctx: JourneyContextWithNino): ApiResultT[Option[UkPensionIncomeStorageAnswers]] =
+    rightT(getUkPensionIncomeRes)
 
   def upsertUkPensionIncome(ctx: JourneyContextWithNino, storageAnswers: UkPensionIncomeStorageAnswers): ApiResultT[Unit] = ???
 
-  def getStatePension(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromPensionsStatePensionStorageAnswers]] = ???
+  def getStatePension(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromPensionsStatePensionStorageAnswers]] =
+    rightT(getStatePensionRes)
 
   def upsertStatePension(ctx: JourneyContextWithNino, storageAnswers: IncomeFromPensionsStatePensionStorageAnswers): ApiResultT[Unit] = ???
 
-  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] = ???
+  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] =
+    rightT(getAnnualAllowancesRes)
 
   def upsertAnnualAllowances(ctx: JourneyContextWithNino, storageAnswers: AnnualAllowancesStorageAnswers): ApiResultT[Unit] = ???
 
-  def getUnauthorisedPayments(ctx: JourneyContextWithNino): ApiResultT[Option[UnauthorisedPaymentsStorageAnswers]] = ???
+  def getUnauthorisedPayments(ctx: JourneyContextWithNino): ApiResultT[Option[UnauthorisedPaymentsStorageAnswers]] =
+    rightT(getUnauthorisedPaymentsRes)
 
   def upsertUnauthorisedPayments(ctx: JourneyContextWithNino, storageAnswers: UnauthorisedPaymentsStorageAnswers): ApiResultT[Unit] = ???
 
-  def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoOverseasPensionsStorageAnswers]] = ???
+  def getPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoOverseasPensionsStorageAnswers]] =
+    rightT(getPaymentsIntoOverseasPensionsRes)
 
   def upsertPaymentsIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: PaymentsIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
     ???
 
-  def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromOverseasPensionsStorageAnswers]] = ???
+  def getIncomeFromOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[IncomeFromOverseasPensionsStorageAnswers]] =
+    rightT(getIncomeFromOverseasPensionsRes)
 
   def upsertIncomeFromOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: IncomeFromOverseasPensionsStorageAnswers): ApiResultT[Unit] = ???
 
-  def getTransferIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[TransfersIntoOverseasPensionsStorageAnswers]] = ???
+  def getTransferIntoOverseasPensions(ctx: JourneyContextWithNino): ApiResultT[Option[TransfersIntoOverseasPensionsStorageAnswers]] =
+    rightT(getTransferIntoOverseasPensionsRes)
 
   def upsertTransferIntoOverseasPensions(ctx: JourneyContextWithNino, storageAnswers: TransfersIntoOverseasPensionsStorageAnswers): ApiResultT[Unit] =
     ???
 
-  def getShortServiceRefunds(ctx: JourneyContextWithNino): ApiResultT[Option[ShortServiceRefundsStorageAnswers]] = ???
+  def getShortServiceRefunds(ctx: JourneyContextWithNino): ApiResultT[Option[ShortServiceRefundsStorageAnswers]] =
+    rightT(getShortServiceRefundsRes)
 
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, storageAnswers: ShortServiceRefundsStorageAnswers): ApiResultT[Unit] = ???
 }
