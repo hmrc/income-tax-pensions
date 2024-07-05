@@ -22,11 +22,10 @@ import models.common._
 import models.database._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import play.api.libs.json.{JsValue, Reads}
+import play.api.libs.json.JsValue
 import repositories.JourneyAnswersRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
 
 case class StubJourneyAnswersRepository(
     getAnswer: Option[JourneyAnswers] = None,
@@ -50,11 +49,6 @@ case class StubJourneyAnswersRepository(
 
   private def rightT[A](a: Either[ServiceError, Option[A]]): ApiResultT[Option[A]] = EitherT.fromEither[Future](a)
 
-  def upsertAnswers(ctx: JourneyContext, newData: JsValue): ApiResultT[Unit] = {
-    upsertAnswersList ::= newData
-    EitherT.fromEither[Future](upsertDateField)
-  }
-
   def setStatus(ctx: JourneyContext, status: JourneyStatus): ApiResultT[Unit] =
     EitherT.fromEither[Future](upsertStatusField)
 
@@ -64,24 +58,10 @@ case class StubJourneyAnswersRepository(
     EitherT.rightT[Future, ServiceError](())
   }
 
-  def get(ctx: JourneyContext): ApiResultT[Option[JourneyAnswers]] =
-    EitherT.rightT[Future, ServiceError](getAnswer)
-
   def getAllJourneyStatuses(taxYear: TaxYear, mtditid: Mtditid): ApiResultT[List[JourneyNameAndStatus]] =
     EitherT.rightT[Future, ServiceError](getAllJourneyStatuses)
 
   def getJourneyStatus(ctx: JourneyContext): ApiResultT[List[JourneyNameAndStatus]] = EitherT.rightT[Future, ServiceError](getJourneyStatus)
-
-  def saveJourneyStatus(ctx: JourneyContext, journeyContext: JourneyContext): ApiResultT[Unit] =
-    EitherT.rightT[Future, ServiceError](saveJourneyStatus)
-
-  def getAnswers[A: Reads](ctx: JourneyContext)(implicit ct: ClassTag[A]): ApiResultT[Option[A]] =
-    EitherT.rightT[Future, ServiceError](upsertAnswersList.headOption.map(_.as[A]))
-
-  def upsertEncryptedAnswers[A](ctx: JourneyContext, storageAnswers: StorageAnswers[A]): ApiResultT[Unit] = ???
-
-  def getDecryptedAnswers[DecAns, A <: EncryptedStorageAnswers[DecAns]: Reads](ctx: JourneyContext)(implicit
-      ct: ClassTag[A]): ApiResultT[Option[DecAns]] = ???
 
   def getPaymentsIntoPensions(ctx: JourneyContextWithNino): ApiResultT[Option[PaymentsIntoPensionsStorageAnswers]] =
     rightT(getPaymentsIntoPensionsRes)
