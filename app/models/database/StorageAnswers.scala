@@ -21,7 +21,7 @@ import models.common.Journey
 import models.common.Journey._
 import models.error.ServiceError
 import models.error.ServiceError._
-import play.api.libs.json.{JsObject, JsResult, JsValue, OFormat, OWrites, Writes}
+import play.api.libs.json.OFormat
 import services.EncryptionService
 
 import scala.concurrent.{ExecutionContext, Future}
