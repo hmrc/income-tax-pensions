@@ -20,6 +20,7 @@ import com.google.inject.AbstractModule
 import connectors.{IntegrationFrameworkConnector, IntegrationFrameworkConnectorImpl, StateBenefitsConnector, StateBenefitsConnectorImpl}
 import repositories.{JourneyAnswersRepository, MongoJourneyAnswersRepository}
 import services._
+import uk.gov.hmrc.crypto.AesGCMCrypto
 
 import java.time.{Clock, ZoneOffset}
 
@@ -35,6 +36,7 @@ class Module extends AbstractModule {
     bind(classOf[StateBenefitService]).to(classOf[StateBenefitServiceImpl])
     bind(classOf[IntegrationFrameworkConnector]).to(classOf[IntegrationFrameworkConnectorImpl])
     bind(classOf[StateBenefitsConnector]).to(classOf[StateBenefitsConnectorImpl])
+    bind(classOf[EncryptionService]).to(classOf[AesGCMCryptoEncryptionService])
   }
 
 }

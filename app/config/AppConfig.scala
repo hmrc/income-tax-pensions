@@ -19,11 +19,12 @@ package config
 import models.common.{Nino, TaxYear}
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import utils.Logging
 
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 
-class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends Logging {
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
 
@@ -45,5 +46,11 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 
-  val mongoTTL: Int = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
+  val mongoTTL: Int         = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
+  val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
+
+  val useEncryption: Boolean = {
+    logger.warn("Mongo Backend encryption is turned off")
+    servicesConfig.getBoolean("useEncryption")
+  }
 }

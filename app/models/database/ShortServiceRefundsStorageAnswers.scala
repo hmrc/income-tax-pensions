@@ -17,10 +17,17 @@
 package models.database
 
 import models.charges.{GetPensionChargesRequestModel, OverseasPensionContributions, OverseasRefundPensionScheme}
+import models.encryption.EncryptedValue
 import models.frontend.ShortServiceRefundsAnswers
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
-final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Boolean] = None, nonUKTaxOnShortServiceRefund: Option[Boolean] = None) {
+final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Boolean] = None, nonUKTaxOnShortServiceRefund: Option[Boolean] = None)
+    extends StorageAnswers[ShortServiceRefundsStorageAnswers] {
 
   def isEmpty: Boolean = shortServiceRefund.isEmpty && nonUKTaxOnShortServiceRefund.isEmpty
 
@@ -44,6 +51,12 @@ final case class ShortServiceRefundsStorageAnswers(shortServiceRefund: Option[Bo
           refundPensionScheme = if (oPCAnswers.nonEmpty) schemes else Seq[OverseasRefundPensionScheme]()
         ))
   }
+
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers] =
+    EncryptedShortServiceRefundsStorageAnswers(
+      shortServiceRefund.map(_.encrypted),
+      nonUKTaxOnShortServiceRefund.map(_.encrypted)
+    )
 }
 
 object ShortServiceRefundsStorageAnswers {
@@ -56,4 +69,19 @@ object ShortServiceRefundsStorageAnswers {
       answers.shortServiceRefund,
       answers.shortServiceRefundTaxPaid
     )
+}
+
+final case class EncryptedShortServiceRefundsStorageAnswers(shortServiceRefund: Option[EncryptedValue] = None,
+                                                            nonUKTaxOnShortServiceRefund: Option[EncryptedValue] = None)
+    extends EncryptedStorageAnswers[ShortServiceRefundsStorageAnswers] {
+
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): ShortServiceRefundsStorageAnswers =
+    ShortServiceRefundsStorageAnswers(
+      shortServiceRefund.map(_.decrypted[Boolean]),
+      nonUKTaxOnShortServiceRefund.map(_.decrypted[Boolean])
+    )
+}
+
+object EncryptedShortServiceRefundsStorageAnswers {
+  implicit val format: OFormat[EncryptedShortServiceRefundsStorageAnswers] = Json.format[EncryptedShortServiceRefundsStorageAnswers]
 }

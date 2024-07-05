@@ -16,16 +16,26 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.AnnualAllowancesAnswers
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax._
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
 final case class AnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion: Option[Boolean],
-                                                pensionProvidePaidAnnualAllowanceQuestion: Option[Boolean]) {
+                                                pensionProvidePaidAnnualAllowanceQuestion: Option[Boolean])
+    extends StorageAnswers[AnnualAllowancesStorageAnswers] {
   def toAnnualAllowancesAnswers: AnnualAllowancesAnswers =
     AnnualAllowancesAnswers.empty.copy(
       aboveAnnualAllowanceQuestion = aboveAnnualAllowanceQuestion,
       pensionProvidePaidAnnualAllowanceQuestion = pensionProvidePaidAnnualAllowanceQuestion
     )
+
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedStorageAnswers[AnnualAllowancesStorageAnswers] =
+    EncryptedAnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion.map(_.encrypted), pensionProvidePaidAnnualAllowanceQuestion.map(_.encrypted))
 }
 
 object AnnualAllowancesStorageAnswers {
@@ -36,4 +46,18 @@ object AnnualAllowancesStorageAnswers {
       answers.aboveAnnualAllowanceQuestion,
       answers.pensionProvidePaidAnnualAllowanceQuestion
     )
+}
+
+final case class EncryptedAnnualAllowancesStorageAnswers(aboveAnnualAllowanceQuestion: Option[EncryptedValue],
+                                                         pensionProvidePaidAnnualAllowanceQuestion: Option[EncryptedValue])
+    extends EncryptedStorageAnswers[AnnualAllowancesStorageAnswers] {
+
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): AnnualAllowancesStorageAnswers =
+    AnnualAllowancesStorageAnswers(
+      aboveAnnualAllowanceQuestion.map(_.decrypted[Boolean]),
+      pensionProvidePaidAnnualAllowanceQuestion.map(_.decrypted[Boolean]))
+}
+
+object EncryptedAnnualAllowancesStorageAnswers {
+  implicit val format: OFormat[EncryptedAnnualAllowancesStorageAnswers] = Json.format[EncryptedAnnualAllowancesStorageAnswers]
 }

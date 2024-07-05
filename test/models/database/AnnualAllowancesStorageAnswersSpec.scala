@@ -17,8 +17,11 @@
 package models.database
 
 import models.database.AnnualAllowancesStorageAnswers._
+import models.encryption.EncryptedValue
 import org.scalatest.wordspec.AnyWordSpecLike
+import stubs.services.StubEncryptionService
 import testdata.annualAllowances.annualAllowancesAnswers
+import testdata.encryption.textAndKey
 
 class AnnualAllowancesStorageAnswersSpec extends AnyWordSpecLike {
 
@@ -27,6 +30,20 @@ class AnnualAllowancesStorageAnswersSpec extends AnyWordSpecLike {
       val answers = annualAllowancesAnswers
       val result  = fromJourneyAnswers(answers)
       assert(result === AnnualAllowancesStorageAnswers(Some(true), Some(true)))
+    }
+  }
+
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = AnnualAllowancesStorageAnswers(Some(true), Some(false))
+      val encryptionService = StubEncryptionService()
+
+      val actual = answers.encrypted(encryptionService, textAndKey)
+
+      assert(
+        actual === EncryptedAnnualAllowancesStorageAnswers(
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce"))))
     }
   }
 }

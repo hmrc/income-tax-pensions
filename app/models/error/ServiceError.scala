@@ -52,4 +52,12 @@ object ServiceError {
     val errorMessage: String = s"Downstream error: $error"
   }
 
+  final case class CannotEncryptStorageDataError(error: String) extends ServiceError {
+    val errorMessage: String = s"DB Data Encryption error: $error"
+  }
+
+  final case class CannotDecryptStorageDataError(error: String) extends ServiceError {
+    val errorMessage: String = s"DB Data Decryption error: $error"
+  }
+
 }

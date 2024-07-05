@@ -16,14 +16,30 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.UnauthorisedPaymentsAnswers
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
 final case class UnauthorisedPaymentsStorageAnswers(surchargeQuestion: Option[Boolean],
                                                     noSurchargeQuestion: Option[Boolean],
                                                     surchargeTaxAmountQuestion: Option[Boolean],
                                                     noSurchargeTaxAmountQuestion: Option[Boolean],
                                                     ukPensionSchemesQuestion: Option[Boolean])
+    extends StorageAnswers[UnauthorisedPaymentsStorageAnswers] {
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers] =
+    EncryptedUnauthorisedPaymentsStorageAnswers(
+      surchargeQuestion.map(_.encrypted),
+      noSurchargeQuestion.map(_.encrypted),
+      surchargeTaxAmountQuestion.map(_.encrypted),
+      noSurchargeTaxAmountQuestion.map(_.encrypted),
+      ukPensionSchemesQuestion.map(_.encrypted)
+    )
+}
 
 object UnauthorisedPaymentsStorageAnswers {
   implicit val format: OFormat[UnauthorisedPaymentsStorageAnswers] = Json.format[UnauthorisedPaymentsStorageAnswers]
@@ -36,4 +52,24 @@ object UnauthorisedPaymentsStorageAnswers {
       answers.noSurchargeTaxAmountQuestion,
       answers.ukPensionSchemesQuestion
     )
+}
+
+final case class EncryptedUnauthorisedPaymentsStorageAnswers(surchargeQuestion: Option[EncryptedValue],
+                                                             noSurchargeQuestion: Option[EncryptedValue],
+                                                             surchargeTaxAmountQuestion: Option[EncryptedValue],
+                                                             noSurchargeTaxAmountQuestion: Option[EncryptedValue],
+                                                             ukPensionSchemesQuestion: Option[EncryptedValue])
+    extends EncryptedStorageAnswers[UnauthorisedPaymentsStorageAnswers] {
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): UnauthorisedPaymentsStorageAnswers =
+    UnauthorisedPaymentsStorageAnswers(
+      surchargeQuestion.map(_.decrypted[Boolean]),
+      noSurchargeQuestion.map(_.decrypted[Boolean]),
+      surchargeTaxAmountQuestion.map(_.decrypted[Boolean]),
+      noSurchargeTaxAmountQuestion.map(_.decrypted[Boolean]),
+      ukPensionSchemesQuestion.map(_.decrypted[Boolean])
+    )
+}
+
+object EncryptedUnauthorisedPaymentsStorageAnswers {
+  implicit val format: OFormat[EncryptedUnauthorisedPaymentsStorageAnswers] = Json.format[EncryptedUnauthorisedPaymentsStorageAnswers]
 }

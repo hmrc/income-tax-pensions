@@ -16,7 +16,10 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import org.scalatest.wordspec.AnyWordSpecLike
+import stubs.services.StubEncryptionService
+import testdata.encryption.textAndKey
 import testdata.unauthorisedPayments.unauthorisedPaymentsAnswers
 
 class UnauthorisedPaymentsStorageAnswersSpec extends AnyWordSpecLike {
@@ -24,6 +27,24 @@ class UnauthorisedPaymentsStorageAnswersSpec extends AnyWordSpecLike {
     "create UnauthorisedPaymentsStorageAnswers" in {
       val result = UnauthorisedPaymentsStorageAnswers.fromJourneyAnswers(unauthorisedPaymentsAnswers)
       assert(result === UnauthorisedPaymentsStorageAnswers(Some(true), Some(true), Some(true), Some(true), Some(true)))
+    }
+  }
+
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = UnauthorisedPaymentsStorageAnswers(Some(true), Some(false), Some(true), Some(false), Some(true))
+      val encryptionService = StubEncryptionService()
+
+      val actual = answers.encrypted(encryptionService, textAndKey)
+
+      assert(
+        actual === EncryptedUnauthorisedPaymentsStorageAnswers(
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce")),
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce")),
+          Some(EncryptedValue("encrypted-true", "nonce"))
+        ))
     }
   }
 }

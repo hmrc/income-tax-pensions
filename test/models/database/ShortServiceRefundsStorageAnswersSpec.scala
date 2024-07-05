@@ -16,9 +16,12 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.ShortServiceRefundsAnswers
 import org.scalatest.wordspec.AnyWordSpecLike
+import stubs.services.StubEncryptionService
 import testdata.connector.getPensionChargesRequestModel._
+import testdata.encryption.textAndKey
 import testdata.shortServiceRefunds._
 
 class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
@@ -52,6 +55,21 @@ class ShortServiceRefundsStorageAnswersSpec extends AnyWordSpecLike {
       val emptyStorageAnswers = ShortServiceRefundsStorageAnswers()
       val result              = emptyStorageAnswers.toShortServiceRefundsAnswers(None)
       assert(result === None)
+    }
+  }
+
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = ShortServiceRefundsStorageAnswers(Some(true), Some(false))
+      val encryptionService = StubEncryptionService()
+
+      val actual = answers.encrypted(encryptionService, textAndKey)
+
+      assert(
+        actual === EncryptedShortServiceRefundsStorageAnswers(
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce"))))
+
     }
   }
 }

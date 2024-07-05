@@ -16,16 +16,31 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
-final case class IncomeFromPensionsStatePensionStorageAnswers(statePension: Option[Boolean], statePensionLumpSum: Option[Boolean]) {
+final case class IncomeFromPensionsStatePensionStorageAnswers(statePension: Option[Boolean], statePensionLumpSum: Option[Boolean])
+    extends StorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] {
 
   def toIncomeFromPensionsStatePensionAnswers: IncomeFromPensionsStatePensionAnswers =
     IncomeFromPensionsStatePensionAnswers(
       statePension = statePension.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
       statePensionLumpSum = statePensionLumpSum.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
       sessionId = None
+    )
+
+  def encrypted(implicit
+      aesGCMCrypto: EncryptionService,
+      textAndKey: TextAndKey): EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] =
+    EncryptedIncomeFromPensionsStatePensionStorageAnswers(
+      statePension.map(_.encrypted),
+      statePensionLumpSum.map(_.encrypted)
     )
 }
 
@@ -37,4 +52,18 @@ object IncomeFromPensionsStatePensionStorageAnswers {
       answers.statePension.flatMap(_.amountPaidQuestion),
       answers.statePensionLumpSum.flatMap(_.amountPaidQuestion)
     )
+}
+final case class EncryptedIncomeFromPensionsStatePensionStorageAnswers(statePension: Option[EncryptedValue],
+                                                                       statePensionLumpSum: Option[EncryptedValue])
+    extends EncryptedStorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] {
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKey: TextAndKey): IncomeFromPensionsStatePensionStorageAnswers =
+    IncomeFromPensionsStatePensionStorageAnswers(
+      statePension.map(_.decrypted[Boolean]),
+      statePensionLumpSum.map(_.decrypted[Boolean])
+    )
+}
+
+object EncryptedIncomeFromPensionsStatePensionStorageAnswers {
+  implicit val format: OFormat[EncryptedIncomeFromPensionsStatePensionStorageAnswers] =
+    Json.format[EncryptedIncomeFromPensionsStatePensionStorageAnswers]
 }
