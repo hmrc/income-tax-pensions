@@ -32,7 +32,7 @@ import org.mongodb.scala.model.Projections.exclude
 import org.mongodb.scala.model._
 import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json, OFormat, Reads, Writes}
+import play.api.libs.json.{JsValue, Json, OFormat, Reads}
 import services.{EncryptionService, getPersistedAnswers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -152,12 +152,8 @@ class MongoJourneyAnswersRepository @Inject() (mongo: MongoComponent, clock: Clo
     upsertEncryptedAnswers(ctx.toJourneyContext(StatePension), storageAnswers)
   }
 
-  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] = {
-    implicit val format: OFormat[EncryptedStorageAnswers[PaymentsIntoPensionsStorageAnswers]] =
-      EncryptedStorageAnswers.writes[PaymentsIntoPensionsStorageAnswers](PaymentsIntoPensions)
-
+  def getAnnualAllowances(ctx: JourneyContextWithNino): ApiResultT[Option[AnnualAllowancesStorageAnswers]] =
     getDecryptedAnswers[AnnualAllowancesStorageAnswers, EncryptedAnnualAllowancesStorageAnswers](ctx.toJourneyContext(Journey.AnnualAllowances))
-  }
 
   def upsertAnnualAllowances(ctx: JourneyContextWithNino, storageAnswers: AnnualAllowancesStorageAnswers): ApiResultT[Unit] = {
     implicit val format: OFormat[EncryptedStorageAnswers[AnnualAllowancesStorageAnswers]] =
