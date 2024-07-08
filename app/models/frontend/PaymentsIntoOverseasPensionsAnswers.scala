@@ -16,7 +16,7 @@
 
 package models.frontend
 
-import models.database.{PaymentsIntoOverseasPensionsStorageAnswer, PaymentsIntoOverseasPensionsStorageAnswers}
+import models.database.PaymentsIntoOverseasPensionsStorageAnswers
 import models.domain.PensionAnswers
 import models.{GetPensionIncomeModel, GetPensionReliefsModel}
 import play.api.libs.json.{Json, OFormat}
@@ -37,8 +37,8 @@ case class PaymentsIntoOverseasPensionsAnswers(paymentsIntoOverseasPensionsQuest
           if (!x) true else taxPaidOnEmployerPaymentsQuestion.exists(x => if (x) true else schemes.nonEmpty && schemes.forall(_.isFinished)))
       })
 
-  def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswer =
-    PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
+  def toStorageAnswers: PaymentsIntoOverseasPensionsStorageAnswers =
+    PaymentsIntoOverseasPensionsStorageAnswers(paymentsIntoOverseasPensionsQuestions, employerPaymentsQuestion, taxPaidOnEmployerPaymentsQuestion)
 }
 
 object PaymentsIntoOverseasPensionsAnswers {

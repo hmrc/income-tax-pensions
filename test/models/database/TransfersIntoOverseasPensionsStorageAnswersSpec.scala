@@ -18,7 +18,10 @@ package models.database
 
 import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
+import models.encryption.EncryptedValue
+import stubs.services.StubEncryptionService
 import testdata.connector.getPensionChargesRequestModel.getPensionChargesRequestModel
+import testdata.encryption.textAndKeyAes
 import testdata.transfersIntoOverseasPensions.{transfersIntoOverseasPensionsAnswers, transfersIntoOverseasPensionsStorageAnswers}
 import utils.TestUtils
 
@@ -38,6 +41,21 @@ class TransfersIntoOverseasPensionsStorageAnswersSpec extends TestUtils {
       assert(
         TransfersIntoOverseasPensionsStorageAnswers.empty.toTransfersIntoOverseasPensions(
           getPensionChargesRequestModel.some) == transfersIntoOverseasPensionsAnswers.some)
+    }
+  }
+
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = TransfersIntoOverseasPensionsStorageAnswers(Some(true), Some(false), Some(true))
+      val encryptionService = StubEncryptionService()
+
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
+
+      assert(
+        actual === EncryptedTransfersIntoOverseasPensionsStorageAnswers(
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce")),
+          Some(EncryptedValue("encrypted-true", "nonce"))))
     }
   }
 }

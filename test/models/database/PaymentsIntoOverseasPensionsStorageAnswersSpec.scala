@@ -17,9 +17,12 @@
 package models.database
 
 import cats.implicits.catsSyntaxOptionId
+import models.encryption.EncryptedValue
 import org.scalatest.wordspec.AnyWordSpecLike
+import stubs.services.StubEncryptionService
 import testdata.connector.getPensionIncomeModel._
 import testdata.connector.getPensionReliefsModel.getPensionReliefsModel
+import testdata.encryption.textAndKeyAes
 import testdata.paymentsIntoOverseasPensions.{emptyPiopStorageAnswers, paymentsIntoOverseasPensionsAnswers, piopStorageAnswers}
 
 class PaymentsIntoOverseasPensionsStorageAnswersSpec extends AnyWordSpecLike {
@@ -42,6 +45,22 @@ class PaymentsIntoOverseasPensionsStorageAnswersSpec extends AnyWordSpecLike {
       val result = emptyPiopStorageAnswers.toPaymentsIntoOverseasPensionsAnswers(None, None)
 
       assert(result == None)
+    }
+  }
+
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = PaymentsIntoOverseasPensionsStorageAnswers(Some(true), Some(false), Some(true))
+      val encryptionService = StubEncryptionService()
+
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
+
+      assert(
+        actual === EncryptedPaymentsIntoOverseasPensionsStorageAnswers(
+          Some(EncryptedValue("encrypted-true", "nonce")),
+          Some(EncryptedValue("encrypted-false", "nonce")),
+          Some(EncryptedValue("encrypted-true", "nonce"))))
+
     }
   }
 }

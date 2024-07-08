@@ -18,13 +18,20 @@ package models.database
 
 import cats.implicits.catsSyntaxOptionId
 import models.charges.{GetPensionChargesRequestModel, OverseasSchemeProvider, PensionSchemeOverseasTransfers}
+import models.encryption.EncryptedValue
 import models.frontend.TransfersIntoOverseasPensionsAnswers
 import models.isNonZero
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
 final case class TransfersIntoOverseasPensionsStorageAnswers(transferPensionSavings: Option[Boolean],
                                                              overseasTransferCharge: Option[Boolean],
-                                                             pensionSchemeTransferCharge: Option[Boolean]) {
+                                                             pensionSchemeTransferCharge: Option[Boolean])
+    extends StorageAnswers[TransfersIntoOverseasPensionsStorageAnswers] {
 
   private def isEmpty: Boolean = transferPensionSavings.isEmpty && pensionSchemeTransferCharge.isEmpty && pensionSchemeTransferCharge.isEmpty
 
@@ -45,6 +52,15 @@ final case class TransfersIntoOverseasPensionsStorageAnswers(transferPensionSavi
         transferPensionScheme = if (osp.nonEmpty) osp.map(_.toTransferPensionScheme) else Nil
       ).some
   }
+
+  def encrypted(implicit
+      aesGCMCrypto: EncryptionService,
+      textAndKeyAes: TextAndKey): EncryptedStorageAnswers[TransfersIntoOverseasPensionsStorageAnswers] =
+    EncryptedTransfersIntoOverseasPensionsStorageAnswers(
+      transferPensionSavings.map(_.encrypted),
+      overseasTransferCharge.map(_.encrypted),
+      pensionSchemeTransferCharge.map(_.encrypted)
+    )
 }
 
 object TransfersIntoOverseasPensionsStorageAnswers {
@@ -58,4 +74,24 @@ object TransfersIntoOverseasPensionsStorageAnswers {
       answers.overseasTransferCharge,
       answers.pensionSchemeTransferCharge
     )
+}
+
+final case class EncryptedTransfersIntoOverseasPensionsStorageAnswers(transferPensionSavings: Option[EncryptedValue],
+                                                                      overseasTransferCharge: Option[EncryptedValue],
+                                                                      pensionSchemeTransferCharge: Option[EncryptedValue])
+    extends EncryptedStorageAnswers[TransfersIntoOverseasPensionsStorageAnswers] {
+
+  protected[database] def unsafeDecrypted(implicit
+      aesGCMCrypto: EncryptionService,
+      textAndKeyAes: TextAndKey): TransfersIntoOverseasPensionsStorageAnswers =
+    TransfersIntoOverseasPensionsStorageAnswers(
+      transferPensionSavings.map(_.decrypted[Boolean]),
+      overseasTransferCharge.map(_.decrypted[Boolean]),
+      pensionSchemeTransferCharge.map(_.decrypted[Boolean])
+    )
+}
+
+object EncryptedTransfersIntoOverseasPensionsStorageAnswers {
+  implicit val format: OFormat[EncryptedTransfersIntoOverseasPensionsStorageAnswers] =
+    Json.format[EncryptedTransfersIntoOverseasPensionsStorageAnswers]
 }

@@ -16,14 +16,32 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.PaymentsIntoPensionsAnswers
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
 final case class PaymentsIntoPensionsStorageAnswers(rasPensionPaymentQuestion: Boolean,
                                                     oneOffRasPaymentPlusTaxReliefQuestion: Option[Boolean],
                                                     pensionTaxReliefNotClaimedQuestion: Boolean,
                                                     retirementAnnuityContractPaymentsQuestion: Option[Boolean],
                                                     workplacePensionPaymentsQuestion: Option[Boolean])
+    extends StorageAnswers[PaymentsIntoPensionsStorageAnswers] {
+
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedPaymentsIntoPensionsStorageAnswers =
+    EncryptedPaymentsIntoPensionsStorageAnswers(
+      rasPensionPaymentQuestion.encrypted,
+      oneOffRasPaymentPlusTaxReliefQuestion.map(_.encrypted),
+      pensionTaxReliefNotClaimedQuestion.encrypted,
+      retirementAnnuityContractPaymentsQuestion.map(_.encrypted),
+      workplacePensionPaymentsQuestion.map(_.encrypted)
+    )
+
+}
 
 object PaymentsIntoPensionsStorageAnswers {
   implicit val format: OFormat[PaymentsIntoPensionsStorageAnswers] = Json.format[PaymentsIntoPensionsStorageAnswers]
@@ -36,4 +54,26 @@ object PaymentsIntoPensionsStorageAnswers {
       answers.retirementAnnuityContractPaymentsQuestion,
       answers.workplacePensionPaymentsQuestion
     )
+}
+
+final case class EncryptedPaymentsIntoPensionsStorageAnswers(rasPensionPaymentQuestion: EncryptedValue,
+                                                             oneOffRasPaymentPlusTaxReliefQuestion: Option[EncryptedValue],
+                                                             pensionTaxReliefNotClaimedQuestion: EncryptedValue,
+                                                             retirementAnnuityContractPaymentsQuestion: Option[EncryptedValue],
+                                                             workplacePensionPaymentsQuestion: Option[EncryptedValue])
+    extends EncryptedStorageAnswers[PaymentsIntoPensionsStorageAnswers] {
+
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): PaymentsIntoPensionsStorageAnswers =
+    PaymentsIntoPensionsStorageAnswers(
+      rasPensionPaymentQuestion.decrypted[Boolean],
+      oneOffRasPaymentPlusTaxReliefQuestion.map(_.decrypted[Boolean]),
+      pensionTaxReliefNotClaimedQuestion.decrypted[Boolean],
+      retirementAnnuityContractPaymentsQuestion.map(_.decrypted[Boolean]),
+      workplacePensionPaymentsQuestion.map(_.decrypted[Boolean])
+    )
+
+}
+
+object EncryptedPaymentsIntoPensionsStorageAnswers {
+  implicit val format: OFormat[EncryptedPaymentsIntoPensionsStorageAnswers] = Json.format[EncryptedPaymentsIntoPensionsStorageAnswers]
 }

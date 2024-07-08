@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package services
-
 import cats.data.EitherT
 import cats.implicits._
-import models.ServiceErrorModel
 import models.database.JourneyAnswers
 import models.domain.ApiResultT
 import models.error.ServiceError
@@ -28,9 +25,7 @@ import utils.EitherTOps._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-package object journeyAnswers {
-
-  type ServiceOutcome[A] = Future[Either[ServiceErrorModel, A]]
+package object services {
 
   def getPersistedAnswers[A: Reads](row: Option[JourneyAnswers])(implicit ec: ExecutionContext, ct: ClassTag[A]): ApiResultT[Option[A]] =
     row.traverse(getPersistedAnswers[A])

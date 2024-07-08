@@ -19,17 +19,22 @@ package repositories
 import cats.data.EitherT
 import cats.implicits._
 import config.AppConfig
-import models.common.Journey.{PaymentsIntoPensions, UnauthorisedPayments}
+import models.common.Journey._
 import models.common.JourneyStatus._
 import models.common.{Journey, JourneyContext, JourneyNameAndStatus}
-import models.database.{JourneyAnswers, PaymentsIntoPensionsStorageAnswers}
+import models.database._
 import models.error.ServiceError
 import org.mockito.Mockito.when
 import org.scalatest.EitherValues._
+import org.scalatest.prop.TableDrivenPropertyChecks.forAll
+import org.scalatest.prop.TableFor1
+import org.scalatest.prop.Tables.Table
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import stubs.services.StubEncryptionService
 import support.MongoTestSupport
+import testdata._
 import utils.EitherTTestOps._
 import utils.TestUtils._
 
@@ -46,7 +51,8 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
   when(mockAppConfig.mongoTTL) thenReturn 28
   private val TTLinSeconds = mockAppConfig.mongoTTL * 3600 * 24
 
-  override val repository = new MongoJourneyAnswersRepository(mongoComponent, clock, mockAppConfig)
+  private val encryptionStub = StubEncryptionService()
+  override val repository    = new MongoJourneyAnswersRepository(mongoComponent, clock, encryptionStub, mockAppConfig)
 
   override def beforeEach(): Unit = {
     clock.reset(now)
@@ -177,23 +183,79 @@ class MongoJourneyAnswersRepositoryISpec extends MongoSpec with MongoTestSupport
       assert(Option(updatedResult.getUpsertedId) === None)
       assert(updated.value.status === Completed)
     }
-
   }
 
-  "getAnswers" should {
-    "return None if no answers" in {
-      val maybeAnswers = repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx).value.futureValue
-      assert(maybeAnswers.value === None)
-    }
+  "upsert and get answers" should {
+    val cases: TableFor1[StorageAnswers[_]] = Table(
+      "answers",
+      paymentsIntoPensions.paymentsIntoPensionsStorageAnswers,
+      ukpensionincome.storageAnswers,
+      statePension.storageAnswers,
+      annualAllowances.annualAllowancesStorageAnswers,
+      unauthorisedPayments.storageAnswers,
+      paymentsIntoOverseasPensions.piopStorageAnswers,
+      incomeFromOverseasPensions.incomeFromOverseasPensionsStorageAnswers,
+      transfersIntoOverseasPensions.transfersIntoOverseasPensionsStorageAnswers,
+      shortServiceRefunds.shortServiceRefundsCtxStorageAnswers
+    )
 
-    "return answers" in {
-      val answers = PaymentsIntoPensionsStorageAnswers(true, Some(true), true, Some(false), Some(false))
-      val maybeAnswers = (for {
-        _                <- repository.upsertAnswers(sampleCtx, Json.toJson(answers))
-        persistedAnswers <- repository.getAnswers[PaymentsIntoPensionsStorageAnswers](sampleCtx)
-      } yield persistedAnswers).value.futureValue
-
-      assert(maybeAnswers.value.value === answers)
+    "save and load" in forAll(cases) { answers =>
+      val actual = upsertAndGet(answers)
+      assert(actual === answers)
     }
   }
+
+  private def upsertAndGet(ans: StorageAnswers[_]) = {
+    val actual = ans match {
+      case ans: PaymentsIntoPensionsStorageAnswers =>
+        for {
+          _             <- repository.upsertPaymentsIntoPensions(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getPaymentsIntoPensions(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: UkPensionIncomeStorageAnswers =>
+        for {
+          _             <- repository.upsertUkPensionIncome(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getUkPensionIncome(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: IncomeFromPensionsStatePensionStorageAnswers =>
+        for {
+          _             <- repository.upsertStatePension(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getStatePension(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: AnnualAllowancesStorageAnswers =>
+        for {
+          _             <- repository.upsertAnnualAllowances(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getAnnualAllowances(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: UnauthorisedPaymentsStorageAnswers =>
+        for {
+          _             <- repository.upsertUnauthorisedPayments(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getUnauthorisedPayments(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: PaymentsIntoOverseasPensionsStorageAnswers =>
+        for {
+          _             <- repository.upsertPaymentsIntoOverseasPensions(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getPaymentsIntoOverseasPensions(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: IncomeFromOverseasPensionsStorageAnswers =>
+        for {
+          _             <- repository.upsertIncomeFromOverseasPensions(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getIncomeFromOverseasPensions(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: TransfersIntoOverseasPensionsStorageAnswers =>
+        for {
+          _             <- repository.upsertTransferIntoOverseasPensions(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getTransferIntoOverseasPensions(journeyCtxWithNino)
+        } yield actualAnswers
+      case ans: ShortServiceRefundsStorageAnswers =>
+        for {
+          _             <- repository.upsertShortServiceRefunds(journeyCtxWithNino, ans)
+          actualAnswers <- repository.getShortServiceRefunds(journeyCtxWithNino)
+        } yield actualAnswers
+      case _ => fail("Wrong setup, missing type")
+    }
+
+    actual.value.futureValue.value.value
+  }
+
 }

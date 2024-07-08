@@ -28,7 +28,6 @@ import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensi
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel, OverseasPensionContributions}
 import models.common._
-import models.commonTaskList._
 import models.database._
 import models.employment.AllEmploymentData
 import models.error.ServiceError
@@ -40,12 +39,11 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._
 import org.scalatest.OptionValues._
 import play.api.http.Status.INTERNAL_SERVER_ERROR
-import play.api.libs.json.Json
 import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.{StubEmploymentService, StubJourneyStatusService, StubStateBenefitService}
 import testdata.annualAllowances.{annualAllowancesAnswers, annualAllowancesStorageAnswers, pensionContributions}
 import testdata.commonTaskList.emptyCommonTaskListModel
-import testdata.connector.{getPensionReliefsModel, stateBenefits}
+import testdata.connector.stateBenefits
 import testdata.frontend.stateBenefitAnswers
 import testdata.incomeFromOverseasPensions.{foreignPension, incomeFromOverseasPensionsAnswers, incomeFromOverseasPensionsStorageAnswers}
 import testdata.paymentsIntoOverseasPensions._
@@ -63,12 +61,8 @@ import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
 
-class PensionsServiceImplSpec
-    extends TestUtils
-    with MockPensionReliefsConnector
-    with MockPensionChargesConnector
-    with MockPensionIncomeConnector
-    with BeforeAndAfterEach {
+// TODO It can be simplified, less createPensionWithStubs creation, maybe switch to Stubs not mocks, and should be easier
+class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
 
   SharedMetricRegistries.clear()
   private val sampleCtx = JourneyContextWithNino(currTaxYear, Mtditid(mtditid), TestUtils.nino)
@@ -80,6 +74,10 @@ class PensionsServiceImplSpec
   val stubStatusService: StubJourneyStatusService    = StubJourneyStatusService()
   val stubStateBenefit: StubStateBenefitService      = StubStateBenefitService()
 
+  var mocks: MockPensionReliefsConnector with MockPensionChargesConnector with MockPensionIncomeConnector = new MockPensionReliefsConnector
+    with MockPensionChargesConnector
+    with MockPensionIncomeConnector
+
   def createPensionWithStubs(
       stubEmploymentService: StubEmploymentService,
       stubStateBenefitService: StateBenefitService = StubStateBenefitService(),
@@ -87,10 +85,10 @@ class PensionsServiceImplSpec
   ) =
     new PensionsServiceImpl(
       mockAppConfig,
-      mockReliefsConnector,
-      mockChargesConnector,
+      mocks.mockReliefsConnector,
+      mocks.mockChargesConnector,
       stubStateBenefitService,
-      mockIncomeConnector,
+      mocks.mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
       stubRepository
@@ -99,17 +97,17 @@ class PensionsServiceImplSpec
   def createPensionWithStubStateBenefit(stub: StubStateBenefitService) =
     new PensionsServiceImpl(
       mockAppConfig,
-      mockReliefsConnector,
-      mockChargesConnector,
+      mocks.mockReliefsConnector,
+      mocks.mockChargesConnector,
       stub,
-      mockIncomeConnector,
+      mocks.mockIncomeConnector,
       stubEmploymentService,
       stubStatusService,
       stubRepository
     )
 
-  val service: PensionsService         = createPensionWithStubs(stubEmploymentService)
-  val serviceWithMock: PensionsService = createPensionWithStubs(stubEmploymentService, mockStateBenefitsService)
+  def service: PensionsService         = createPensionWithStubs(stubEmploymentService)
+  def serviceWithMock: PensionsService = createPensionWithStubs(stubEmploymentService, mockStateBenefitsService)
 
   val expectedReliefsResult: GetPensionReliefsResponse                        = Right(Some(fullPensionReliefsModel))
   val expectedChargesResult: GetPensionChargesResponse                        = Right(Some(fullPensionChargesModel))
@@ -118,18 +116,19 @@ class PensionsServiceImplSpec
   val expectedPensionIncomeResult: GetPensionIncomeResponse                   = Right(Some(fullPensionIncomeModel))
 
   override def beforeEach(): Unit = {
+    mocks = new MockPensionReliefsConnector with MockPensionChargesConnector with MockPensionIncomeConnector
     stubRepository.testOnlyClearAllData()
     super.beforeEach()
   }
 
   "getAllPensionsData" should {
     "get all data and return a full AllPensionsData model" in {
-      (mockReliefsConnector
+      (mocks.mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (mockChargesConnector
+      (mocks.mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedChargesResult))
@@ -139,7 +138,7 @@ class PensionsServiceImplSpec
         .expects(*, *)
         .returning(EitherT.rightT[Future, ServiceError](Some(anAllStateBenefitsData)))
 
-      (mockIncomeConnector
+      (mocks.mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedPensionIncomeResult))
@@ -150,12 +149,12 @@ class PensionsServiceImplSpec
     }
 
     "return a Right when all except EmploymentConnector return None" in {
-      (mockReliefsConnector
+      (mocks.mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
 
-      (mockChargesConnector
+      (mocks.mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
@@ -165,7 +164,7 @@ class PensionsServiceImplSpec
         .expects(*, *)
         .returning(EitherT.rightT[Future, ServiceError](None))
 
-      (mockIncomeConnector
+      (mocks.mockIncomeConnector
         .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(Right(None)))
@@ -178,12 +177,12 @@ class PensionsServiceImplSpec
     "return an error if a connector call fails" in {
       val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (mockReliefsConnector
+      (mocks.mockReliefsConnector
         .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedReliefsResult))
 
-      (mockChargesConnector
+      (mocks.mockChargesConnector
         .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(expectedErrorResult))
@@ -196,7 +195,6 @@ class PensionsServiceImplSpec
   }
 
   "getPaymentsIntoPensions" should {
-    val paymentIntoPensionsCtx = sampleCtx.toJourneyContext(Journey.PaymentsIntoPensions)
     val answers = PaymentsIntoPensionsStorageAnswers(
       rasPensionPaymentQuestion = true,
       Some(true),
@@ -205,17 +203,17 @@ class PensionsServiceImplSpec
       Some(true))
 
     "get None if no answers" in {
-      mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionReliefsT(Right(None))
       val result = service.getPaymentsIntoPensions(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     // TODO It is not valid situation, we probably need to think how we want to handle mismatches IFS vs our DB
     "get answers if there are DB answers, but IFS return None (favour IFS)" in {
-      mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionReliefsT(Right(None))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(paymentIntoPensionsCtx, Json.toJson(answers))
+        _   <- stubRepository.upsertPaymentsIntoPensions(sampleCtx, answers)
         res <- service.getPaymentsIntoPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -223,9 +221,10 @@ class PensionsServiceImplSpec
     }
 
     "return answers" in {
-      mockGetPensionReliefsT(Right(Some(GetPensionReliefsModel("unused", None, PensionReliefs(Some(1.0), Some(2.0), Some(3.0), Some(4.0), None)))))
+      mocks.mockGetPensionReliefsT(
+        Right(Some(GetPensionReliefsModel("unused", None, PensionReliefs(Some(1.0), Some(2.0), Some(3.0), Some(4.0), None)))))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(paymentIntoPensionsCtx, Json.toJson(answers))
+        _   <- stubRepository.upsertPaymentsIntoPensions(sampleCtx, answers)
         res <- service.getPaymentsIntoPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -246,18 +245,16 @@ class PensionsServiceImplSpec
   "upsertPaymentsIntoPensions" should {
     "upsert answers if overseasPensionSchemeContributions does not exist" in {
       val overseasPensionSchemeContributions: Option[BigDecimal] = None
-      mockGetPensionReliefsT(Right(None))
-      mockCreateOrAmendPensionReliefsT(
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockCreateOrAmendPensionReliefsT(
         Right(None),
         expectedModel =
           CreateOrUpdatePensionReliefsModel(PensionReliefs(Some(1.0), Some(2.0), Some(3.0), Some(4.0), overseasPensionSchemeContributions))
       )
 
-      val result = service.upsertPaymentsIntoPensions(sampleCtx, paymentsIntoPensionsAnswers).value.futureValue
+      service.upsertPaymentsIntoPensions(sampleCtx, paymentsIntoPensionsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoPensionsStorageAnswers]
+      val persistedAnswers = stubRepository.getPaymentsIntoPensionsRes.value.value
       assert(
         persistedAnswers === PaymentsIntoPensionsStorageAnswers(
           rasPensionPaymentQuestion = true,
@@ -269,20 +266,18 @@ class PensionsServiceImplSpec
 
     "upsert answers if overseasPensionSchemeContributions exist" in {
       val overseasPensionSchemeContributions: Option[BigDecimal] = Some(5.0)
-      mockGetPensionReliefsT(
+      mocks.mockGetPensionReliefsT(
         Right(Some(GetPensionReliefsModel("unused", None, PensionReliefs(None, None, None, None, overseasPensionSchemeContributions)))))
 
-      mockCreateOrAmendPensionReliefsT(
+      mocks.mockCreateOrAmendPensionReliefsT(
         Right(None),
         expectedModel =
           CreateOrUpdatePensionReliefsModel(PensionReliefs(Some(1.0), Some(2.0), Some(3.0), Some(4.0), overseasPensionSchemeContributions))
       )
 
-      val result = service.upsertPaymentsIntoPensions(sampleCtx, paymentsIntoPensionsAnswers).value.futureValue
+      service.upsertPaymentsIntoPensions(sampleCtx, paymentsIntoPensionsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoPensionsStorageAnswers]
+      val persistedAnswers = stubRepository.getPaymentsIntoPensionsRes.value.value
       assert(
         persistedAnswers === PaymentsIntoPensionsStorageAnswers(
           rasPensionPaymentQuestion = true,
@@ -295,8 +290,6 @@ class PensionsServiceImplSpec
   }
 
   "getUkPensionIncome" should {
-    val ctx = sampleCtx.toJourneyContext(Journey.UkPensionIncome)
-
     "get None if No downstream and DB answers" in {
       val service = createPensionWithStubs(
         StubEmploymentService(
@@ -316,7 +309,7 @@ class PensionsServiceImplSpec
         ))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(ctx, Json.toJson(answers))
+        _   <- stubRepository.upsertUkPensionIncome(sampleCtx, answers)
         res <- service.getUkPensionIncome(sampleCtx)
       } yield res).value.futureValue
 
@@ -331,7 +324,7 @@ class PensionsServiceImplSpec
         ))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(ctx, Json.toJson(answers))
+        _   <- stubRepository.upsertUkPensionIncome(sampleCtx, answers)
         res <- service.getUkPensionIncome(sampleCtx)
       } yield res).value.futureValue
 
@@ -348,17 +341,16 @@ class PensionsServiceImplSpec
     "upsert answers" in {
       val answers = UkPensionIncomeAnswers(uKPensionIncomesQuestion = true, List(sampleSingleUkPensionIncome))
 
-      val result = service.upsertUkPensionIncome(sampleCtx, answers).value.futureValue
+      service.upsertUkPensionIncome(sampleCtx, answers).value.futureValue
 
-      assert(result.isRight)
       assert(
         employmentStub.ukPensionIncome === List(
           UkPensionIncomeAnswers(
             uKPensionIncomesQuestion = true,
             List(sampleSingleUkPensionIncome)
           )))
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[UkPensionIncomeStorageAnswers]
+
+      val persistedAnswers = stubRepository.getUkPensionIncomeRes.value.value
       assert(persistedAnswers === UkPensionIncomeStorageAnswers(true))
     }
   }
@@ -376,7 +368,7 @@ class PensionsServiceImplSpec
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        _   <- stubRepository.upsertStatePension(sampleCtx, answers)
         res <- service.getStatePension(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -399,7 +391,7 @@ class PensionsServiceImplSpec
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(sampleCtx.toJourneyContext(Journey.StatePension), Json.toJson(answers))
+        _   <- stubRepository.upsertStatePension(sampleCtx, answers)
         res <- service.getStatePension(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -416,19 +408,17 @@ class PensionsServiceImplSpec
   "upsertStatePension" should {}
 
   "getAnnualAllowances" should {
-    val annualAllowancesCtx = sampleCtx.toJourneyContext(Journey.AnnualAllowances)
-
     "get None if no answers" in {
-      mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
       val result = service.getAnnualAllowances(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     "get answers from DB, even if no IFS answers (best effort)" in {
-      mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(annualAllowancesCtx, Json.toJson(annualAllowancesStorageAnswers))
+        _   <- stubRepository.upsertAnnualAllowances(sampleCtx, annualAllowancesStorageAnswers)
         res <- service.getAnnualAllowances(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -438,9 +428,9 @@ class PensionsServiceImplSpec
     }
 
     "return answers" in {
-      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, None, Some(pensionContributions), None))))
+      mocks.mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", None, None, Some(pensionContributions), None))))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(annualAllowancesCtx, Json.toJson(annualAllowancesStorageAnswers))
+        _   <- stubRepository.upsertAnnualAllowances(sampleCtx, annualAllowancesStorageAnswers)
         res <- service.getAnnualAllowances(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -450,39 +440,35 @@ class PensionsServiceImplSpec
 
   "upsertAnnualAllowances" should {
     "upsert answers " in {
-      mockGetPensionChargesT(Right(None))
-      mockCreateOrAmendPensionChargesT(
+      mocks.mockGetPensionChargesT(Right(None))
+      mocks.mockCreateOrAmendPensionChargesT(
         Right(None),
         expectedModel = CreateUpdatePensionChargesRequestModel(None, None, Some(pensionContributions), None)
       )
 
-      val result = service.upsertAnnualAllowances(sampleCtx, annualAllowancesAnswers).value.futureValue
+      service.upsertAnnualAllowances(sampleCtx, annualAllowancesAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[AnnualAllowancesStorageAnswers]
+      val persistedAnswers = stubRepository.getAnnualAllowancesRes.value.value
       assert(persistedAnswers === annualAllowancesStorageAnswers)
     }
   }
 
   "getPaymentsIntoOverseasPensions" should {
-    val piopCtx = sampleCtx.toJourneyContext(Journey.PaymentsIntoOverseasPensions)
-
     "get None if no answers" in {
-      mockGetPensionReliefsT(Right(None))
-      mockGetPensionIncomeT(Right(None))
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
 
       val result = service.getPaymentsIntoOverseasPensions(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     "return a 'No' journey if IFS returns None but DB answers exist (regardless of the DB answers' values)" in {
-      mockGetPensionReliefsT(Right(None))
-      mockGetPensionIncomeT(Right(None))
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
 
       val storageAnswers = PaymentsIntoOverseasPensionsStorageAnswers(Some(true), Some(true), Some(true))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(storageAnswers))
+        _   <- stubRepository.upsertPaymentsIntoOverseasPensions(sampleCtx, storageAnswers)
         res <- service.getPaymentsIntoOverseasPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -492,13 +478,13 @@ class PensionsServiceImplSpec
     }
 
     "return answers" in {
-      mockGetPensionReliefsT(
+      mocks.mockGetPensionReliefsT(
         Right(Some(GetPensionReliefsModel("unused", None, PensionReliefs.empty.copy(overseasPensionSchemeContributions = Some(2))))))
-      mockGetPensionIncomeT(
+      mocks.mockGetPensionIncomeT(
         Right(Some(GetPensionIncomeModel("unused", None, None, Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution))))))
 
       val result = (for {
-        _   <- stubRepository.upsertAnswers(piopCtx, Json.toJson(piopStorageAnswers))
+        _   <- stubRepository.upsertPaymentsIntoOverseasPensions(sampleCtx, piopStorageAnswers)
         res <- service.getPaymentsIntoOverseasPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -508,39 +494,35 @@ class PensionsServiceImplSpec
 
   "upsertPaymentsIntoOverseasPensions" should {
     "upsert answers " in {
-      mockGetPensionReliefsT(Right(None))
-      mockGetPensionIncomeT(Right(None))
-      mockCreateOrAmendPensionReliefsT(
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
+      mocks.mockCreateOrAmendPensionReliefsT(
         Right(None),
         expectedModel = CreateOrUpdatePensionReliefsModel(PensionReliefs.empty.copy(overseasPensionSchemeContributions = Some(2.0)))
       )
-      mockCreateOrAmendPensionIncomeT(
+      mocks.mockCreateOrAmendPensionIncomeT(
         Right(None),
         expectedModel = CreateUpdatePensionIncomeModel(None, Some(Seq(mmrOverseasPensionContribution, tcrOverseasPensionContribution)))
       )
 
-      val result = service.upsertPaymentsIntoOverseasPensions(sampleCtx, paymentsIntoOverseasPensionsAnswers).value.futureValue
+      service.upsertPaymentsIntoOverseasPensions(sampleCtx, paymentsIntoOverseasPensionsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[PaymentsIntoOverseasPensionsStorageAnswers]
+      val persistedAnswers = stubRepository.getPaymentsIntoOverseasPensionsRes.value.value
       assert(persistedAnswers === piopStorageAnswers)
     }
   }
 
   "getTransfersIntoOverseasPensions" should {
-    val transferIntoOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.TransferIntoOverseasPensions)
-
     "get None if no answers" in {
-      mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
       val result = service.getTransfersIntoOverseasPensions(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     "return answers" in {
-      mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", Some(pensionSchemeOverseasTransfers), None, None, None))))
+      mocks.mockGetPensionChargesT(Right(Some(GetPensionChargesRequestModel("unused", Some(pensionSchemeOverseasTransfers), None, None, None))))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(transferIntoOverseasPensionsCtx, Json.toJson(transfersIntoOverseasPensionsStorageAnswers))
+        _   <- stubRepository.upsertTransferIntoOverseasPensions(sampleCtx, transfersIntoOverseasPensionsStorageAnswers)
         res <- service.getTransfersIntoOverseasPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -550,34 +532,30 @@ class PensionsServiceImplSpec
 
   "upsertTransfersIntoOverseasPensions" should {
     "upsert answers " in {
-      mockGetPensionChargesT(Right(None))
-      mockCreateOrAmendPensionChargesT(
+      mocks.mockGetPensionChargesT(Right(None))
+      mocks.mockCreateOrAmendPensionChargesT(
         Right(None),
         expectedModel = CreateUpdatePensionChargesRequestModel.empty.copy(pensionSchemeOverseasTransfers = Some(pensionSchemeOverseasTransfers))
       )
 
-      val result = service.upsertTransfersIntoOverseasPensions(sampleCtx, transfersIntoOverseasPensionsAnswers).value.futureValue
+      service.upsertTransfersIntoOverseasPensions(sampleCtx, transfersIntoOverseasPensionsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[TransfersIntoOverseasPensionsStorageAnswers]
+      val persistedAnswers = stubRepository.getTransferIntoOverseasPensionsRes.value.value
       assert(persistedAnswers === transfersIntoOverseasPensionsStorageAnswers)
     }
   }
 
   "getIncomeFromOverseasPensions" should {
-    val incomeFromOverseasPensionsCtx = sampleCtx.toJourneyContext(Journey.IncomeFromOverseasPensions)
-
     "get None if no answers" in {
-      mockGetPensionIncomeT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
       val result = service.getIncomeFromOverseasPensions(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     "return answers" in {
-      mockGetPensionIncomeT(Right(Some(GetPensionIncomeModel("date", None, Some(Seq(foreignPension)), None))))
+      mocks.mockGetPensionIncomeT(Right(Some(GetPensionIncomeModel("date", None, Some(Seq(foreignPension)), None))))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(incomeFromOverseasPensionsCtx, Json.toJson(incomeFromOverseasPensionsStorageAnswers))
+        _   <- stubRepository.upsertIncomeFromOverseasPensions(sampleCtx, incomeFromOverseasPensionsStorageAnswers)
         res <- service.getIncomeFromOverseasPensions(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -587,34 +565,30 @@ class PensionsServiceImplSpec
 
   "upsertIncomeFromOverseasPensions" should {
     "upsert answers " in {
-      mockGetPensionIncomeT(Right(None))
-      mockCreateOrAmendPensionIncomeT(
+      mocks.mockGetPensionIncomeT(Right(None))
+      mocks.mockCreateOrAmendPensionIncomeT(
         Right(None),
         expectedModel = CreateUpdatePensionIncomeModel(Some(List(foreignPension)), None)
       )
 
-      val result = service.upsertIncomeFromOverseasPensions(sampleCtx, incomeFromOverseasPensionsAnswers).value.futureValue
+      service.upsertIncomeFromOverseasPensions(sampleCtx, incomeFromOverseasPensionsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[IncomeFromOverseasPensionsStorageAnswers]
+      val persistedAnswers = stubRepository.getIncomeFromOverseasPensionsRes.value.value
       assert(persistedAnswers === incomeFromOverseasPensionsStorageAnswers)
     }
   }
 
   "getShortServiceRefunds" should {
-    val getShortServiceRefundsCtx = sampleCtx.toJourneyContext(Journey.ShortServiceRefunds)
-
     "get None if no answers" in {
-      mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
       val result = service.getShortServiceRefunds(sampleCtx).value.futureValue
       assert(result.value === None)
     }
 
     "get None even if there are some DB answers, but IFS return None (favour IFS)" in {
-      mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
       val result = (for {
-        _   <- stubRepository.upsertAnswers(getShortServiceRefundsCtx, Json.toJson(ShortServiceRefundsStorageAnswers()))
+        _   <- stubRepository.upsertShortServiceRefunds(sampleCtx, ShortServiceRefundsStorageAnswers())
         res <- service.getShortServiceRefunds(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -622,11 +596,11 @@ class PensionsServiceImplSpec
     }
 
     "return answers" in {
-      mockGetPensionChargesT(
+      mocks.mockGetPensionChargesT(
         Right(Some(GetPensionChargesRequestModel("unused", None, None, None, Some(overseasPensionContributions))))
       )
       val result = (for {
-        _   <- stubRepository.upsertAnswers(getShortServiceRefundsCtx, Json.toJson(shortServiceRefundsCtxStorageAnswers))
+        _   <- stubRepository.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsCtxStorageAnswers)
         res <- service.getShortServiceRefunds(sampleCtx)
       } yield res).value.futureValue.value
 
@@ -636,52 +610,48 @@ class PensionsServiceImplSpec
 
   "upsertShortServiceRefunds" should {
     "insert answers if overseasPensionContributions does not exist" in {
-      mockGetPensionChargesT(Right(None))
-      mockCreateOrAmendPensionChargesT(
+      mocks.mockGetPensionChargesT(Right(None))
+      mocks.mockCreateOrAmendPensionChargesT(
         Right(None),
         expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
       )
 
-      val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
+      service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[ShortServiceRefundsStorageAnswers]
+      val persistedAnswers = stubRepository.getShortServiceRefundsRes.value.value
       assert(persistedAnswers === shortServiceRefundsCtxStorageAnswers)
     }
 
     "update answers if overseasPensionContributions exist" in {
-      mockGetPensionChargesT(
+      mocks.mockGetPensionChargesT(
         Right(
           Some(
             GetPensionChargesRequestModel("unused", None, None, None, Some(OverseasPensionContributions(Seq(), BigDecimal(0.0), BigDecimal(0.0))))))
       )
-      mockCreateOrAmendPensionChargesT(
+      mocks.mockCreateOrAmendPensionChargesT(
         Right(None),
         expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
       )
 
-      val result = service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
+      service.upsertShortServiceRefunds(sampleCtx, shortServiceRefundsAnswers).value.futureValue
 
-      assert(result.isRight)
-      assert(stubRepository.upsertAnswersList.size === 1)
-      val persistedAnswers = stubRepository.upsertAnswersList.head.as[ShortServiceRefundsStorageAnswers]
+      val persistedAnswers = stubRepository.getShortServiceRefundsRes.value.value
       assert(persistedAnswers === shortServiceRefundsCtxStorageAnswers)
     }
   }
 
   "getCommonTaskList" should {
     "return None when no data in DB and IFS" in {
-      mockGetPensionReliefsT(Right(None))
-      mockGetPensionChargesT(Right(None))
-      mockGetPensionIncomeT(Right(None))
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
 
       val underTest: PensionsService = new PensionsServiceImpl(
         mockAppConfig,
-        mockReliefsConnector,
-        mockChargesConnector,
+        mocks.mockReliefsConnector,
+        mocks.mockChargesConnector,
         StubStateBenefitService(),
-        mockIncomeConnector,
+        mocks.mockIncomeConnector,
         StubEmploymentService(Right(EmploymentPensions.empty)),
         StubJourneyStatusService(),
         StubJourneyAnswersRepository()
@@ -708,75 +678,24 @@ class PensionsServiceImplSpec
         JourneyNameAndStatus(Journey.ShortServiceRefunds, JourneyStatus.Completed)
       ))
 
-      val service: PensionsService = createPensionWithStubs(stubEmploymentService, stubStateBenefit, stubStatusService)
-      mockGetPensionReliefsT(
-        Right(Some(getPensionReliefsModel.getPensionReliefsModel))
+      val underTest: PensionsService = new PensionsServiceImpl(
+        mockAppConfig,
+        mocks.mockReliefsConnector,
+        mocks.mockChargesConnector,
+        StubStateBenefitService(),
+        mocks.mockIncomeConnector,
+        StubEmploymentService(Right(EmploymentPensions.empty)),
+        stubStatusService,
+        StubJourneyAnswersRepository()
       )
-      mockGetPensionChargesT(Right(None))
-      mockGetPensionIncomeT(Right(None))
+
+      mocks.mockGetPensionReliefsT(Right(None))
+      mocks.mockGetPensionChargesT(Right(None))
+      mocks.mockGetPensionIncomeT(Right(None))
 
       val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
 
-      val expected = TaskListModel(
-        List(
-          TaskListSection(
-            SectionTitle.PensionsTitle(),
-            Some(List(
-              TaskListSectionItem(
-                TaskTitle.pensionsTitles.StatePension(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/state-pension")
-              ),
-              TaskListSectionItem(
-                TaskTitle.pensionsTitles.OtherUkPensions(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/pension-income/uk-pension-income")
-              ),
-              TaskListSectionItem(
-                TaskTitle.pensionsTitles.UnauthorisedPayments(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/unauthorised-payments-from-pensions/unauthorised-payments")
-              ),
-              TaskListSectionItem(
-                TaskTitle.pensionsTitles.ShortServiceRefunds(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/short-service-refunds/taxable-short-service-refunds")
-              ),
-              TaskListSectionItem(
-                TaskTitle.pensionsTitles.IncomeFromOverseas(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/income-from-overseas-pensions/pension-overseas-income-status")
-              )
-            ))
-          ),
-          TaskListSection(
-            SectionTitle.PaymentsIntoPensionsTitle(),
-            Some(List(
-              TaskListSectionItem(
-                TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoUk(),
-                TaskStatus.InProgress(),
-                Some(
-                  s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/payments-into-pensions/check-payments-into-pensions")
-              ),
-              TaskListSectionItem(
-                TaskTitle.paymentsIntoPensionsTitles.AnnualAllowances(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/annual-allowance/reduced-annual-allowance")
-              ),
-              TaskListSectionItem(
-                TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoOverseas(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/payments-into-overseas-pensions/payments-into-schemes")
-              ),
-              TaskListSectionItem(
-                TaskTitle.paymentsIntoPensionsTitles.OverseasTransfer(),
-                TaskStatus.CheckNow(),
-                Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/overseas-transfer-charges/transfer-pension-savings")
-              )
-            ))
-          )
-        ))
-
+      val expected = emptyCommonTaskListModel(taxYear)
       assert(result === expected)
     }
   }

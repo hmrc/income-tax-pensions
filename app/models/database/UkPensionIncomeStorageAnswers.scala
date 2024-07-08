@@ -16,14 +16,38 @@
 
 package models.database
 
+import models.encryption.EncryptedValue
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import play.api.libs.json.{Json, OFormat}
+import services.EncryptionService
+import utils.DecryptableSyntax.DecryptableOps
+import utils.DecryptorInstances.booleanDecryptor
+import utils.EncryptableSyntax.EncryptableOps
+import utils.EncryptorInstances.booleanEncryptor
 
-final case class UkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: Boolean)
+final case class UkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: Boolean) extends StorageAnswers[UkPensionIncomeStorageAnswers] {
+  def encrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): EncryptedStorageAnswers[UkPensionIncomeStorageAnswers] =
+    EncryptedUkPensionIncomeStorageAnswers(
+      uKPensionIncomesQuestion.encrypted
+    )
+}
 
 object UkPensionIncomeStorageAnswers {
   implicit val format: OFormat[UkPensionIncomeStorageAnswers] = Json.format[UkPensionIncomeStorageAnswers]
 
   def fromJourneyAnswers(answers: UkPensionIncomeAnswers): UkPensionIncomeStorageAnswers =
     UkPensionIncomeStorageAnswers(answers.uKPensionIncomesQuestion)
+}
+
+final case class EncryptedUkPensionIncomeStorageAnswers(uKPensionIncomesQuestion: EncryptedValue)
+    extends EncryptedStorageAnswers[UkPensionIncomeStorageAnswers] {
+
+  protected[database] def unsafeDecrypted(implicit aesGCMCrypto: EncryptionService, textAndKeyAes: TextAndKey): UkPensionIncomeStorageAnswers =
+    UkPensionIncomeStorageAnswers(
+      uKPensionIncomesQuestion.decrypted[Boolean]
+    )
+}
+
+object EncryptedUkPensionIncomeStorageAnswers {
+  implicit val format: OFormat[EncryptedUkPensionIncomeStorageAnswers] = Json.format[EncryptedUkPensionIncomeStorageAnswers]
 }

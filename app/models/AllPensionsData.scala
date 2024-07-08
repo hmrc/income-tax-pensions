@@ -20,6 +20,7 @@ import models.charges.GetPensionChargesRequestModel
 import models.submission.EmploymentPensions
 import play.api.libs.json.{Json, OFormat}
 
+// TODO We don't want to send this model to submission service. There is no point. Can we just send NoContent - investigate how they use our data
 case class AllPensionsData(pensionReliefs: Option[GetPensionReliefsModel],
                            pensionCharges: Option[GetPensionChargesRequestModel],
                            stateBenefits: Option[AllStateBenefitsData],

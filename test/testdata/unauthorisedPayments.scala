@@ -16,6 +16,7 @@
 
 package testdata
 
+import models.database.UnauthorisedPaymentsStorageAnswers
 import models.frontend.UnauthorisedPaymentsAnswers
 
 object unauthorisedPayments {
@@ -31,4 +32,6 @@ object unauthorisedPayments {
     Some(true),
     Some(List("pstr1"))
   )
+
+  val storageAnswers = UnauthorisedPaymentsStorageAnswers(Some(true), Some(false), Some(true), Some(true), Some(false))
 }

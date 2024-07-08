@@ -16,12 +16,20 @@
 
 package models.database
 
-import play.api.libs.json.{Json, OFormat}
+import models.encryption.EncryptedValue
+import org.scalatest.wordspec.AnyWordSpecLike
+import stubs.services.StubEncryptionService
+import testdata.encryption.textAndKeyAes
 
-case class PaymentsIntoOverseasPensionsStorageAnswer(paymentsIntoOverseasPensionsQuestions: Option[Boolean] = None,
-                                                     employerPaymentsQuestion: Option[Boolean] = None,
-                                                     taxPaidOnEmployerPaymentsQuestion: Option[Boolean] = None)
+class UkPensionIncomeStorageAnswersSpec extends AnyWordSpecLike {
+  "encrypted" should {
+    "encrypt data" in {
+      val answers           = UkPensionIncomeStorageAnswers(true)
+      val encryptionService = StubEncryptionService()
 
-object PaymentsIntoOverseasPensionsStorageAnswer {
-  implicit val format: OFormat[PaymentsIntoOverseasPensionsStorageAnswer] = Json.format[PaymentsIntoOverseasPensionsStorageAnswer]
+      val actual = answers.encrypted(encryptionService, textAndKeyAes)
+
+      assert(actual === EncryptedUkPensionIncomeStorageAnswers(EncryptedValue("encrypted-true", "nonce")))
+    }
+  }
 }
