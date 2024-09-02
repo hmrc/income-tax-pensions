@@ -693,7 +693,7 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
       mocks.mockGetPensionChargesT(Right(None))
       mocks.mockGetPensionIncomeT(Right(None))
 
-      val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
+      val result = underTest.getCommonTaskList(sampleCtx).value.futureValue.value
 
       val expected = emptyCommonTaskListModel(taxYear)
       assert(result === expected)

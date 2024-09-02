@@ -23,7 +23,7 @@ import connectors._
 import models._
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common._
-import models.commonTaskList.{TaskListModel, fromAllJourneys}
+import models.commonTaskList.{TaskListSection, fromAllJourneys}
 import models.database._
 import models.domain.{AllJourneys, ApiResult, ApiResultT}
 import models.error.ServiceError
@@ -73,7 +73,7 @@ trait PensionsService {
   def getShortServiceRefunds(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[ShortServiceRefundsAnswers]]
   def upsertShortServiceRefunds(ctx: JourneyContextWithNino, answers: ShortServiceRefundsAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit]
 
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel]
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Seq[TaskListSection]]
   def getAllPensionsData(nino: String, taxYear: Int, mtditid: String)(implicit hc: HeaderCarrier): Future[Either[ServiceErrorModel, AllPensionsData]]
 }
 
@@ -341,7 +341,7 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
   }
 
   /** TODO It could be done more optimal, with fewer calls to IFS. It will be done when a proper story will be created */
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = {
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Seq[TaskListSection]] = {
 
     val allJourneys = for {
       paymentsIntoPensons              <- handleFutureError(getPaymentsIntoPensions(ctx))
@@ -368,8 +368,8 @@ class PensionsServiceImpl @Inject() (appConfig: AppConfig,
     )
 
     val result = allJourneys.map { all =>
-      val taskListModel = fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
-      taskListModel
+      val taskListSections = fromAllJourneys(all, appConfig.incomeTaxPensionsFrontendUrl, ctx.taxYear)
+      taskListSections
     }
 
     EitherT.right(result)

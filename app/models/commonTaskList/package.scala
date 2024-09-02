@@ -53,7 +53,7 @@ package object commonTaskList {
       case TransferIntoOverseasPensions => TaskTitle.paymentsIntoPensionsTitles.OverseasTransfer()
     }
 
-  def fromAllJourneys(allJourneys: AllJourneys, frontendUrl: String, taxYear: TaxYear): TaskListModel = {
+  def fromAllJourneys(allJourneys: AllJourneys, frontendUrl: String, taxYear: TaxYear): Seq[TaskListSection] = {
     def createJourneySection(journey: Journey) = {
       val maybeStatus = allJourneys.getStatus(journey)
       TaskListSectionItem(
@@ -98,12 +98,10 @@ package object commonTaskList {
       )
     )
 
-    val taskList = List(
+    Seq(
       pensionsSectionSection,
       paymentsIntoPensionsSection
     )
-
-    TaskListModel(taskList)
   }
 
 }

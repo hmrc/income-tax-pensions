@@ -19,7 +19,7 @@ package stubs.services
 import cats.data.EitherT
 import cats.implicits._
 import models.common.JourneyContextWithNino
-import models.commonTaskList.TaskListModel
+import models.commonTaskList.TaskListSection
 import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend._
@@ -94,5 +94,5 @@ case class PensionsServiceStub(getPaymentsIntoPensionsResult: Either[ServiceErro
   def getStatePension(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[IncomeFromPensionsStatePensionAnswers]] = ???
   def upsertStatePension(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] =
     ???
-  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[TaskListModel] = ???
+  def getCommonTaskList(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Seq[TaskListSection]] = ???
 }
