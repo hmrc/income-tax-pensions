@@ -29,24 +29,28 @@ class IncomeFromPensionsStatePensionStorageAnswersSpec extends AnyWordSpecLike {
 
   "toIncomeFromPensionsStatePensionAnswers" should {
     "return true if true persisted" in {
-      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers
+      val result = incomeFromPensionsStatePensionStorageAnswers.sampleAnswers.toIncomeFromPensionsStatePensionAnswers(false)
 
       assert(
         result === IncomeFromPensionsStatePensionAnswers(
           Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
           Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-          None))
+          None,
+          Some(false)
+        ))
     }
 
     "return false if false persisted" in {
       val result =
-        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false)).toIncomeFromPensionsStatePensionAnswers
+        IncomeFromPensionsStatePensionStorageAnswers(Some(false), Some(false)).toIncomeFromPensionsStatePensionAnswers(true)
 
       assert(
         result === IncomeFromPensionsStatePensionAnswers(
           Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
           Some(StateBenefitAnswers(None, None, None, Some(false), None, None, None)),
-          None))
+          None,
+          Some(true)
+        ))
     }
   }
 

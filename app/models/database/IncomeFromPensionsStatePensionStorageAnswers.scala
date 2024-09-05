@@ -28,11 +28,12 @@ import utils.EncryptorInstances.booleanEncryptor
 final case class IncomeFromPensionsStatePensionStorageAnswers(statePension: Option[Boolean], statePensionLumpSum: Option[Boolean])
     extends StorageAnswers[IncomeFromPensionsStatePensionStorageAnswers] {
 
-  def toIncomeFromPensionsStatePensionAnswers: IncomeFromPensionsStatePensionAnswers =
+  def toIncomeFromPensionsStatePensionAnswers(latestSubmittedByHMRC: Boolean): IncomeFromPensionsStatePensionAnswers =
     IncomeFromPensionsStatePensionAnswers(
       statePension = statePension.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
       statePensionLumpSum = statePensionLumpSum.map(answer => StateBenefitAnswers.empty.copy(amountPaidQuestion = Some(answer))),
-      sessionId = None
+      sessionId = None,
+      lastSubmittedByHMRC = Some(latestSubmittedByHMRC)
     )
 
   def encrypted(implicit

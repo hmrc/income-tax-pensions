@@ -52,7 +52,12 @@ class StateBenefitSpec extends TestUtils {
             |""".stripMargin)
 
         val underTest =
-          StateBenefit(benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"), startDate = LocalDate.parse("2019-04-23"), None, None)
+          StateBenefit(
+            benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"),
+            startDate = LocalDate.parse("2019-04-23"),
+            None,
+            None,
+            None)
 
         Json.toJson(underTest) mustBe json
       }

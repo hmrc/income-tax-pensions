@@ -374,11 +374,12 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
 
       assert(
         result ===
-          Some(
-            IncomeFromPensionsStatePensionAnswers(
-              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-              None)))
+          Some(IncomeFromPensionsStatePensionAnswers(
+            Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+            Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+            None,
+            Some(false)
+          )))
 
     }
 
@@ -400,7 +401,8 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
           IncomeFromPensionsStatePensionAnswers(
             Some(stateBenefitAnswers.sample),
             Some(stateBenefitAnswers.sample),
-            None
+            None,
+            Some(false)
           )))
     }
   }
@@ -665,29 +667,6 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
 
     "return a full task list in a proper status" in {
       val taxYear = sampleCtx.taxYear
-
-      val stubStatusService: StubJourneyStatusService = StubJourneyStatusService(getAllStatusesResult = List(
-        JourneyNameAndStatus(Journey.PaymentsIntoPensions, JourneyStatus.NotStarted),
-        JourneyNameAndStatus(Journey.UkPensionIncome, JourneyStatus.InProgress),
-        JourneyNameAndStatus(Journey.StatePension, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.AnnualAllowances, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.UnauthorisedPayments, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.PaymentsIntoOverseasPensions, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.IncomeFromOverseasPensions, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.TransferIntoOverseasPensions, JourneyStatus.Completed),
-        JourneyNameAndStatus(Journey.ShortServiceRefunds, JourneyStatus.Completed)
-      ))
-
-      val underTest: PensionsService = new PensionsServiceImpl(
-        mockAppConfig,
-        mocks.mockReliefsConnector,
-        mocks.mockChargesConnector,
-        StubStateBenefitService(),
-        mocks.mockIncomeConnector,
-        StubEmploymentService(Right(EmploymentPensions.empty)),
-        stubStatusService,
-        StubJourneyAnswersRepository()
-      )
 
       mocks.mockGetPensionReliefsT(Right(None))
       mocks.mockGetPensionChargesT(Right(None))

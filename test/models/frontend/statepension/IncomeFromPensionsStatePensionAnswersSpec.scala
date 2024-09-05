@@ -21,9 +21,9 @@ import org.scalatest.wordspec.AnyWordSpecLike
 class IncomeFromPensionsStatePensionAnswersSpec extends AnyWordSpecLike {
   "removeEmptyAmounts" should {
     "change empty values to None" in {
-      val answers = IncomeFromPensionsStatePensionAnswers(Some(StateBenefitAnswers.empty), Some(StateBenefitAnswers.empty), None)
+      val answers = IncomeFromPensionsStatePensionAnswers(Some(StateBenefitAnswers.empty), Some(StateBenefitAnswers.empty), None, None)
       val result  = answers.removeEmptyAmounts
-      assert(result === IncomeFromPensionsStatePensionAnswers(None, None, None))
+      assert(result === IncomeFromPensionsStatePensionAnswers(None, None, None, None))
     }
   }
 }

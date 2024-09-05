@@ -25,6 +25,7 @@ object stateBenefit {
     UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"),
     startDate = java.time.LocalDate.parse("2019-04-23"),
     amount = Some(300.0),
-    taxPaid = Some(400.0)
+    taxPaid = Some(400.0),
+    None
   )
 }

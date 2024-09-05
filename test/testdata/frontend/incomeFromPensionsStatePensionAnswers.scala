@@ -22,6 +22,7 @@ object incomeFromPensionsStatePensionAnswers {
   val sample = IncomeFromPensionsStatePensionAnswers(
     Some(stateBenefitAnswers.sample),
     Some(stateBenefitAnswers.sample),
-    Some("sessionId")
+    Some("sessionId"),
+    Some(false)
   )
 }

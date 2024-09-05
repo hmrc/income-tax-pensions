@@ -101,8 +101,10 @@ object AllJourneys {
           val (answers, status) = toCommonTaskListStatus(ukPensionIncome, persistedStatus)
           allJourneys.copy(ukPensionIncome = answers).updateStatus(journey, status)
         case StatePension =>
-          val (answers, status) = toCommonTaskListStatus(statePension, persistedStatus)
-          allJourneys.copy(statePension = answers).updateStatus(journey, status)
+          val (answers, calculatedStatus) = toCommonTaskListStatus(statePension, persistedStatus)
+          val hasHMRCLatestSubmission     = answers.exists(_.lastSubmittedByHMRC.contains(true))
+          val newStatus                   = if (hasHMRCLatestSubmission) CheckOurRecords else calculatedStatus
+          allJourneys.copy(statePension = answers).updateStatus(journey, newStatus)
         case AnnualAllowances =>
           val (answers, status) = toCommonTaskListStatus(annualAllowances, persistedStatus)
           allJourneys.copy(annualAllowances = answers).updateStatus(journey, status)

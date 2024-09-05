@@ -20,7 +20,14 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
-case class StateBenefitsData(statePension: Option[StateBenefit] = None, statePensionLumpSum: Option[StateBenefit] = None)
+import java.time.Instant
+
+case class StateBenefitsData(statePension: Option[StateBenefit] = None, statePensionLumpSum: Option[StateBenefit] = None) {
+  def submittedOn: Option[Instant] = Set(
+    statePension.map(_.submittedOn),
+    statePensionLumpSum.map(_.submittedOn)
+  ).flatten.max
+}
 
 object StateBenefitsData {
 

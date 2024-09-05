@@ -18,14 +18,15 @@ package models.statebenefit
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 import java.util.UUID
 
 final case class ClaimCYAModel(
     benefitId: Option[UUID] = None,
     startDate: LocalDate,
     amount: Option[BigDecimal] = None,
-    taxPaid: Option[BigDecimal] = None
+    taxPaid: Option[BigDecimal] = None,
+    submittedOn: Option[Instant] = None
 )
 
 object ClaimCYAModel {
