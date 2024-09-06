@@ -19,14 +19,15 @@ package services
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models.commonTaskList.TaskStatus.CheckNow
 import models.commonTaskList.taskItemTitles.{PaymentsIntoPensionsTitles, PensionsTitles}
-import models.commonTaskList.{SectionTitle, TaskListModel, TaskListSection, TaskListSectionItem}
+import models.commonTaskList.{SectionTitle, TaskListSection, TaskListSectionItem}
+import org.scalatest.EitherValues._
 import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.{StubEmploymentService, StubJourneyStatusService, StubStateBenefitService}
 import testdata.appConfig.createAppConfig
 import utils.EitherTTestOps.convertScalaFuture
 import utils.TestUtils.{hc, journeyCtxWithNino}
-import org.scalatest.EitherValues._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PensionsServiceSpec extends AnyWordSpecLike {
@@ -59,7 +60,7 @@ class PensionsServiceSpec extends AnyWordSpecLike {
       val actual = underTest.getCommonTaskList(journeyCtxWithNino).value.futureValue.value
 
       assert(
-        actual === TaskListModel(List(
+        actual === List(
           TaskListSection(
             SectionTitle.PensionsTitle(),
             Some(List(
@@ -115,7 +116,7 @@ class PensionsServiceSpec extends AnyWordSpecLike {
               )
             ))
           )
-        )))
+        ))
     }
 
   }

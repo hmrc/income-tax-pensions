@@ -20,12 +20,12 @@ import models.common.TaxYear
 import models.commonTaskList._
 
 object commonTaskList {
-  def emptyCommonTaskListModel(taxYear: TaxYear): TaskListModel =
-    TaskListModel(
-      List(
-        TaskListSection(
-          SectionTitle.PensionsTitle(),
-          Some(List(
+  def emptyCommonTaskListModel(taxYear: TaxYear): Seq[TaskListSection] =
+    Seq(
+      TaskListSection(
+        SectionTitle.PensionsTitle(),
+        Some(
+          List(
             TaskListSectionItem(
               TaskTitle.pensionsTitles.StatePension(),
               TaskStatus.CheckNow(),
@@ -52,10 +52,11 @@ object commonTaskList {
               Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/income-from-overseas-pensions/pension-overseas-income-status")
             )
           ))
-        ),
-        TaskListSection(
-          SectionTitle.PaymentsIntoPensionsTitle(),
-          Some(List(
+      ),
+      TaskListSection(
+        SectionTitle.PaymentsIntoPensionsTitle(),
+        Some(
+          List(
             TaskListSectionItem(
               TaskTitle.paymentsIntoPensionsTitles.PaymentsIntoUk(),
               TaskStatus.CheckNow(),
@@ -77,7 +78,7 @@ object commonTaskList {
               Some(s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$taxYear/overseas-pensions/overseas-transfer-charges/transfer-pension-savings")
             )
           ))
-        )
-      ))
+      )
+    )
 
 }
