@@ -26,6 +26,7 @@ import models.logging.ConnectorRequestInfo
 import models.statebenefit.StateBenefitsUserData
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import java.time.Instant
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -60,9 +61,10 @@ class StateBenefitsConnectorImpl @Inject() (val http: HttpClient, val appConfig:
     val url = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/claim-data/nino/$nino"
 
     implicit val updatedHc: HeaderCarrier = headerCarrier(url)(hc)
+    val updatedModel                      = model.copy(claim = model.claim.map(_.copy(submittedOn = Some(Instant.now()))))
 
-    ConnectorRequestInfo("PUT", url, downstreamServiceName)(updatedHc).logRequestWithBody(logger, model, "StateBenefits")
-    EitherT(http.PUT[StateBenefitsUserData, DownstreamErrorOr[Unit]](url, model)(StateBenefitsUserData.format, parser, updatedHc, ec))
+    ConnectorRequestInfo("PUT", url, downstreamServiceName)(updatedHc).logRequestWithBody(logger, updatedModel, "StateBenefits")
+    EitherT(http.PUT[StateBenefitsUserData, DownstreamErrorOr[Unit]](url, updatedModel)(StateBenefitsUserData.format, parser, updatedHc, ec))
       .leftMap(err => err.toServiceError)
   }
 

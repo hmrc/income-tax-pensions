@@ -24,8 +24,10 @@ import play.api.libs.json.{Json, OFormat}
 final case class IncomeFromPensionsStatePensionAnswers(
     statePension: Option[StateBenefitAnswers],
     statePensionLumpSum: Option[StateBenefitAnswers],
-    sessionId: Option[String]
+    sessionId: Option[String],
+    lastSubmittedByHMRC: Option[Boolean] // Option, it should be None on write, and calculated / returned based on downstream model on read
 ) extends PensionAnswers {
+
   def isFinished: Boolean =
     statePension.exists(_.isFinished) || statePensionLumpSum.exists(_.isFinished)
 
@@ -39,7 +41,7 @@ final case class IncomeFromPensionsStatePensionAnswers(
 object IncomeFromPensionsStatePensionAnswers {
   implicit val format: OFormat[IncomeFromPensionsStatePensionAnswers] = Json.format[IncomeFromPensionsStatePensionAnswers]
 
-  val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None, None)
+  val empty: IncomeFromPensionsStatePensionAnswers = IncomeFromPensionsStatePensionAnswers(None, None, None, None)
 
   def mkAnswers(downstreamAnswers: Option[AllStateBenefitsData],
                 maybeDbAnswers: Option[IncomeFromPensionsStatePensionStorageAnswers]): Option[IncomeFromPensionsStatePensionAnswers] =
@@ -47,14 +49,16 @@ object IncomeFromPensionsStatePensionAnswers {
       .map { answers: AllStateBenefitsData =>
         val maybeStatePension        = answers.stateBenefitsData.flatMap(_.statePension).map(StateBenefitAnswers.fromStateBenefit)
         val maybeStatePensionLumpSum = answers.stateBenefitsData.flatMap(_.statePensionLumpSum).map(StateBenefitAnswers.fromStateBenefit)
+        val latestSubmittedByHMRC    = answers.latestSubmittedByHMRC
 
         IncomeFromPensionsStatePensionAnswers(
           statePension = maybeStatePension,
           statePensionLumpSum = maybeStatePensionLumpSum,
-          sessionId = None
+          sessionId = None,
+          lastSubmittedByHMRC = Some(latestSubmittedByHMRC)
         )
       }
       .orElse(
-        maybeDbAnswers.map(_.toIncomeFromPensionsStatePensionAnswers)
+        maybeDbAnswers.map(_.toIncomeFromPensionsStatePensionAnswers(latestSubmittedByHMRC = false))
       )
 }

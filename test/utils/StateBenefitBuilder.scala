@@ -28,6 +28,7 @@ object StateBenefitBuilder {
     benefitId = UUID.fromString("f1b9f4b2-3f3e-4b1b-8b1b-3b1b1b1b1b1b"),
     startDate = LocalDate.parse(s"${taxYearEOY - 1}-04-23"),
     amount = Some(300.00),
-    taxPaid = Some(400.00)
+    taxPaid = Some(400.00),
+    None
   )
 }

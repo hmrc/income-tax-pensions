@@ -19,6 +19,9 @@ package models
 import org.scalatest.wordspec.AnyWordSpecLike
 import play.api.libs.json.{JsValue, Json}
 import testdata.connector.stateBenefits._
+import AllStateBenefitsData._
+
+import java.time.Instant
 
 class AllStateBenefitsDataSpec extends AnyWordSpecLike {
 
@@ -60,5 +63,36 @@ class AllStateBenefitsDataSpec extends AnyWordSpecLike {
           customerAddedStateBenefitsData = None
         ))
     }
+  }
+
+  "lastSubmittedByHMRC" should {
+    "return false when HMRC does not have submittedOn date" in {
+      assert(lastSubmittedByHMRC(None, Some(Instant.now)) === false)
+    }
+
+    "return false when Customer submission is after HMRC one" in {
+      assert(
+        lastSubmittedByHMRC(
+          Some(Instant.now()),
+          Some(Instant.now().plusSeconds(1))
+        ) === false)
+    }
+
+    "return true when Customer submission is before HMRC one" in {
+      assert(
+        lastSubmittedByHMRC(
+          Some(Instant.now().plusSeconds(1)),
+          Some(Instant.now())
+        ) === true)
+    }
+
+    "return true when Customer did not submit yet but HMRC submitted On exist" in {
+      assert(
+        lastSubmittedByHMRC(
+          Some(Instant.now()),
+          None
+        ) === true)
+    }
+
   }
 }

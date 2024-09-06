@@ -21,11 +21,24 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
+import java.time.Instant
+
 case class AllStateBenefitsData(stateBenefitsData: Option[StateBenefitsData],
-                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None)
+                                customerAddedStateBenefitsData: Option[CustomerAddedStateBenefitsData] = None) {
+  def latestSubmittedByHMRC: Boolean =
+    AllStateBenefitsData.lastSubmittedByHMRC(
+      stateBenefitsData.flatMap(_.submittedOn),
+      customerAddedStateBenefitsData.flatMap(_.submittedOn)
+    )
+}
 
 object AllStateBenefitsData {
   val empty: AllStateBenefitsData = AllStateBenefitsData(None, None)
+
+  def lastSubmittedByHMRC(hmrcSubmittedOn: Option[Instant], customerSubmittedOn: Option[Instant]): Boolean =
+    hmrcSubmittedOn.exists { h =>
+      h.isAfter(customerSubmittedOn.getOrElse(Instant.MIN))
+    }
 
   implicit val allStateBenefitsDataWrites: OWrites[AllStateBenefitsData] = (data: AllStateBenefitsData) =>
     jsonObjNoNulls(

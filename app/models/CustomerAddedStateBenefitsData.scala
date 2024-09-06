@@ -20,10 +20,17 @@ import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, OWrites, Reads}
 import utils.JsonUtils.jsonObjNoNulls
 
+import java.time.Instant
+
 case class CustomerAddedStateBenefitsData(
     statePensions: Option[Set[CustomerAddedStateBenefit]] = None,
     statePensionLumpSums: Option[Set[CustomerAddedStateBenefit]] = None
-)
+) {
+  def submittedOn: Option[Instant] = {
+    val allBenefits = statePensions.getOrElse(Set.empty) ++ statePensionLumpSums.getOrElse(Set.empty)
+    allBenefits.map(_.submittedOn).max
+  }
+}
 
 object CustomerAddedStateBenefitsData {
 

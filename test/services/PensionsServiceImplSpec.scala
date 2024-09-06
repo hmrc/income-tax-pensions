@@ -374,11 +374,12 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
 
       assert(
         result ===
-          Some(
-            IncomeFromPensionsStatePensionAnswers(
-              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-              Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
-              None)))
+          Some(IncomeFromPensionsStatePensionAnswers(
+            Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+            Some(StateBenefitAnswers(None, None, None, Some(true), None, None, None)),
+            None,
+            Some(false)
+          )))
 
     }
 
@@ -400,7 +401,8 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
           IncomeFromPensionsStatePensionAnswers(
             Some(stateBenefitAnswers.sample),
             Some(stateBenefitAnswers.sample),
-            None
+            None,
+            Some(false)
           )))
     }
   }
@@ -693,7 +695,7 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
       mocks.mockGetPensionChargesT(Right(None))
       mocks.mockGetPensionIncomeT(Right(None))
 
-      val result = underTest.getCommonTaskList(sampleCtx).value.futureValue.value
+      val result = service.getCommonTaskList(sampleCtx).value.futureValue.value
 
       val expected = emptyCommonTaskListModel(taxYear)
       assert(result === expected)
