@@ -114,20 +114,18 @@ class AuthorisedAction @Inject() ()(implicit
       .withIdentifier(EnrolmentIdentifiers.individualId, mtdId)
       .withDelegatedAuthRule(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
 
-
   private[predicates] def agentAuthentication[A](block: User[A] => Future[Result], mtdItId: String)(implicit
       request: Request[A],
-      hc: HeaderCarrier): Future[Result] = {
-
+      hc: HeaderCarrier): Future[Result] =
     authorised(agentAuthPredicate(mtdItId))
       .retrieve(allEnrolments) {
-        populateAgent(block, mtdItId, _)
-    }.recoverWith(agentRecovery(block, mtdItId))
-  }
+        populateAgent(block, mtdItId, _, isSupportingAgent = false)
+      }
+      .recoverWith(agentRecovery(block, mtdItId))
 
-  private def agentRecovery[A](block: User[A] => Future[Result],
-                               mtdItId: String)
-                              (implicit request: Request[A], hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+  private def agentRecovery[A](block: User[A] => Future[Result], mtdItId: String)(implicit
+      request: Request[A],
+      hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
     case _: NoActiveSession =>
       logger.info(s"[AuthorisedAction][agentAuthentication] - No active session.")
       unauthorized
@@ -135,29 +133,27 @@ class AuthorisedAction @Inject() ()(implicit
       if (appConfig.emaSupportingAgentsEnabled) {
         authorised(secondaryAgentPredicate(mtdItId))
           .retrieve(allEnrolments) {
-            populateAgent(block, mtdItId, _)
-          }.recoverWith {
-          case _ =>
+            populateAgent(block, mtdItId, _, isSupportingAgent = true)
+          }
+          .recoverWith { case _ =>
             logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
             unauthorized
-        }
+          }
       } else {
         logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
         unauthorized
       }
   }
 
-  private def populateAgent[A](block: User[A] => Future[Result],
-                               mtdItId: String,
-                               enrolments: Enrolments)(implicit request: Request[A]): Future[Result] = {
+  private def populateAgent[A](block: User[A] => Future[Result], mtdItId: String, enrolments: Enrolments, isSupportingAgent: Boolean)(implicit
+      request: Request[A]): Future[Result] =
     enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
       case Some(arn) =>
-        block(User(mtdItId, Some(arn)))
+        block(User(mtdItId, Some(arn), isSupportingAgent))
       case None =>
         logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
         unauthorized
     }
-  }
 
   private[predicates] def enrolmentGetIdentifierValue(checkedKey: String, checkedIdentifier: String, enrolments: Enrolments): Option[String] =
     enrolments.enrolments.collectFirst { case Enrolment(`checkedKey`, enrolmentIdentifiers, _, _) =>

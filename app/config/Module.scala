@@ -36,6 +36,7 @@ class Module extends AbstractModule {
     bind(classOf[IntegrationFrameworkConnector]).to(classOf[IntegrationFrameworkConnectorImpl])
     bind(classOf[StateBenefitsConnector]).to(classOf[StateBenefitsConnectorImpl])
     bind(classOf[EncryptionService]).to(classOf[AesGCMCryptoEncryptionService])
+    bind(classOf[AppConfig]).to(classOf[BackendAppConfig]).asEagerSingleton()
   }
 
 }

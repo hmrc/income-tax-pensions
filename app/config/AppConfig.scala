@@ -28,29 +28,29 @@ import scala.concurrent.duration.Duration
 @ImplementedBy(classOf[BackendAppConfig])
 trait AppConfig {
 
-  val desBaseUrl: String
+  def desBaseUrl: String
 
-  val ifBaseUrl: String
+  def ifBaseUrl: String
 
-  val stateBenefitsBaseUrl: String
-  val employmentBaseUrl: String
+  def stateBenefitsBaseUrl: String
+  def employmentBaseUrl: String
 
   /** It is used only to return URL for the Common Task List */
-  val incomeTaxPensionsFrontendUrl: String
+  def incomeTaxPensionsFrontendUrl: String
 
   def getEmploymentSourceUrl(nino: Nino, taxYear: TaxYear): String
 
   def getEmploymentUrl(nino: Nino, employmentId: String, source: String, taxYear: TaxYear): String
-  val environment: String
-  val authorisationToken: String
-  val integrationFrameworkEnvironment: String
+  def environment: String
+  def authorisationToken: String
+  def integrationFrameworkEnvironment: String
 
   def integrationFrameworkAuthorisationToken(api: String): String
 
-  val mongoTTL: Int
-  val encryptionKey: String
+  def mongoTTL: Int
+  def encryptionKey: String
 
-  val useEncryption: Boolean
+  def useEncryption: Boolean
   def emaSupportingAgentsEnabled: Boolean
 
 }

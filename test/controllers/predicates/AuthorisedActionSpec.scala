@@ -23,11 +23,11 @@ import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Enrolments, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -36,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthorisedActionSpec extends TestUtils {
 
   val mockedAppConfig: AppConfig = mock[AppConfig]
-  val auth = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents, mockedAppConfig)
+  val auth                       = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents, mockedAppConfig)
 
   ".enrolmentGetIdentifierValue" should {
 
@@ -316,16 +316,18 @@ class AuthorisedActionSpec extends TestUtils {
 
         "the agent is authorised for the given user (secondary agent)" which {
 
-          val enrolments = Enrolments(Set(
-            Enrolment(EnrolmentKeys.SupportingAgent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-            Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
-          ))
+          val enrolments = Enrolments(
+            Set(
+              Enrolment(EnrolmentKeys.SupportingAgent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+              Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+            ))
 
           lazy val result = {
 
             (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
             mockAuthReturnException(InsufficientEnrolments())
-            (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+            (mockAuthConnector
+              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
               .expects(*, Retrievals.allEnrolments, *, *)
               .returning(Future.successful(enrolments))
               .once()
@@ -345,10 +347,10 @@ class AuthorisedActionSpec extends TestUtils {
         "the authorisation service returns an AuthorisationException exception on the second call (EMA Secondary Enabled)" in {
 
           lazy val result = {
-            //Enabled EMA Supporting/Secondary Agent feature
+            // Enabled EMA Supporting/Secondary Agent feature
             (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
 
-            //Simulate first & second call failing for Primary Agent check
+            // Simulate first & second call failing for Primary Agent check
             mockAuthReturnException(InsufficientEnrolments()).twice()
 
             auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
