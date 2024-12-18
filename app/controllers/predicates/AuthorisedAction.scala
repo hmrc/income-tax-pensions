@@ -21,7 +21,7 @@ import config.AppConfig
 import models.User
 import models.logging.CorrelationIdMdc.withEnrichedCorrelationId
 import play.api.Logger
-import play.api.mvc.Results.Unauthorized
+import play.api.mvc.Results.{InternalServerError, Unauthorized}
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -135,9 +135,13 @@ class AuthorisedAction @Inject() ()(implicit
           .retrieve(allEnrolments) {
             populateAgent(block, mtdItId, _, isSupportingAgent = true)
           }
-          .recoverWith { case _ =>
-            logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
-            unauthorized
+          .recoverWith {
+            case _: AuthorisationException =>
+              logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
+              Future(Unauthorized)
+            case _ =>
+              logger.info(s"[AuthorisedAction][agentAuthentication] - Downstream service error.")
+              Future(InternalServerError)
           }
       } else {
         logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
