@@ -16,7 +16,7 @@
 
 package controllers.predicates
 
-import common.{EnrolmentIdentifiers, EnrolmentKeys}
+import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import models.User
 import play.api.http.Status._
@@ -314,18 +314,33 @@ class AuthorisedActionSpec extends TestUtils {
           }
         }
 
-        "the agent is authorised for the given user (secondary agent)" which {
+        "the agent is authorised as an ema supporting agent" which {
 
           val enrolments = Enrolments(
             Set(
-              Enrolment(EnrolmentKeys.SupportingAgent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-              Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+              Enrolment(
+                key = EnrolmentKeys.SupportingAgent,
+                identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")),
+                state = "Activated",
+                delegatedAuthRule = Some(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
+              ),
+              Enrolment(
+                key = EnrolmentKeys.Agent,
+                identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")),
+                state = "Activated"
+              )
             ))
 
           lazy val result = {
 
+            // First auth call to fail
+            object AuthException extends AuthorisationException("not primary agent")
+            mockAuthReturnException(AuthException).once()
+
+            // Then check if Supporting Agent is enabled
             (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
-            mockAuthReturnException(InsufficientEnrolments())
+
+            // Second call for supporting agent
             (mockAuthConnector
               .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
               .expects(*, Retrievals.allEnrolments, *, *)
@@ -344,6 +359,23 @@ class AuthorisedActionSpec extends TestUtils {
           }
         }
 
+        "the authorisation service returns an Internal Server Error on the second call (EMA Secondary Enabled)" in {
+
+          object AuthException extends AuthorisationException("Some random AuthException")
+
+          lazy val result = {
+            // Return AuthorisationException exception
+            mockAuthReturnException(AuthException)
+            // Enabled EMA Supporting/Secondary Agent feature
+            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+            /// Return an Exception that is not AuthorisationException
+            mockAuthReturnException(new Exception("some exception"))
+
+            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
+          }
+          status(result) mustBe INTERNAL_SERVER_ERROR
+        }
+
         "the authorisation service returns an AuthorisationException exception on the second call (EMA Secondary Enabled)" in {
 
           lazy val result = {
@@ -357,6 +389,7 @@ class AuthorisedActionSpec extends TestUtils {
           }
           status(result) mustBe UNAUTHORIZED
         }
+
       }
       "return an Unauthorised" when {
 
