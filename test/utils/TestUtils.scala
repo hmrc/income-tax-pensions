@@ -27,6 +27,7 @@ import models.common._
 import models.database.JourneyAnswers
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.SystemMaterializer
+import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
@@ -144,6 +145,13 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future.failed(exception))
+
+  def mockAuthorisePredicates[A](predicate: Predicate,
+                                 returningResult: Future[A]): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(predicate, *, *, *)
+      .returning(returningResult)
+  }
 
   def buildRequest[A: Writes](body: A): FakeRequest[AnyContentAsJson] = FakeRequest()
     .withHeaders("mtditid" -> "1234567890")

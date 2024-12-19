@@ -322,7 +322,6 @@ class AuthorisedActionSpec extends TestUtils {
                 key = EnrolmentKeys.SupportingAgent,
                 identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")),
                 state = "Activated",
-                delegatedAuthRule = Some(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
               ),
               Enrolment(
                 key = EnrolmentKeys.Agent,
@@ -331,31 +330,54 @@ class AuthorisedActionSpec extends TestUtils {
               )
             ))
 
-          lazy val result = {
+          "fallback to secondary agent if primary fails" which {
+            lazy val result = {
+              mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+              (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
 
-            // First auth call to fail
-            object AuthException extends AuthorisationException("not primary agent")
-            mockAuthReturnException(AuthException).once()
+              mockAuthorisePredicates(auth.secondaryAgentPredicate("1234567890"), Future.successful(enrolments))
 
-            // Then check if Supporting Agent is enabled
-            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+              await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+            }
 
-            // Second call for supporting agent
-            (mockAuthConnector
-              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
-              .expects(*, Retrievals.allEnrolments, *, *)
-              .returning(Future.successful(enrolments))
-              .once()
+            "has a status of OK" in {
+              result.header.status mustBe OK
+            }
 
-            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
-          }
+            "has the correct body for limited access" in {
+              await(result.body.consumeData.map(_.utf8String)) mustBe "1234567890 0987654321"
+            }
 
-          "has a status of OK" in {
-            status(result) mustBe OK
-          }
+            "not fallback to secondary agent if primary fails when supporting agents are disabled" which {
+              lazy val result = {
 
-          "has the correct body" in {
-            bodyOf(result) mustBe "1234567890 0987654321"
+                (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(false)
+
+                mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+
+
+                await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+              }
+
+              "has a status of unauthorised" in {
+                result.header.status mustBe UNAUTHORIZED
+              }
+            }
+
+            "return error if both primary and secondary fails when supporting agents are enabled" which {
+              lazy val result = {
+
+                mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+                (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+                mockAuthorisePredicates(auth.secondaryAgentPredicate("1234567890"), Future.failed(InsufficientEnrolments("Secondary failed")))
+
+                await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+              }
+
+              "has a status of unauthorised" in {
+                result.header.status mustBe UNAUTHORIZED
+              }
+            }
           }
         }
 
