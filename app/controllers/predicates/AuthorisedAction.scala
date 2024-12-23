@@ -60,11 +60,13 @@ class AuthorisedAction @Inject() ()(implicit
             case _                         => individualAuthentication(block, mtdItId)(request, headerCarrier)
           } recover {
             case _: NoActiveSession =>
-              logger.info(s"[AuthorisedAction][async] - No active session.")
+              logger.warn(s"[AuthorisedAction][async] - No active session.")
               Unauthorized
             case _: AuthorisationException =>
-              logger.info(s"[AuthorisedAction][async] - User failed to authenticate")
+              logger.warn(s"[AuthorisedAction][async] - User failed to authenticate")
               Unauthorized
+            case e => logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+              InternalServerError
           })
     }
   }
@@ -87,20 +89,20 @@ class AuthorisedAction @Inject() ()(implicit
                     identifier.key == EnrolmentIdentifiers.individualId && identifier.value == requestMtdItId) =>
                 block(User(requestMtdItId, None))
             } getOrElse {
-              logger.info(
+              logger.warn(
                 s"[AuthorisedAction][individualAuthentication] Non-agent with an invalid MTDITID. " +
                   s"MTDITID in auth matches MTDITID in request: ${authMTDITID == requestMtdItId}")
               unauthorized
             }
           case (_, None) =>
-            logger.info(s"[AuthorisedAction][individualAuthentication] - User has no nino.")
+            logger.warn(s"[AuthorisedAction][individualAuthentication] - User has no nino.")
             unauthorized
           case (None, _) =>
-            logger.info(s"[AuthorisedAction][individualAuthentication] - User has no MTD IT enrolment.")
+            logger.warn(s"[AuthorisedAction][individualAuthentication] - User has no MTD IT enrolment.")
             unauthorized
         }
       case _ =>
-        logger.info("[AuthorisedAction][individualAuthentication] User has confidence level below 250.")
+        logger.warn("[AuthorisedAction][individualAuthentication] User has confidence level below 250.")
         unauthorized
     }
 
@@ -127,26 +129,27 @@ class AuthorisedAction @Inject() ()(implicit
       request: Request[A],
       hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
     case _: NoActiveSession =>
-      logger.info(s"[AuthorisedAction][agentAuthentication] - No active session.")
+      logger.warn(s"[AuthorisedAction][agentAuthentication] - No active session.")
       unauthorized
+    case _: AuthorisationException if appConfig.emaSupportingAgentsEnabled =>
+      authorised(secondaryAgentPredicate(mtdItId))
+        .retrieve(allEnrolments)(
+          enrolments => populateAgent(block, mtdItId, enrolments, isSupportingAgent = true)
+        )
+        .recover {
+          case _: AuthorisationException =>
+            logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated primary or secondary authority for Client.")
+            Unauthorized
+          case e =>
+            logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+            InternalServerError
+        }
     case _: AuthorisationException =>
-      if (appConfig.emaSupportingAgentsEnabled) {
-        authorised(secondaryAgentPredicate(mtdItId))
-          .retrieve(allEnrolments) {
-            populateAgent(block, mtdItId, _, isSupportingAgent = true)
-          }
-          .recoverWith {
-            case _: AuthorisationException =>
-              logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
-              Future(Unauthorized)
-            case _ =>
-              logger.info(s"[AuthorisedAction][agentAuthentication] - Downstream service error.")
-              Future(InternalServerError)
-          }
-      } else {
-        logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
-        unauthorized
-      }
+      logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
+      unauthorized
+    case e =>
+      logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+      Future(InternalServerError)
   }
 
   private def populateAgent[A](block: User[A] => Future[Result], mtdItId: String, enrolments: Enrolments, isSupportingAgent: Boolean)(implicit
@@ -155,7 +158,7 @@ class AuthorisedAction @Inject() ()(implicit
       case Some(arn) =>
         block(User(mtdItId, Some(arn), isSupportingAgent))
       case None =>
-        logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
+        logger.warn("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
         unauthorized
     }
 
