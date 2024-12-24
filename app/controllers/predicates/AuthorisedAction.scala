@@ -65,7 +65,8 @@ class AuthorisedAction @Inject() ()(implicit
             case _: AuthorisationException =>
               logger.warn(s"[AuthorisedAction][async] - User failed to authenticate")
               Unauthorized
-            case e => logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+            case e =>
+              logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
               InternalServerError
           })
     }
@@ -133,9 +134,7 @@ class AuthorisedAction @Inject() ()(implicit
       unauthorized
     case _: AuthorisationException if appConfig.emaSupportingAgentsEnabled =>
       authorised(secondaryAgentPredicate(mtdItId))
-        .retrieve(allEnrolments)(
-          enrolments => populateAgent(block, mtdItId, enrolments, isSupportingAgent = true)
-        )
+        .retrieve(allEnrolments)(enrolments => populateAgent(block, mtdItId, enrolments, isSupportingAgent = true))
         .recover {
           case _: AuthorisationException =>
             logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated primary or secondary authority for Client.")
