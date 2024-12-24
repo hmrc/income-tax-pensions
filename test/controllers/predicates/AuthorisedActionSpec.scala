@@ -321,7 +321,7 @@ class AuthorisedActionSpec extends TestUtils {
               Enrolment(
                 key = EnrolmentKeys.SupportingAgent,
                 identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")),
-                state = "Activated",
+                state = "Activated"
               ),
               Enrolment(
                 key = EnrolmentKeys.Agent,
@@ -354,7 +354,6 @@ class AuthorisedActionSpec extends TestUtils {
                 (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(false)
 
                 mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
-
 
                 await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
               }
@@ -468,7 +467,8 @@ class AuthorisedActionSpec extends TestUtils {
           lazy val result = {
             (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
             mockAuthReturnException(InsufficientEnrolments())
-            (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+            (mockAuthConnector
+              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
               .expects(*, Retrievals.allEnrolments, *, *)
               .returning(Future.failed(NonAuthException))
 
@@ -485,7 +485,8 @@ class AuthorisedActionSpec extends TestUtils {
           object NonAuthException extends Exception("Non-authentication related exception")
 
           lazy val result = {
-            (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+            (mockAuthConnector
+              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
               .expects(*, Retrievals.allEnrolments, *, *)
               .returning(Future.failed(NonAuthException))
 

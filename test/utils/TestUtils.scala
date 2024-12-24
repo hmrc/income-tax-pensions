@@ -147,11 +147,11 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
       .returning(Future.failed(exception))
 
   def mockAuthorisePredicates[A](predicate: Predicate,
-                                 returningResult: Future[A]): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+                                 returningResult: Future[A]): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] =
+    (mockAuthConnector
+      .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(predicate, *, *, *)
       .returning(returningResult)
-  }
 
   def buildRequest[A: Writes](body: A): FakeRequest[AnyContentAsJson] = FakeRequest()
     .withHeaders("mtditid" -> "1234567890")
