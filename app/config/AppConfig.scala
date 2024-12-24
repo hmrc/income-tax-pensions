@@ -16,6 +16,7 @@
 
 package config
 
+import com.google.inject.ImplementedBy
 import models.common.{Nino, TaxYear}
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
@@ -24,7 +25,37 @@ import utils.Logging
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 
-class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends Logging {
+@ImplementedBy(classOf[BackendAppConfig])
+trait AppConfig {
+
+  def desBaseUrl: String
+
+  def ifBaseUrl: String
+
+  def stateBenefitsBaseUrl: String
+  def employmentBaseUrl: String
+
+  /** It is used only to return URL for the Common Task List */
+  def incomeTaxPensionsFrontendUrl: String
+
+  def getEmploymentSourceUrl(nino: Nino, taxYear: TaxYear): String
+
+  def getEmploymentUrl(nino: Nino, employmentId: String, source: String, taxYear: TaxYear): String
+  def environment: String
+  def authorisationToken: String
+  def integrationFrameworkEnvironment: String
+
+  def integrationFrameworkAuthorisationToken(api: String): String
+
+  def mongoTTL: Int
+  def encryptionKey: String
+
+  def useEncryption: Boolean
+  def emaSupportingAgentsEnabled: Boolean
+
+}
+
+class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig with Logging {
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
 
@@ -54,4 +85,6 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
     logger.warn("Mongo Backend encryption is turned off")
     servicesConfig.getBoolean("useEncryption")
   }
+
+  def emaSupportingAgentsEnabled: Boolean = config.get[Boolean]("feature-switch.ema-supporting-agents-enabled")
 }

@@ -16,17 +16,18 @@
 
 package controllers.predicates
 
-import common.{EnrolmentIdentifiers, EnrolmentKeys}
+import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
+import config.AppConfig
 import models.User
 import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
+import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Enrolments, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -34,7 +35,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedActionSpec extends TestUtils {
 
-  val auth: AuthorisedAction = authorisedAction
+  val mockedAppConfig: AppConfig = mock[AppConfig]
+  val auth                       = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents, mockedAppConfig)
 
   ".enrolmentGetIdentifierValue" should {
 
@@ -286,7 +288,7 @@ class AuthorisedActionSpec extends TestUtils {
 
       "perform the block action" when {
 
-        "the agent is authorised for the given user" which {
+        "the agent is authorised for the given user (primary agent)" which {
 
           val enrolments = Enrolments(
             Set(
@@ -311,14 +313,112 @@ class AuthorisedActionSpec extends TestUtils {
             bodyOf(result) mustBe "1234567890 0987654321"
           }
         }
+
+        "the agent is authorised as an ema supporting agent" which {
+
+          val enrolments = Enrolments(
+            Set(
+              Enrolment(
+                key = EnrolmentKeys.SupportingAgent,
+                identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")),
+                state = "Activated"
+              ),
+              Enrolment(
+                key = EnrolmentKeys.Agent,
+                identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")),
+                state = "Activated"
+              )
+            ))
+
+          "fallback to secondary agent if primary fails" which {
+            lazy val result = {
+              mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+              (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+
+              mockAuthorisePredicates(auth.secondaryAgentPredicate("1234567890"), Future.successful(enrolments))
+
+              await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+            }
+
+            "has a status of OK" in {
+              result.header.status mustBe OK
+            }
+
+            "has the correct body for limited access" in {
+              await(result.body.consumeData.map(_.utf8String)) mustBe "1234567890 0987654321"
+            }
+
+            "not fallback to secondary agent if primary fails when supporting agents are disabled" which {
+              lazy val result = {
+
+                (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(false)
+
+                mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+
+                await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+              }
+
+              "has a status of unauthorised" in {
+                result.header.status mustBe UNAUTHORIZED
+              }
+            }
+
+            "return error if both primary and secondary fails when supporting agents are enabled" which {
+              lazy val result = {
+
+                mockAuthorisePredicates(auth.agentAuthPredicate("1234567890"), Future.failed(InsufficientEnrolments("Primary failed")))
+                (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+                mockAuthorisePredicates(auth.secondaryAgentPredicate("1234567890"), Future.failed(InsufficientEnrolments("Secondary failed")))
+
+                await(auth.agentAuthentication(block, "1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier))
+              }
+
+              "has a status of unauthorised" in {
+                result.header.status mustBe UNAUTHORIZED
+              }
+            }
+          }
+        }
+
+        "the authorisation service returns an Internal Server Error on the second call (EMA Secondary Enabled)" in {
+
+          object AuthException extends AuthorisationException("Some random AuthException")
+
+          lazy val result = {
+            // Return AuthorisationException exception
+            mockAuthReturnException(AuthException)
+            // Enabled EMA Supporting/Secondary Agent feature
+            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+            /// Return an Exception that is not AuthorisationException
+            mockAuthReturnException(new Exception("some exception"))
+
+            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
+          }
+          status(result) mustBe INTERNAL_SERVER_ERROR
+        }
+
+        "the authorisation service returns an AuthorisationException exception on the second call (EMA Secondary Enabled)" in {
+
+          lazy val result = {
+            // Enabled EMA Supporting/Secondary Agent feature
+            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+
+            // Simulate first & second call failing for Primary Agent check
+            mockAuthReturnException(InsufficientEnrolments()).twice()
+
+            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
+          }
+          status(result) mustBe UNAUTHORIZED
+        }
+
       }
       "return an Unauthorised" when {
 
-        "the authorisation service returns an AuthorisationException exception" in {
-          object AuthException extends AuthorisationException("Some reason")
+        "the authorisation service returns an AuthorisationException exception (EMA Secondary Agent Disabled)" in {
 
           lazy val result = {
-            mockAuthReturnException(AuthException)
+            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(false)
+            mockAuthReturnException(InsufficientEnrolments())
             auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
           }
           status(result) mustBe UNAUTHORIZED
@@ -357,6 +457,48 @@ class AuthorisedActionSpec extends TestUtils {
           status(result) mustBe UNAUTHORIZED
         }
       }
+
+      "return INTERNAL SERVER ERROR" when {
+
+        "results in a non-Auth related Exception to be returned for Primary Agent check" in {
+
+          object NonAuthException extends Exception("Non-authentication related exception")
+
+          lazy val result = {
+            (() => mockedAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
+            mockAuthReturnException(InsufficientEnrolments())
+            (mockAuthConnector
+              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+              .expects(*, Retrievals.allEnrolments, *, *)
+              .returning(Future.failed(NonAuthException))
+
+            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
+
+          }
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "results in a non-Auth related Exception to be returned for Secondary Agent check" in {
+
+          object NonAuthException extends Exception("Non-authentication related exception")
+
+          lazy val result = {
+            (mockAuthConnector
+              .authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+              .expects(*, Retrievals.allEnrolments, *, *)
+              .returning(Future.failed(NonAuthException))
+
+            auth.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
+          }
+
+          status(result) mustBe INTERNAL_SERVER_ERROR
+
+        }
+
+      }
+
     }
     ".async" should {
 
@@ -426,6 +568,17 @@ class AuthorisedActionSpec extends TestUtils {
         }
       }
 
+      "return ISE" when {
+
+        "the authorisation service returns an Exception that is not an Auth related Exception" in {
+
+          mockAuthReturnException(new Exception("Some reason"))
+
+          val result = auth.async(block)
+
+          status(result(fakeRequest)) mustBe INTERNAL_SERVER_ERROR
+        }
+      }
     }
   }
 }

@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.AppConfig
+import config.{AppConfig, BackendAppConfig}
 import connectors.StateBenefitsConnectorISpec.expectedResponseBody
 import helpers.WiremockSpec
 import models.AllStateBenefitsData
@@ -37,7 +37,7 @@ class StateBenefitsConnectorISpec extends WiremockSpec {
   implicit val hc: HeaderCarrier        = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
   def appConfig(host: String): AppConfig =
-    new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
       override val stateBenefitsBaseUrl: String = s"http://$host:$wireMockPort"
     }
 

@@ -17,7 +17,7 @@
 package connectors
 
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
-import config.AppConfig
+import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Configuration
@@ -35,7 +35,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
   val servicesConfig             = app.injector.instanceOf[ServicesConfig]
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val appConfig = new AppConfig(configuration, servicesConfig) {
+  val appConfig = new BackendAppConfig(configuration, servicesConfig) {
     override val employmentBaseUrl: String = s"http://localhost:$wireMockPort"
   }
 
