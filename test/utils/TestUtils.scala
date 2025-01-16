@@ -57,7 +57,7 @@ import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach with PekkoGuiceSupport {
 
   val taxYear        = 2022
-  val currentTaxYear = TaxYear(2024)
+  val currentTaxYear = TaxYear(LocalDate.now().getYear)
   val nino           = "AA123456A"
   val validNino      = common.Nino("AA123456A")
   val mtditid        = "1234567890"

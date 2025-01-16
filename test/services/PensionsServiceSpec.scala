@@ -17,6 +17,7 @@
 package services
 
 import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
+import models.common.TaxYear
 import models.commonTaskList.TaskStatus.CheckNow
 import models.commonTaskList.taskItemTitles.{PaymentsIntoPensionsTitles, PensionsTitles}
 import models.commonTaskList.{SectionTitle, TaskListSection, TaskListSectionItem}
@@ -28,9 +29,13 @@ import testdata.appConfig.createAppConfig
 import utils.EitherTTestOps.convertScalaFuture
 import utils.TestUtils.{hc, journeyCtxWithNino}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PensionsServiceSpec extends AnyWordSpecLike {
+
+  val currentTaxYear: TaxYear = TaxYear(LocalDate.now().getYear)
+  val baseURL = s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$currentTaxYear"
 
   "getCommonTaskList" should {
     "return all journeys as NotStarted if no data" in {
@@ -67,27 +72,27 @@ class PensionsServiceSpec extends AnyWordSpecLike {
               TaskListSectionItem(
                 PensionsTitles.StatePension(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/pension-income/state-pension")),
+                Some(s"$baseURL/pension-income/state-pension")),
               TaskListSectionItem(
                 PensionsTitles.OtherUkPensions(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/pension-income/uk-pension-income")
+                Some(s"$baseURL/pension-income/uk-pension-income")
               ),
               TaskListSectionItem(
                 PensionsTitles.UnauthorisedPayments(),
                 CheckNow(),
                 Some(
-                  "http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/unauthorised-payments-from-pensions/unauthorised-payments")
+                  s"$baseURL/unauthorised-payments-from-pensions/unauthorised-payments")
               ),
               TaskListSectionItem(
                 PensionsTitles.ShortServiceRefunds(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/overseas-pensions/short-service-refunds/taxable-short-service-refunds")
+                Some(s"$baseURL/overseas-pensions/short-service-refunds/taxable-short-service-refunds")
               ),
               TaskListSectionItem(
                 PensionsTitles.IncomeFromOverseas(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/overseas-pensions/income-from-overseas-pensions/pension-overseas-income-status")
+                Some(s"$baseURL/overseas-pensions/income-from-overseas-pensions/pension-overseas-income-status")
               )
             ))
           ),
@@ -97,22 +102,22 @@ class PensionsServiceSpec extends AnyWordSpecLike {
               TaskListSectionItem(
                 PaymentsIntoPensionsTitles.PaymentsIntoUk(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/payments-into-pensions/relief-at-source")
+                Some(s"$baseURL/payments-into-pensions/relief-at-source")
               ),
               TaskListSectionItem(
                 PaymentsIntoPensionsTitles.AnnualAllowances(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/annual-allowance/reduced-annual-allowance")
+                Some(s"$baseURL/annual-allowance/reduced-annual-allowance")
               ),
               TaskListSectionItem(
                 PaymentsIntoPensionsTitles.PaymentsIntoOverseas(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/overseas-pensions/payments-into-overseas-pensions/payments-into-schemes")
+                Some(s"$baseURL/overseas-pensions/payments-into-overseas-pensions/payments-into-schemes")
               ),
               TaskListSectionItem(
                 PaymentsIntoPensionsTitles.OverseasTransfer(),
                 CheckNow(),
-                Some("http://localhost:9321/update-and-submit-income-tax-return/pensions/2024/overseas-pensions/overseas-transfer-charges/transfer-pension-savings")
+                Some(s"$baseURL/overseas-pensions/overseas-transfer-charges/transfer-pension-savings")
               )
             ))
           )
