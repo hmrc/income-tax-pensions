@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class PensionsServiceSpec extends AnyWordSpecLike {
 
   val currentTaxYear: TaxYear = TaxYear(LocalDate.now().getYear)
-  val baseURL = s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$currentTaxYear"
+  val baseURL                 = s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$currentTaxYear"
 
   "getCommonTaskList" should {
     "return all journeys as NotStarted if no data" in {
@@ -69,10 +69,7 @@ class PensionsServiceSpec extends AnyWordSpecLike {
           TaskListSection(
             SectionTitle.PensionsTitle(),
             Some(List(
-              TaskListSectionItem(
-                PensionsTitles.StatePension(),
-                CheckNow(),
-                Some(s"$baseURL/pension-income/state-pension")),
+              TaskListSectionItem(PensionsTitles.StatePension(), CheckNow(), Some(s"$baseURL/pension-income/state-pension")),
               TaskListSectionItem(
                 PensionsTitles.OtherUkPensions(),
                 CheckNow(),
@@ -81,8 +78,7 @@ class PensionsServiceSpec extends AnyWordSpecLike {
               TaskListSectionItem(
                 PensionsTitles.UnauthorisedPayments(),
                 CheckNow(),
-                Some(
-                  s"$baseURL/unauthorised-payments-from-pensions/unauthorised-payments")
+                Some(s"$baseURL/unauthorised-payments-from-pensions/unauthorised-payments")
               ),
               TaskListSectionItem(
                 PensionsTitles.ShortServiceRefunds(),
