@@ -41,7 +41,7 @@ trait EncryptionService {
 class AesGCMCryptoEncryptionService @Inject() (appConfig: AppConfig) extends EncryptionService {
   private val IV_SIZE                       = 96
   private val TAG_BIT_LENGTH                = 128
-  private val ALGORITHM_TO_TRANSFORM_STRING = "AES/GCM/PKCS5Padding"
+  private val ALGORITHM_TO_TRANSFORM_STRING = "AES/GCM/NoPadding"
   private lazy val secureRandom             = new SecureRandom()
   private val ALGORITHM_KEY                 = "AES"
   private val METHOD_ENCRYPT                = "encrypt"

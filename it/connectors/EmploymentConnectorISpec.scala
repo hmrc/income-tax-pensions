@@ -17,7 +17,7 @@
 package connectors
 
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
-import config.{AppConfig, BackendAppConfig}
+import config.BackendAppConfig
 import helpers.WiremockSpec
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Configuration

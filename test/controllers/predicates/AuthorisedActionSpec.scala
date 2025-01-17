@@ -16,7 +16,7 @@
 
 package controllers.predicates
 
-import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
+import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import models.User
 import play.api.http.Status._
