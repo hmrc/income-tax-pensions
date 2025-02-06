@@ -42,14 +42,14 @@ object TaxYearHelper {
     (PensionChargesBaseApi.Delete, 2024) -> "1883"
   ).toSeq.sortWith(_._1._2 > _._1._2).toMap // order map by year descending
 
-  def desIfTaxYearConverter(taxYear: Int): String =
+  def taxYearConverter(taxYear: Int): String =
     s"${taxYear - 1}-${twoDigitYear(taxYear)}"
 
   def isTysApi(taxYear: Int, apiNum: String, tysMap: Map[(String, Int), String] = tysApiOrderedMap): Boolean =
     findLatestTys(taxYear, apiNum, tysMap).nonEmpty
 
   def apiPath(nino: String, taxYear: Int, apiNum: String): String =
-    if (isTysApi(taxYear, apiNum)) s"${ifTysTaxYearConverter(taxYear)}/$nino" else s"$nino/${desIfTaxYearConverter(taxYear)}"
+    if (isTysApi(taxYear, apiNum)) s"${ifTysTaxYearConverter(taxYear)}/$nino" else s"$nino/${taxYearConverter(taxYear)}"
 
   def apiVersion(taxYear: Int, apiNum: String, tysMap: Map[(String, Int), String] = tysApiOrderedMap): String =
     findLatestTys(taxYear, apiNum, tysMap).map(_._2).getOrElse(apiNum)
