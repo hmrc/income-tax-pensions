@@ -27,7 +27,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.TaxYearHelper.{desIfTaxYearConverter, ifTysTaxYearConverter}
+import utils.TaxYearHelper.{taxYearConverter, ifTysTaxYearConverter}
 
 class PensionChargesConnectorISpec extends WiremockSpec {
 
@@ -43,7 +43,7 @@ class PensionChargesConnectorISpec extends WiremockSpec {
 
   val nino: String                = "123456789"
   val (nonTysTaxYear, tysTaxYear) = (2023, 2024)
-  val desUrl: String              = s"/income-tax/charges/pensions/$nino/${desIfTaxYearConverter(nonTysTaxYear)}"
+  val desUrl: String              = s"/income-tax/charges/pensions/$nino/${taxYearConverter(nonTysTaxYear)}"
   val ifTysUrl                    = s"/income-tax/charges/pensions/${ifTysTaxYearConverter(tysTaxYear)}/$nino"
 
   for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {

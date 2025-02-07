@@ -32,6 +32,8 @@ trait AppConfig {
 
   def ifBaseUrl: String
 
+  def hipBaseUrl: String
+
   def stateBenefitsBaseUrl: String
   def employmentBaseUrl: String
 
@@ -44,8 +46,10 @@ trait AppConfig {
   def environment: String
   def authorisationToken: String
   def integrationFrameworkEnvironment: String
+  def hipEnvironment: String
 
   def integrationFrameworkAuthorisationToken(api: String): String
+  def hipAuthorisationToken(api: String): String
 
   def mongoTTL: Int
   def encryptionKey: String
@@ -58,6 +62,7 @@ trait AppConfig {
 class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig with Logging {
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
+  val hipBaseUrl: String = servicesConfig.baseUrl("hip")
 
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
@@ -74,9 +79,13 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
   val environment: String                     = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
+  val hipEnvironment: String                  = config.get[String]("microservice.services.hip.environment")
 
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+
+  def hipAuthorisationToken(api: String): String =
+    config.get[String](s"microservice.services.hip.authorisation-token.$api")
 
   val mongoTTL: Int         = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
   val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")

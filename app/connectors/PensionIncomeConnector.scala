@@ -65,14 +65,12 @@ class PensionIncomeConnector @Inject() (val http: HttpClient, val appConfig: App
     val incomeSourceUri: String = pensionIncomeSourceUri(nino, taxYear, PensionIncomeBaseApi.Update)
     val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionIncomeBaseApi.Update)
 
-    def integrationFrameworkCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionIncomeResponse] = {
-      ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, pensionIncome, "Income")
+    def integrationFrameworkCall(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionIncomeResponse] =
       http.PUT[CreateUpdatePensionIncomeModel, CreateOrAmendPensionIncomeResponse](incomeSourceUri, pensionIncome)(
         income => CreateUpdatePensionIncomeModel.format.writes(income),
         CreateOrAmendPensionIncomeHttpReads,
         hc,
         ec)
-    }
 
     integrationFrameworkCall(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
   }

@@ -63,7 +63,6 @@ class StateBenefitsConnectorImpl @Inject() (val http: HttpClient, val appConfig:
     implicit val updatedHc: HeaderCarrier = headerCarrier(url)(hc)
     val updatedModel                      = model.copy(claim = model.claim.map(_.copy(submittedOn = Some(Instant.now()))))
 
-    ConnectorRequestInfo("PUT", url, downstreamServiceName)(updatedHc).logRequestWithBody(logger, updatedModel, "StateBenefits")
     EitherT(http.PUT[StateBenefitsUserData, DownstreamErrorOr[Unit]](url, updatedModel)(StateBenefitsUserData.format, parser, updatedHc, ec))
       .leftMap(err => err.toServiceError)
   }

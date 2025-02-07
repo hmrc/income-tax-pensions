@@ -27,9 +27,6 @@ final case class ConnectorRequestInfo(method: String, url: String, apiId: String
   private def connectorMessage: String =
     s"Connector [$CorrelationIdHeaderKey=${hc.correlationId}]: $apiIdStr $method $url"
 
-  def logRequestWithBody[A: Writes](logger: Logger, body: A, connectorName: String): Unit =
-    logger.debug(s"$connectorMessage.\n===$connectorName Connector, request body:===\n${Json.prettyPrint(implicitly[Writes[A]].writes(body))}\n===")
-
   def logRequest(logger: Logger): Unit =
     logger.debug(connectorMessage)
 

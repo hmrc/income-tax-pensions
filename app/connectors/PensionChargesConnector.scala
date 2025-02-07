@@ -41,7 +41,7 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
     appConfig.ifBaseUrl + s"/income-tax/charges/pensions/${TaxYearHelper.apiPath(nino, taxYear, apiNum)}"
 
   private def pensionChargesDesIncomeSourceUri(nino: String, taxYear: Int): String =
-    appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${TaxYearHelper.desIfTaxYearConverter(taxYear)}"
+    appConfig.desBaseUrl + s"/income-tax/charges/pensions/$nino/${TaxYearHelper.taxYearConverter(taxYear)}"
 
   def getPensionChargesT(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Option[GetPensionChargesRequestModel]] = {
     val ans = getPensionCharges(nino.value, taxYear.endYear)
@@ -86,14 +86,12 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
   def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)(implicit
       hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
 
-    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
-      ConnectorRequestInfo("PUT", incomeSourceUri, apiNumber).logRequestWithBody(logger, model, "Charges")
+    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
       http.PUT[CreateUpdatePensionChargesRequestModel, CreateUpdatePensionChargesResponse](incomeSourceUri, model)(
         charges => CreateUpdatePensionChargesRequestModel.format.writes(charges),
         CreateUpdatePensionChargesHttpReads,
         hc,
         ec)
-    }
 
     if (TaxYearHelper.isTysApi(taxYear, PensionChargesBaseApi.Update)) {
       val incomeSourceUri = pensionChargesIfsIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Update)
