@@ -37,7 +37,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
     new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
       override val desBaseUrl: String = s"http://$desIfHost:$wireMockPort"
       override val ifBaseUrl: String  = s"http://$desIfHost:$wireMockPort"
-      override val hipBaseUrl: String  = s"http://$desIfHost:$wireMockPort"
+      override val hipBaseUrl: String = s"http://$desIfHost:$wireMockPort"
     }
 
   val nino: String                = "123456789"
@@ -63,7 +63,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
   for ((taxYear, url) <- Seq((tysTaxYear, ifTysUrl), (nonTysTaxYear, hipUrl))) {
     lazy val externalHost = "127.0.0.1"
-    val connector = new PensionReliefsConnector(httpClient, appConfig(externalHost))
+    val connector         = new PensionReliefsConnector(httpClient, appConfig(externalHost))
     s".GetPensionReliefsConnector - $taxYear" should {
       "include internal headers" when {
 
@@ -76,8 +76,8 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         "the host for DES is 'Internal'" in {
           implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-          val connector = new PensionReliefsConnector(httpClient, appConfig(internalHost))
-          val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
+          val connector                  = new PensionReliefsConnector(httpClient, appConfig(internalHost))
+          val expectedResult             = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
 
           stubGetWithResponseBody(url, OK, expectedResponseBody, headersSentToDes)
 
@@ -88,7 +88,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         "the host for DES is 'External'" in {
           implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-          val expectedResult = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
+          val expectedResult             = Json.parse(expectedResponseBody).as[GetPensionReliefsModel]
 
           stubGetWithResponseBody(url, OK, expectedResponseBody, headersSentToDes)
 
@@ -103,7 +103,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
         stubGetWithResponseBody(url, OK, expectedResponseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc)).toOption.get
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc)).toOption.get
 
         result mustBe Some(expectedResult)
       }
@@ -115,7 +115,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubGetWithResponseBody(url, OK, invalidJson.toString())
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -127,21 +127,21 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(expectedResult)
       }
 
       "return a BAD_REQUEST" in {
         val responseBody = Json.obj(
-          "code" -> "INVALID_NINO",
+          "code"   -> "INVALID_NINO",
           "reason" -> "Nino is invalid"
         )
         val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO", "Nino is invalid"))
 
         stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -150,14 +150,14 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubGetWithResponseBody(url, NOT_FOUND, "")
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Right(None)
       }
 
       "return an INTERNAL_SERVER_ERROR" in {
         val responseBody = Json.obj(
-          "code" -> "SERVER_ERROR",
+          "code"   -> "SERVER_ERROR",
           "reason" -> "DES is currently experiencing problems that require live service intervention."
         )
         val expectedResult = DesErrorModel(
@@ -166,7 +166,7 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -176,13 +176,13 @@ class PensionReliefsConnectorISpec extends WiremockSpec {
 
         stubGetWithoutResponseBody(url, NO_CONTENT)
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getPensionReliefs(nino, taxYear)(hc))
+        val result                     = await(connector.getPensionReliefs(nino, taxYear)(hc))
 
         result mustBe Left(expectedResult)
       }
     }
   }
-    for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {
+  for ((taxYear, desIfUrl) <- Seq((nonTysTaxYear, desUrl), (tysTaxYear, ifTysUrl))) {
 
     s".deletePensionReliefs - $taxYear" should {
 

@@ -86,13 +86,12 @@ class PensionChargesConnector @Inject() (val http: HttpClient, val appConfig: Ap
   def createUpdatePensionCharges(nino: String, taxYear: Int, model: CreateUpdatePensionChargesRequestModel)(implicit
       hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
 
-    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] = {
+    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateUpdatePensionChargesResponse] =
       http.PUT[CreateUpdatePensionChargesRequestModel, CreateUpdatePensionChargesResponse](incomeSourceUri, model)(
         charges => CreateUpdatePensionChargesRequestModel.format.writes(charges),
         CreateUpdatePensionChargesHttpReads,
         hc,
         ec)
-    }
 
     if (TaxYearHelper.isTysApi(taxYear, PensionChargesBaseApi.Update)) {
       val incomeSourceUri = pensionChargesIfsIncomeSourceUri(nino, taxYear, PensionChargesBaseApi.Update)

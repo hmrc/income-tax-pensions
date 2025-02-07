@@ -59,8 +59,8 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
       val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Get)
       call(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
     } else {
-        val incomeSourceUri: String = pensionReliefsHipIncomeSourceUri(nino, taxYear)
-        call(incomeSourceUri)(hipHeaderCarrier(incomeSourceUri, PensionReliefsBaseApi.Get))
+      val incomeSourceUri: String = pensionReliefsHipIncomeSourceUri(nino, taxYear)
+      call(incomeSourceUri)(hipHeaderCarrier(incomeSourceUri, PensionReliefsBaseApi.Get))
     }
   }
   def createOrAmendPensionReliefsT(ctx: JourneyContextWithNino, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
@@ -72,13 +72,12 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
   def createOrAmendPensionReliefs(nino: String, taxYear: Int, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit
       hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
 
-    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] = {
+    def call(incomeSourceUri: String, apiNumber: String)(implicit hc: HeaderCarrier): Future[CreateOrAmendPensionReliefsResponse] =
       http.PUT[CreateOrUpdatePensionReliefsModel, CreateOrAmendPensionReliefsResponse](incomeSourceUri, pensionReliefs)(
         reliefs => CreateOrUpdatePensionReliefsModel.format.writes(reliefs),
         CreateOrAmendPensionReliefsHttpReads,
         hc,
         ec)
-    }
 
     if (TaxYearHelper.isTysApi(taxYear, PensionReliefsBaseApi.Update)) {
       val incomeSourceUri: String = pensionReliefsIfIncomeSourceUri(nino, taxYear, PensionReliefsBaseApi.Update)

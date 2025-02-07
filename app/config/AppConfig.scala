@@ -62,7 +62,7 @@ trait AppConfig {
 class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig with Logging {
   val desBaseUrl: String = servicesConfig.baseUrl("des")
   val ifBaseUrl: String  = servicesConfig.baseUrl("integration-framework")
-  val hipBaseUrl: String  = servicesConfig.baseUrl("hip")
+  val hipBaseUrl: String = servicesConfig.baseUrl("hip")
 
   val stateBenefitsBaseUrl: String = servicesConfig.baseUrl("income-tax-state-benefits")
   val employmentBaseUrl: String    = s"${servicesConfig.baseUrl("income-tax-employment")}/income-tax-employment"
@@ -79,7 +79,7 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
   val environment: String                     = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
-  val hipEnvironment: String = config.get[String]("microservice.services.hip.environment")
+  val hipEnvironment: String                  = config.get[String]("microservice.services.hip.environment")
 
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
