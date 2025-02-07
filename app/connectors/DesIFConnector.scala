@@ -38,8 +38,8 @@ trait DesIFConnector extends Logging {
     headerCarriers(url, authToken = appConfig.integrationFrameworkAuthorisationToken(apiNumber), appConfig.integrationFrameworkEnvironment)
   }
 
-  private[connectors] def hipHeaderCarrier(url: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
-    headerCarriers(url, authToken = appConfig.hipAuthorisationToken, appConfig.hipEnvironment)
+  private[connectors] def hipHeaderCarrier(url: String, apiNumber: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
+    headerCarriers(url, authToken = appConfig.hipAuthorisationToken(apiNumber), appConfig.hipEnvironment)
   }
 
   def headerCarriers(url: String, authToken: String, env: String)(implicit hc: HeaderCarrier): HeaderCarrier = {

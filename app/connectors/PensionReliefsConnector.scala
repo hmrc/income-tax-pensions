@@ -59,14 +59,8 @@ class PensionReliefsConnector @Inject() (val http: HttpClient, val appConfig: Ap
       val apiNumber               = TaxYearHelper.apiVersion(taxYear, PensionReliefsBaseApi.Get)
       call(incomeSourceUri)(integrationFrameworkHeaderCarrier(incomeSourceUri, apiNumber))
     } else {
-      if (appConfig.hipMigrationEnabled) {
         val incomeSourceUri: String = pensionReliefsHipIncomeSourceUri(nino, taxYear)
-        call(incomeSourceUri)(hipHeaderCarrier(incomeSourceUri))
-      }
-      else {
-        val incomeSourceUri: String = pensionReliefsDesIncomeSourceUri(nino, taxYear)
-        call(incomeSourceUri)(desHeaderCarrier(incomeSourceUri))
-      }
+        call(incomeSourceUri)(hipHeaderCarrier(incomeSourceUri, PensionReliefsBaseApi.Get))
     }
   }
   def createOrAmendPensionReliefsT(ctx: JourneyContextWithNino, pensionReliefs: CreateOrUpdatePensionReliefsModel)(implicit

@@ -49,14 +49,13 @@ trait AppConfig {
   def hipEnvironment: String
 
   def integrationFrameworkAuthorisationToken(api: String): String
-  def hipAuthorisationToken: String
+  def hipAuthorisationToken(api: String): String
 
   def mongoTTL: Int
   def encryptionKey: String
 
   def useEncryption: Boolean
   def emaSupportingAgentsEnabled: Boolean
-  val hipMigrationEnabled: Boolean
 
 }
 
@@ -79,12 +78,14 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
 
   val environment: String                     = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String              = config.get[String]("microservice.services.des.authorisation-token")
-  val hipAuthorisationToken: String           = config.get[String]("microservice.services.hip.authorisation-token")
   val integrationFrameworkEnvironment: String = config.get[String]("microservice.services.integration-framework.environment")
   val hipEnvironment: String = config.get[String]("microservice.services.hip.environment")
 
   def integrationFrameworkAuthorisationToken(api: String): String =
     config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+
+  def hipAuthorisationToken(api: String): String =
+    config.get[String](s"microservice.services.hip.authorisation-token.$api")
 
   val mongoTTL: Int         = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
   val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
@@ -95,5 +96,4 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
   }
 
   def emaSupportingAgentsEnabled: Boolean = config.get[Boolean]("feature-switch.ema-supporting-agents-enabled")
-  val hipMigrationEnabled: Boolean = config.get[Boolean]("feature-switch.hip-migration-enabled")
 }
