@@ -16,34 +16,48 @@
 
 package mocks
 
-import connectors.EmploymentConnector
+import connectors.{DownstreamOutcome, EmploymentConnector}
 import models.common.{Nino, TaxYear}
-import models.employment.CreateUpdateEmploymentRequest
-import org.scalamock.scalatest.MockFactory
+import models.employment.{AllEmploymentData, CreateUpdateEmploymentRequest}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mockito.stubbing.OngoingStubbing
+import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
-trait MockEmploymentConnector extends MockFactory {
-
+trait MockEmploymentConnector {
   val mockEmploymentConnector: EmploymentConnector = mock[EmploymentConnector]
 
   object MockEmploymentConnector {
 
-    def getEmployments(nino: Nino, taxYear: TaxYear) =
-      (mockEmploymentConnector
-        .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
+    def getEmployments(
+        nino: Nino,
+        taxYear: TaxYear,
+        returnValue: DownstreamOutcome[Option[AllEmploymentData]]): OngoingStubbing[DownstreamOutcome[Option[AllEmploymentData]]] =
+      when(
+        mockEmploymentConnector
+          .getEmployments(anyNino, anyTaxYear)(any[HeaderCarrier]))
+        .thenReturn(returnValue)
 
-    def saveEmployment(nino: Nino, taxYear: TaxYear, model: CreateUpdateEmploymentRequest) =
-      (mockEmploymentConnector
-        .saveEmployment(_: Nino, _: TaxYear, _: CreateUpdateEmploymentRequest)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(nino, taxYear, model, *, *)
+    def saveEmployment(nino: Nino,
+                       taxYear: TaxYear,
+                       model: CreateUpdateEmploymentRequest,
+                       returnValue: DownstreamOutcome[Unit]): OngoingStubbing[DownstreamOutcome[Unit]] =
+      when(
+        mockEmploymentConnector
+          .saveEmployment(anyNino, anyTaxYear, any[CreateUpdateEmploymentRequest])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(returnValue)
 
-    def deleteEmployment(nino: Nino, taxYear: TaxYear, employmentId: String) =
-      (mockEmploymentConnector
-        .deleteEmployment(_: Nino, _: TaxYear, _: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(nino, taxYear, employmentId, *, *)
+    def deleteEmployment(nino: Nino,
+                         taxYear: TaxYear,
+                         employmentId: String,
+                         returnValue: DownstreamOutcome[Unit]): OngoingStubbing[DownstreamOutcome[Unit]] =
+      when(
+        mockEmploymentConnector
+          .deleteEmployment(anyNino, anyTaxYear, any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturn(returnValue)
 
   }
 

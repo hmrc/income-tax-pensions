@@ -42,8 +42,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns a success result with an employment data model" must {
       "convert the model to an EmploymentPensions and return it" in {
         MockEmploymentConnector
-          .getEmployments(validNino, currentTaxYear)
-          .returns(allEmploymentsData.some.asRight.toFuture)
+          .getEmployments(validNino, currentTaxYear, allEmploymentsData.some.asRight.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
@@ -60,8 +59,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns a success result but with no EmploymentPensions" must {
       "generate an empty EmploymentPensions model" in {
         MockEmploymentConnector
-          .getEmployments(validNino, currentTaxYear)
-          .returns(none[AllEmploymentData].asRight.toFuture)
+          .getEmployments(validNino, currentTaxYear, none[AllEmploymentData].asRight.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
@@ -75,8 +73,7 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
     "connector returns an unsuccessful result" must {
       "propagate the error" in {
         MockEmploymentConnector
-          .getEmployments(validNino, currentTaxYear)
-          .returns(someServiceError.asLeft.toFuture)
+          .getEmployments(validNino, currentTaxYear, someServiceError.asLeft.toFuture)
 
         val result: Either[ServiceErrorModel, EmploymentPensions] =
           service
@@ -111,11 +108,9 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
 
     "save an employment if there is nothing existing already" in {
       MockEmploymentConnector
-        .getEmployments(validNino, currentTaxYear)
-        .returns(none[AllEmploymentData].asRight.toFuture)
+        .getEmployments(validNino, currentTaxYear, none[AllEmploymentData].asRight.toFuture)
       MockEmploymentConnector
-        .saveEmployment(validNino, currentTaxYear, createRequest)
-        .returns(Future.successful(Right(())))
+        .saveEmployment(validNino, currentTaxYear, createRequest, Future.successful(Right(())))
 
       val result: Either[ServiceErrorModel, Unit] =
         service
@@ -128,23 +123,20 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
 
     "delete existing, and create a new one if the employment id already exists" in {
       MockEmploymentConnector
-        .getEmployments(validNino, currentTaxYear)
-        .returns(
-          Some(
-            AllEmploymentData(
-              Nil,
-              None,
-              customerEmploymentData = List(
-                EmploymentSource("id1", "some name", Some("ref"), None, None, None, None, None, None, None, None)
-              ),
-              None,
-              None)).asRight.toFuture)
+        .getEmployments(validNino, currentTaxYear,    Some(
+          AllEmploymentData(
+            Nil,
+            None,
+            customerEmploymentData = List(
+              EmploymentSource("id1", "some name", Some("ref"), None, None, None, None, None, None, None, None)
+            ),
+            None,
+            None)).asRight.toFuture
+       )
       MockEmploymentConnector
-        .saveEmployment(validNino, currentTaxYear, createRequest)
-        .returns(Future.successful(Right(())))
+        .saveEmployment(validNino, currentTaxYear, createRequest, Future.successful(Right(())))
       MockEmploymentConnector
-        .deleteEmployment(validNino, currentTaxYear, "id1")
-        .returns(Future.successful(Right(())))
+        .deleteEmployment(validNino, currentTaxYear, "id1", Future.successful(Right(())))
 
       val result: Either[ServiceErrorModel, Unit] =
         service

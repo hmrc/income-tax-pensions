@@ -21,9 +21,8 @@ import config.AppConfig
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
-import java.net.URI
 
-import java.net.URL
+import java.net.URI
 
 trait DesIFConnector extends Logging {
 
