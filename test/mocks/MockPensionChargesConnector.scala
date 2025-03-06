@@ -35,14 +35,16 @@ trait MockPensionChargesConnector {
   val mockChargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
 
   def mockGetPensionChargesT(expectedResult: Either[ServiceError, Option[GetPensionChargesRequestModel]])
-  : OngoingStubbing[ApiResultT[Option[GetPensionChargesRequestModel]]] =
-    when(mockChargesConnector
-      .getPensionChargesT(anyNino, anyTaxYear)(any[HeaderCarrier]))
+      : OngoingStubbing[ApiResultT[Option[GetPensionChargesRequestModel]]] =
+    when(
+      mockChargesConnector
+        .getPensionChargesT(anyNino, anyTaxYear)(any[HeaderCarrier]))
       .thenReturn(EitherT.fromEither[Future](expectedResult))
 
   def mockCreateOrAmendPensionChargesT(expectedResult: Either[ServiceError, Unit],
                                        expectedModel: CreateUpdatePensionChargesRequestModel): OngoingStubbing[ApiResultT[Unit]] =
-    when(mockChargesConnector
-      .createUpdatePensionChargesT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
+    when(
+      mockChargesConnector
+        .createUpdatePensionChargesT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
       .thenReturn(EitherT.fromEither[Future](expectedResult))
 }

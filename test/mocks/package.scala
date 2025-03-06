@@ -19,6 +19,6 @@ import org.mockito.ArgumentMatchers.any
 
 package object mocks {
 
-  def anyNino: Nino               = Nino(any)
-  def anyTaxYear: TaxYear         = TaxYear(any)
+  def anyNino: Nino       = Nino(any)
+  def anyTaxYear: TaxYear = TaxYear(any)
 }

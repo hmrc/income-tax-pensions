@@ -32,10 +32,9 @@ trait MockEmploymentConnector {
 
   object MockEmploymentConnector {
 
-    def getEmployments(
-        nino: Nino,
-        taxYear: TaxYear,
-        returnValue: DownstreamOutcome[Option[AllEmploymentData]]): OngoingStubbing[DownstreamOutcome[Option[AllEmploymentData]]] =
+    def getEmployments(nino: Nino,
+                       taxYear: TaxYear,
+                       returnValue: DownstreamOutcome[Option[AllEmploymentData]]): OngoingStubbing[DownstreamOutcome[Option[AllEmploymentData]]] =
       when(
         mockEmploymentConnector
           .getEmployments(anyNino, anyTaxYear)(any[HeaderCarrier]))

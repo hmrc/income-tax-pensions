@@ -31,14 +31,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionReliefsConnector  {
+trait MockPensionReliefsConnector {
   val mockReliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
 
   def mockGetPensionReliefsT(
       expectedResult: Either[ServiceError, Option[GetPensionReliefsModel]]): OngoingStubbing[ApiResultT[Option[GetPensionReliefsModel]]] =
-    when(mockReliefsConnector
-      .getPensionReliefsT(anyNino, anyTaxYear)(any[HeaderCarrier]))
-    .thenReturn(EitherT.fromEither[Future](expectedResult))
+    when(
+      mockReliefsConnector
+        .getPensionReliefsT(anyNino, anyTaxYear)(any[HeaderCarrier]))
+      .thenReturn(EitherT.fromEither[Future](expectedResult))
 
   def mockCreateOrAmendPensionReliefsT(expectedResult: Either[ServiceError, Unit],
                                        expectedModel: CreateOrUpdatePensionReliefsModel): OngoingStubbing[ApiResultT[Unit]] =

@@ -31,12 +31,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionIncomesConnector  {
+trait MockPensionIncomesConnector {
   val mockIncomesConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
 
-  def mockGetPensionIncomesT(expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
-    when(mockIncomesConnector
-      .getPensionIncomeT(any[Nino], any[TaxYear])(any[HeaderCarrier]))
+  def mockGetPensionIncomesT(
+      expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
+    when(
+      mockIncomesConnector
+        .getPensionIncomeT(any[Nino], any[TaxYear])(any[HeaderCarrier]))
       .thenReturn(EitherT.fromEither[Future](expectedResult))
 
 }

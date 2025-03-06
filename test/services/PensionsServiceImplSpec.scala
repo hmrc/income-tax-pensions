@@ -125,12 +125,14 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
 
   "getAllPensionsData" should {
     "get all data and return a full AllPensionsData model" in {
-      when(mocks.mockReliefsConnector
-        .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockReliefsConnector
+          .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(expectedReliefsResult))
 
-      when(mocks.mockChargesConnector
-        .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockChargesConnector
+          .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(expectedChargesResult))
 
       (mockStateBenefitsService
@@ -138,8 +140,9 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
         .expects(*, *)
         .returning(EitherT.rightT[Future, ServiceError](Some(anAllStateBenefitsData)))
 
-      when(mocks.mockIncomeConnector
-        .getPensionIncome(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockIncomeConnector
+          .getPensionIncome(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(expectedPensionIncomeResult))
 
       val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
@@ -148,12 +151,14 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
     }
 
     "return a Right when all except EmploymentConnector return None" in {
-      when(mocks.mockReliefsConnector
-        .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockReliefsConnector
+          .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(Right(None)))
 
-      when(mocks.mockChargesConnector
-        .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockChargesConnector
+          .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(Right(None)))
 
       (mockStateBenefitsService
@@ -161,8 +166,9 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
         .expects(*, *)
         .returning(EitherT.rightT[Future, ServiceError](None))
 
-      when(mocks.mockIncomeConnector
-        .getPensionIncome(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockIncomeConnector
+          .getPensionIncome(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(Right(None)))
 
       val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
@@ -173,12 +179,14 @@ class PensionsServiceImplSpec extends TestUtils with BeforeAndAfterEach {
     "return an error if a connector call fails" in {
       val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      when(mocks.mockReliefsConnector
-        .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockReliefsConnector
+          .getPensionReliefs(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(expectedReliefsResult))
 
-      when(mocks.mockChargesConnector
-        .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
+      when(
+        mocks.mockChargesConnector
+          .getPensionCharges(anyString, anyInt)(any[HeaderCarrier]))
         .thenReturn(Future.successful(expectedErrorResult))
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))

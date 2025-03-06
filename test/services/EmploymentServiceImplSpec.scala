@@ -123,16 +123,19 @@ class EmploymentServiceImplSpec extends TestUtils with MockEmploymentConnector {
 
     "delete existing, and create a new one if the employment id already exists" in {
       MockEmploymentConnector
-        .getEmployments(validNino, currentTaxYear,    Some(
-          AllEmploymentData(
-            Nil,
-            None,
-            customerEmploymentData = List(
-              EmploymentSource("id1", "some name", Some("ref"), None, None, None, None, None, None, None, None)
-            ),
-            None,
-            None)).asRight.toFuture
-       )
+        .getEmployments(
+          validNino,
+          currentTaxYear,
+          Some(
+            AllEmploymentData(
+              Nil,
+              None,
+              customerEmploymentData = List(
+                EmploymentSource("id1", "some name", Some("ref"), None, None, None, None, None, None, None, None)
+              ),
+              None,
+              None)).asRight.toFuture
+        )
       MockEmploymentConnector
         .saveEmployment(validNino, currentTaxYear, createRequest, Future.successful(Right(())))
       MockEmploymentConnector

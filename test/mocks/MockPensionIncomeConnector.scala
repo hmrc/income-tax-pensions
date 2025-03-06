@@ -34,14 +34,17 @@ import scala.concurrent.Future
 trait MockPensionIncomeConnector {
   val mockIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
 
-  def mockGetPensionIncomeT(expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
-    when(mockIncomeConnector
-      .getPensionIncomeT(anyNino, anyTaxYear)(any[HeaderCarrier]))
+  def mockGetPensionIncomeT(
+      expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
+    when(
+      mockIncomeConnector
+        .getPensionIncomeT(anyNino, anyTaxYear)(any[HeaderCarrier]))
       .thenReturn(EitherT.fromEither[Future](expectedResult))
 
-  def mockCreateOrAmendPensionIncomeT(expectedResult: Either[ServiceError, Unit], expectedModel: CreateUpdatePensionIncomeModel)
-  : OngoingStubbing[ApiResultT[Unit]] =
-    when(mockIncomeConnector
-      .createOrAmendPensionIncomeT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
+  def mockCreateOrAmendPensionIncomeT(expectedResult: Either[ServiceError, Unit],
+                                      expectedModel: CreateUpdatePensionIncomeModel): OngoingStubbing[ApiResultT[Unit]] =
+    when(
+      mockIncomeConnector
+        .createOrAmendPensionIncomeT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
       .thenReturn(EitherT.fromEither[Future](expectedResult))
 }
