@@ -18,7 +18,6 @@ package models.logging
 
 import models.logging.HeaderCarrierExtensions.{CorrelationIdHeaderKey, HeaderCarrierOps}
 import play.api.Logger
-import play.api.libs.json.{Json, Writes}
 import uk.gov.hmrc.http.HeaderCarrier
 
 final case class ConnectorRequestInfo(method: String, url: String, apiId: String)(implicit hc: HeaderCarrier) {

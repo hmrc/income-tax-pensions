@@ -18,35 +18,33 @@ package mocks
 
 import cats.data.EitherT
 import connectors.PensionReliefsConnector
-import models.{CreateOrUpdatePensionReliefsModel, GetPensionReliefsModel}
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import org.scalamock.handlers.CallHandler3
-import org.scalamock.matchers.MockParameter
-import org.scalamock.scalatest.MockFactory
+import models.{CreateOrUpdatePensionReliefsModel, GetPensionReliefsModel}
+import org.mockito.ArgumentMatchers.{any, eq => meq}
+import org.mockito.Mockito.when
+import org.mockito.stubbing.OngoingStubbing
+import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionReliefsConnector extends MockFactory {
+trait MockPensionReliefsConnector {
   val mockReliefsConnector: PensionReliefsConnector = mock[PensionReliefsConnector]
 
-  def mockGetPensionReliefsT(expectedResult: Either[ServiceError, Option[GetPensionReliefsModel]])
-      : CallHandler3[Nino, TaxYear, HeaderCarrier, ApiResultT[Option[GetPensionReliefsModel]]] =
-    (mockReliefsConnector
-      .getPensionReliefsT(_: Nino, _: TaxYear)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returns(EitherT.fromEither[Future](expectedResult))
-      .anyNumberOfTimes()
+  def mockGetPensionReliefsT(
+      expectedResult: Either[ServiceError, Option[GetPensionReliefsModel]]): OngoingStubbing[ApiResultT[Option[GetPensionReliefsModel]]] =
+    when(
+      mockReliefsConnector
+        .getPensionReliefsT(anyNino, anyTaxYear)(any[HeaderCarrier]))
+      .thenReturn(EitherT.fromEither[Future](expectedResult))
 
   def mockCreateOrAmendPensionReliefsT(expectedResult: Either[ServiceError, Unit],
-                                       expectedModel: MockParameter[CreateOrUpdatePensionReliefsModel] = *)
-      : CallHandler3[JourneyContextWithNino, CreateOrUpdatePensionReliefsModel, HeaderCarrier, ApiResultT[Unit]] =
-    (mockReliefsConnector
-      .createOrAmendPensionReliefsT(_: JourneyContextWithNino, _: CreateOrUpdatePensionReliefsModel)(_: HeaderCarrier))
-      .expects(*, expectedModel, *)
-      .returns(EitherT.fromEither[Future](expectedResult))
-      .anyNumberOfTimes()
+                                       expectedModel: CreateOrUpdatePensionReliefsModel): OngoingStubbing[ApiResultT[Unit]] =
+    when(
+      mockReliefsConnector
+        .createOrAmendPensionReliefsT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
+      .thenReturn(EitherT.fromEither[Future](expectedResult))
 }

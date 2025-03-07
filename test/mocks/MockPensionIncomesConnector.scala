@@ -22,22 +22,23 @@ import models.GetPensionIncomeModel
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import org.scalamock.handlers.CallHandler3
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mockito.stubbing.OngoingStubbing
+import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionIncomesConnector extends MockFactory {
+trait MockPensionIncomesConnector {
   val mockIncomesConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
 
-  def mockGetPensionIncomesT(expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]])
-      : CallHandler3[Nino, TaxYear, HeaderCarrier, ApiResultT[Option[GetPensionIncomeModel]]] =
-    (mockIncomesConnector
-      .getPensionIncomeT(_: Nino, _: TaxYear)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returns(EitherT.fromEither[Future](expectedResult))
-      .anyNumberOfTimes()
+  def mockGetPensionIncomesT(
+      expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
+    when(
+      mockIncomesConnector
+        .getPensionIncomeT(any[Nino], any[TaxYear])(any[HeaderCarrier]))
+      .thenReturn(EitherT.fromEither[Future](expectedResult))
 
 }
