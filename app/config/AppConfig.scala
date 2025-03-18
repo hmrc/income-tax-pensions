@@ -55,8 +55,6 @@ trait AppConfig {
   def encryptionKey: String
 
   def useEncryption: Boolean
-  def emaSupportingAgentsEnabled: Boolean
-
 }
 
 class BackendAppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) extends AppConfig with Logging {
@@ -94,6 +92,4 @@ class BackendAppConfig @Inject() (config: Configuration, servicesConfig: Service
     logger.warn("Mongo Backend encryption is turned off")
     servicesConfig.getBoolean("useEncryption")
   }
-
-  def emaSupportingAgentsEnabled: Boolean = config.get[Boolean]("feature-switch.ema-supporting-agents-enabled")
 }

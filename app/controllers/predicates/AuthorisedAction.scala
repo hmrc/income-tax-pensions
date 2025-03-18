@@ -17,7 +17,6 @@
 package controllers.predicates
 
 import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
-import config.AppConfig
 import models.User
 import models.logging.CorrelationIdMdc.withEnrichedCorrelationId
 import play.api.Logger
@@ -36,14 +35,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthorisedAction @Inject() ()(implicit
     val authConnector: AuthConnector,
     defaultActionBuilder: DefaultActionBuilder,
-    val cc: ControllerComponents,
-    appConfig: AppConfig)
+    val cc: ControllerComponents)
     extends AuthorisedFunctions {
 
   lazy val logger: Logger                         = Logger.apply(this.getClass)
   implicit val executionContext: ExecutionContext = cc.executionContext
 
-  val unauthorized: Future[Result] = Future(Unauthorized)
+  private val unauthorized: Future[Result] = Future(Unauthorized)
 
   def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { original =>
     withEnrichedCorrelationId(original) { implicit request =>
@@ -72,7 +70,7 @@ class AuthorisedAction @Inject() ()(implicit
     }
   }
 
-  val minimumConfidenceLevel: Int = ConfidenceLevel.L250.level
+  private val minimumConfidenceLevel: Int = ConfidenceLevel.L250.level
 
   private[predicates] def individualAuthentication[A](block: User[A] => Future[Result], requestMtdItId: String)(implicit
       request: Request[A],
@@ -112,11 +110,6 @@ class AuthorisedAction @Inject() ()(implicit
       .withIdentifier(EnrolmentIdentifiers.individualId, mtdId)
       .withDelegatedAuthRule(DelegatedAuthRules.agentDelegatedAuthRule)
 
-  private[predicates] def secondaryAgentPredicate(mtdId: String): Predicate =
-    Enrolment(EnrolmentKeys.SupportingAgent)
-      .withIdentifier(EnrolmentIdentifiers.individualId, mtdId)
-      .withDelegatedAuthRule(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
-
   private[predicates] def agentAuthentication[A](block: User[A] => Future[Result], mtdItId: String)(implicit
       request: Request[A],
       hc: HeaderCarrier): Future[Result] =
@@ -124,30 +117,19 @@ class AuthorisedAction @Inject() ()(implicit
       .retrieve(allEnrolments) {
         populateAgent(block, mtdItId, _, isSupportingAgent = false)
       }
-      .recoverWith(agentRecovery(block, mtdItId))
+      .recoverWith(agentRecovery())
 
-  private def agentRecovery[A](block: User[A] => Future[Result], mtdItId: String)(implicit
-      request: Request[A],
-      hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+  private val agentAuthLogString: String = "[AuthorisedAction][agentAuthentication]"
+
+  private def agentRecovery(): PartialFunction[Throwable, Future[Result]] = {
     case _: NoActiveSession =>
-      logger.warn(s"[AuthorisedAction][agentAuthentication] - No active session.")
+      logger.warn(s"$agentAuthLogString - No active session.")
       unauthorized
-    case _: AuthorisationException if appConfig.emaSupportingAgentsEnabled =>
-      authorised(secondaryAgentPredicate(mtdItId))
-        .retrieve(allEnrolments)(enrolments => populateAgent(block, mtdItId, enrolments, isSupportingAgent = true))
-        .recover {
-          case _: AuthorisationException =>
-            logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated primary or secondary authority for Client.")
-            Unauthorized
-          case e =>
-            logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
-            InternalServerError
-        }
     case _: AuthorisationException =>
-      logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
+      logger.warn(s"$agentAuthLogString - Agent does not have delegated authority for Client.")
       unauthorized
     case e =>
-      logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+      logger.error(s"$agentAuthLogString - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
       Future(InternalServerError)
   }
 
@@ -155,9 +137,9 @@ class AuthorisedAction @Inject() ()(implicit
       request: Request[A]): Future[Result] =
     enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
       case Some(arn) =>
-        block(User(mtdItId, Some(arn), isSupportingAgent))
+        block(User(mtdItId, Some(arn)))
       case None =>
-        logger.warn("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
+        logger.warn(s"$agentAuthLogString Agent with no HMRC-AS-AGENT enrolment.")
         unauthorized
     }
 
