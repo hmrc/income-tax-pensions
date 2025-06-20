@@ -24,7 +24,9 @@ import models.common.{Nino, TaxYear}
 import models.domain.ApiResultT
 import models.logging.ConnectorRequestInfo
 import models.statebenefit.StateBenefitsUserData
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
 import java.time.Instant
 import java.util.UUID
@@ -40,40 +42,40 @@ trait StateBenefitsConnector {
 }
 
 @Singleton
-class StateBenefitsConnectorImpl @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext)
+class StateBenefitsConnectorImpl @Inject()(val http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext)
     extends StateBenefitsConnector
     with Connector {
   private val downstreamServiceName = "income-tax-state-benefits"
   private val parser                = ApiParser.CommonHttpReads(downstreamServiceName)
 
   def getStateBenefits(nino: Nino, taxYear: TaxYear)(implicit hc: HeaderCarrier): ApiResultT[Option[AllStateBenefitsData]] = {
-    val url = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"
+    val url = url"${appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/benefits/nino/$nino/tax-year/$taxYear"}"
 
-    implicit val updatedHc: HeaderCarrier                               = headerCarrier(url)(hc)
+    implicit val updatedHc: HeaderCarrier                               = headerCarrier(url.toString)(hc)
     implicit val optRds: OptionalContentHttpReads[AllStateBenefitsData] = new OptionalContentHttpReads[AllStateBenefitsData]
 
-    ConnectorRequestInfo("GET", url, downstreamServiceName)(updatedHc).logRequest(logger)
-    EitherT(http.GET[DownstreamErrorOr[Option[AllStateBenefitsData]]](url)(optRds, updatedHc, ec))
+    ConnectorRequestInfo("GET", url.toString, downstreamServiceName)(updatedHc).logRequest(logger)
+    EitherT(http.get(url)(updatedHc).execute)
       .leftMap(err => err.toServiceError)
   }
 
   def saveClaim(nino: Nino, model: StateBenefitsUserData)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
-    val url = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/claim-data/nino/$nino"
+    val url = url"${appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/claim-data/nino/$nino"}"
 
-    implicit val updatedHc: HeaderCarrier = headerCarrier(url)(hc)
+    implicit val updatedHc: HeaderCarrier = headerCarrier(url.toString)(hc)
     val updatedModel                      = model.copy(claim = model.claim.map(_.copy(submittedOn = Some(Instant.now()))))
 
-    EitherT(http.PUT[StateBenefitsUserData, DownstreamErrorOr[Unit]](url, updatedModel)(StateBenefitsUserData.format, parser, updatedHc, ec))
+    EitherT(http.put(url)(updatedHc).withBody(Json.toJson(updatedModel)).execute(parser, ec))
       .leftMap(err => err.toServiceError)
   }
 
   def deleteClaim(nino: Nino, taxYear: TaxYear, benefitId: UUID)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
-    val url = appConfig.stateBenefitsBaseUrl + s"/income-tax-state-benefits/claim-data/nino/$nino/$taxYear/$benefitId/remove"
+    val url = url"${appConfig.stateBenefitsBaseUrl}/income-tax-state-benefits/claim-data/nino/$nino/$taxYear/$benefitId/remove"
 
-    implicit val updatedHc: HeaderCarrier = headerCarrier(url)(hc)
+    implicit val updatedHc: HeaderCarrier = headerCarrier(url.toString)(hc)
 
-    ConnectorRequestInfo("DELETE", url, downstreamServiceName)(updatedHc).logRequest(logger)
-    EitherT(http.DELETE[DownstreamErrorOr[Unit]](url)(parser, updatedHc, ec))
+    ConnectorRequestInfo("DELETE", url.toString, downstreamServiceName)(updatedHc).logRequest(logger)
+    EitherT(http.delete(url)(updatedHc).execute(parser, ec))
       .leftMap(err => err.toServiceError)
   }
 }

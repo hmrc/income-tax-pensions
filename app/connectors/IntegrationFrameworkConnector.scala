@@ -20,7 +20,8 @@ import cats.data.EitherT
 import config.AppConfig
 import connectors.httpParsers.ApiParser
 import models.domain.ApiResultT
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.Logging
 
 import javax.inject.Inject
@@ -29,16 +30,18 @@ import scala.concurrent.ExecutionContext
 // TODO Move all calls to IFS here
 trait IntegrationFrameworkConnector {}
 
-class IntegrationFrameworkConnectorImpl @Inject() (val http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext)
-    extends IntegrationFrameworkConnector
-    with Logging {
+class IntegrationFrameworkConnectorImpl @Inject()(val http: HttpClientV2, val appConfig: AppConfig)
+                                                 (implicit ec: ExecutionContext) extends IntegrationFrameworkConnector with Logging {
+
   private def parser(apiNumber: Option[String]) = ApiParser.CommonHttpReads(s"integration-framework: api-${apiNumber.getOrElse("?")}")
 
   // It's a public method outside of the trait because it is only used in testOnly
   def testClearData(nino: String)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
-    val url = s"${appConfig.ifBaseUrl}/nino/$nino"
+    val url = url"${appConfig.ifBaseUrl}/nino/$nino"
+    implicit val reads: ApiParser.CommonHttpReads = parser(Some("test-only-stub"))
 
-    val res = http.DELETE(url)(parser(Some("test-only-stub")), hc, ec)
+    val res = http.delete(url).execute
+
     EitherT(res).leftMap(_.toServiceError)
   }
 }
