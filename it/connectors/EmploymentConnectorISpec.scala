@@ -24,13 +24,14 @@ import play.api.Configuration
 import play.api.http.Status.{NO_CONTENT, OK}
 import play.api.libs.json.Json
 import testdata.connector.employment.fullEmploymentRequest
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.TestUtils._
 
 class EmploymentConnectorISpec extends WiremockSpec {
-  val httpClient                 = app.injector.instanceOf[HttpClient]
+  val httpClient                 = app.injector.instanceOf[HttpClientV2]
   val configuration              = app.injector.instanceOf[Configuration]
   val servicesConfig             = app.injector.instanceOf[ServicesConfig]
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -53,7 +54,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
         response = Json.toJson(allEmploymentsData).toString()
       )
 
-      val res = connector.getEmployments(nino, taxYear).futureValue
+      val res = await(connector.getEmployments(nino, taxYear))
       assert(res === allEmploymentsData.some.asRight)
     }
   }
@@ -66,7 +67,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
         requestBody = Json.toJson(fullEmploymentRequest).toString()
       )
 
-      val res = connector.saveEmployment(nino, taxYear, fullEmploymentRequest).futureValue
+      val res = await(connector.saveEmployment(nino, taxYear, fullEmploymentRequest))
       assert(res === ().asRight)
     }
   }
@@ -78,7 +79,7 @@ class EmploymentConnectorISpec extends WiremockSpec {
         status = NO_CONTENT
       )
 
-      val res = connector.deleteEmployment(nino, taxYear, employmentId).futureValue
+      val res = await(connector.deleteEmployment(nino, taxYear, employmentId))
       assert(res === ().asRight)
     }
   }

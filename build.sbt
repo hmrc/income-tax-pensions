@@ -19,7 +19,7 @@ import play.sbt.routes.RoutesKeys
 lazy val appName = "income-tax-pensions"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.16"
 
 lazy val coverageSettings: Seq[Setting[_]] = {
   import scoverage.ScoverageKeys

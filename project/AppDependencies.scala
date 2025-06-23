@@ -18,7 +18,7 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "9.11.0"
+  private val bootstrapVersion = "9.13.0"
   private val flexmarkVersion  = "0.64.8"
   private val hmrcMongoVersion = "2.6.0"
 
