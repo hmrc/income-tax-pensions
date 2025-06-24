@@ -5,15 +5,25 @@ This is where we make API calls from users viewing and making changes to the Pen
 ## Running the service locally
 
 You will need to have the following:
-- Installed/configured [service manager](https://github.com/hmrc/service-manager).
 
+### Service Manager 
+Installed/configured [service manager](https://github.com/hmrc/sm2).  
 The service manager profile for this service is:
+```shell
+  sm2 --start INCOME_TAX_PENSIONS
+```
 
-    sm --start INCOME_TAX_PENSIONS
+### Sbt
+```shell
+  sbt run -Dapplication.router=testOnlyDoNotUseInAppConf.Routes
+```
+
 Run the following command to start the remaining services locally:
 
-    sudo mongod (If not already running)
-    sm --start INCOME_TAX_SUBMISSION_ALL -r
+```shell
+  sudo mongod (If not already running)
+  sm2 --start INCOME_TAX_SUBMISSION_ALL
+```
 
 This service runs on port: `localhost:9322`
 
