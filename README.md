@@ -17,6 +17,11 @@ The service manager profile for this service is:
 ```shell
   sbt run -Dapplication.router=testOnlyDoNotUseInAppConf.Routes
 ```
+Or
+
+```shell
+  ./run.sh
+```
 
 Run the following command to start the remaining services locally:
 
