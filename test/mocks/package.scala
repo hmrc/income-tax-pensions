@@ -21,4 +21,5 @@ package object mocks {
 
   def anyNino: Nino       = Nino(any)
   def anyTaxYear: TaxYear = TaxYear(any)
+  def anyMtditid: Mtditid = Mtditid(any)
 }

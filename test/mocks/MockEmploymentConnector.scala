@@ -19,44 +19,47 @@ package mocks
 import connectors.{DownstreamOutcome, EmploymentConnector}
 import models.common.{Nino, TaxYear}
 import models.employment.{AllEmploymentData, CreateUpdateEmploymentRequest}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.mockito.stubbing.OngoingStubbing
-import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalamock.handlers.{CallHandler3, CallHandler5}
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
-trait MockEmploymentConnector {
+trait MockEmploymentConnector extends MockFactory {
+  self: TestSuite =>
   val mockEmploymentConnector: EmploymentConnector = mock[EmploymentConnector]
 
   object MockEmploymentConnector {
 
     def getEmployments(nino: Nino,
                        taxYear: TaxYear,
-                       returnValue: DownstreamOutcome[Option[AllEmploymentData]]): OngoingStubbing[DownstreamOutcome[Option[AllEmploymentData]]] =
-      when(
-        mockEmploymentConnector
-          .getEmployments(anyNino, anyTaxYear)(any[HeaderCarrier]))
-        .thenReturn(returnValue)
+                       returnValue: DownstreamOutcome[Option[AllEmploymentData]]
+                      ): CallHandler3[Nino, TaxYear, HeaderCarrier, DownstreamOutcome[Option[AllEmploymentData]]] =
+      (mockEmploymentConnector
+        .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(returnValue)
 
     def saveEmployment(nino: Nino,
                        taxYear: TaxYear,
                        model: CreateUpdateEmploymentRequest,
-                       returnValue: DownstreamOutcome[Unit]): OngoingStubbing[DownstreamOutcome[Unit]] =
-      when(
-        mockEmploymentConnector
-          .saveEmployment(anyNino, anyTaxYear, any[CreateUpdateEmploymentRequest])(any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(returnValue)
+                       returnValue: DownstreamOutcome[Unit]
+                      ): CallHandler5[Nino, TaxYear, CreateUpdateEmploymentRequest, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
+      (mockEmploymentConnector
+        .saveEmployment(_: Nino, _: TaxYear, _:CreateUpdateEmploymentRequest)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(nino, taxYear, model, *, *)
+        .returning(returnValue)
 
     def deleteEmployment(nino: Nino,
                          taxYear: TaxYear,
                          employmentId: String,
-                         returnValue: DownstreamOutcome[Unit]): OngoingStubbing[DownstreamOutcome[Unit]] =
-      when(
-        mockEmploymentConnector
-          .deleteEmployment(anyNino, anyTaxYear, any[String])(any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(returnValue)
+                         returnValue: DownstreamOutcome[Unit]
+                        ): CallHandler5[Nino, TaxYear, String, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
+      (mockEmploymentConnector
+        .deleteEmployment(_: Nino, _: TaxYear, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(nino, taxYear, employmentId, *, *)
+        .returning(returnValue)
 
   }
 
