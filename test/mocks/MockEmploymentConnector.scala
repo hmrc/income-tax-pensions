@@ -33,8 +33,9 @@ trait MockEmploymentConnector extends MockFactory {
   object MockEmploymentConnector {
 
     def getEmployments(nino: Nino,
-                       taxYear: TaxYear)
-                      (returnValue: DownstreamOutcome[Option[AllEmploymentData]]): CallHandler3[Nino, TaxYear, HeaderCarrier, DownstreamOutcome[Option[AllEmploymentData]]] =
+                       taxYear: TaxYear,
+                       returnValue: DownstreamOutcome[Option[AllEmploymentData]]
+                      ): CallHandler3[Nino, TaxYear, HeaderCarrier, DownstreamOutcome[Option[AllEmploymentData]]] =
       (mockEmploymentConnector
         .getEmployments(_: Nino, _: TaxYear)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
@@ -42,8 +43,9 @@ trait MockEmploymentConnector extends MockFactory {
 
     def saveEmployment(nino: Nino,
                        taxYear: TaxYear,
-                       model: CreateUpdateEmploymentRequest)
-                      (returnValue: DownstreamOutcome[Unit]): CallHandler5[Nino, TaxYear, CreateUpdateEmploymentRequest, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
+                       model: CreateUpdateEmploymentRequest,
+                       returnValue: DownstreamOutcome[Unit]
+                      ): CallHandler5[Nino, TaxYear, CreateUpdateEmploymentRequest, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
       (mockEmploymentConnector
         .saveEmployment(_: Nino, _: TaxYear, _:CreateUpdateEmploymentRequest)(_: HeaderCarrier, _: ExecutionContext))
         .expects(nino, taxYear, model, *, *)
@@ -51,8 +53,9 @@ trait MockEmploymentConnector extends MockFactory {
 
     def deleteEmployment(nino: Nino,
                          taxYear: TaxYear,
-                         employmentId: String)
-                        (returnValue: DownstreamOutcome[Unit]): CallHandler5[Nino, TaxYear, String, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
+                         employmentId: String,
+                         returnValue: DownstreamOutcome[Unit]
+                        ): CallHandler5[Nino, TaxYear, String, HeaderCarrier, ExecutionContext, DownstreamOutcome[Unit]] =
       (mockEmploymentConnector
         .deleteEmployment(_: Nino, _: TaxYear, _: String)(_: HeaderCarrier, _: ExecutionContext))
         .expects(nino, taxYear, employmentId, *, *)
