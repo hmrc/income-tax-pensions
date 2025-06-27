@@ -18,6 +18,7 @@ package mocks
 
 import cats.data.EitherT
 import connectors.PensionReliefsConnector
+import connectors.httpParsers.GetPensionReliefsHttpParser.GetPensionReliefsResponse
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
@@ -42,6 +43,15 @@ trait MockPensionReliefsConnector extends MockFactory {
       .expects(*, *, *)
       .anyNumberOfTimes()
       .returning(EitherT.fromEither[Future](expectedResult))
+
+  def mockGetPensionReliefs(
+                              expectedResult: Future[GetPensionReliefsResponse]
+                            ): CallHandler3[String, Int, HeaderCarrier, Future[GetPensionReliefsResponse]] =
+    (mockReliefsConnector
+      .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .anyNumberOfTimes()
+      .returning(expectedResult)
 
   def mockCreateOrAmendPensionReliefsT(
                                         expectedResult: Either[ServiceError, Unit],

@@ -34,8 +34,8 @@ trait MockStateBenefitService extends MockFactory {
 
   val mockStateBenefitsService: StateBenefitService = mock[StateBenefitService]
 
-  def mockGetStateBenefits(ctx: JourneyContextWithNino)(
-    result: Either[ServiceError, Option[AllStateBenefitsData]]
+  def mockGetStateBenefits(ctx: JourneyContextWithNino,
+                           result: Either[ServiceError, Option[AllStateBenefitsData]]
   ): Unit =
     (mockStateBenefitsService.getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
       .expects(*, *)

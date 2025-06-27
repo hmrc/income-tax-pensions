@@ -81,7 +81,7 @@ class PensionsServiceImplSpec
   def createPensionWithStubs(
                               mockEmploymentService: EmploymentService = mockEmploymentService,
                               mockStateBenefitService: StateBenefitService = mockStateBenefitsService,
-                              stubStatusService: JourneyStatusService = mockJourneyStatusService
+                              mockStatusService: JourneyStatusService = mockJourneyStatusService
                             ) =
     new PensionsServiceImpl(
       mockAppConfig,
@@ -97,7 +97,7 @@ class PensionsServiceImplSpec
   val service: PensionsServiceImpl = createPensionWithStubs(
     mockEmploymentService = mockEmploymentService,
     mockStateBenefitService = mockStateBenefitsService,
-    stubStatusService = mockJourneyStatusService
+    mockStatusService = mockJourneyStatusService
   )
 
   def serviceWithMock: PensionsService = createPensionWithStubs(mockEmploymentService, mockStateBenefitsService)
@@ -115,32 +115,11 @@ class PensionsServiceImplSpec
 
   "getAllPensionsData" should {
     "get all data and return a full AllPensionsData model" in {
-      (mockReliefsConnector
-        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(expectedReliefsResult))
-
-      (mockChargesConnector
-        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(expectedChargesResult))
-
-      (mockStateBenefitsService
-        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
-        .expects(*, *)
-        .anyNumberOfTimes()
-        .returning(EitherT.rightT[Future, ServiceError](Some(anAllStateBenefitsData)))
-
-
-      (mockIncomeConnector
-        .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(expectedPensionIncomeResult))
-
-      mockGetEmployment(sampleCtx)(Right(EmploymentPensionsBuilder.employmentPensionsData))
+      mockGetPensionReliefs(Future.successful(expectedReliefsResult))
+      mockGetPensionCharges(Future.successful(expectedChargesResult))
+      mockGetStateBenefits(sampleCtx, Right(Some(anAllStateBenefitsData)))
+      mockGetPensionIncome(Future.successful(expectedPensionIncomeResult))
+      mockGetEmployment(sampleCtx, Right(EmploymentPensionsBuilder.employmentPensionsData))
 
       val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
 
@@ -148,31 +127,12 @@ class PensionsServiceImplSpec
     }
 
     "return a Right when all except EmploymentConnector return None" in {
-      (mockReliefsConnector
-        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(Right(None)))
 
-      (mockChargesConnector
-        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(Right(None)))
-
-      (mockStateBenefitsService
-        .getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
-        .expects(*, *)
-        .anyNumberOfTimes()
-        .returning(EitherT.rightT[Future, ServiceError](None))
-
-      (mockIncomeConnector
-        .getPensionIncome(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(Right(None)))
-
-      mockGetEmployment(sampleCtx)(Right(EmploymentPensionsBuilder.employmentPensionsData))
+      mockGetPensionReliefs(Future.successful(Right(None)))
+      mockGetPensionCharges(Future.successful(Right(None)))
+      mockGetStateBenefits(sampleCtx, Right(None))
+      mockGetPensionIncome(Future.successful(Right(None)))
+      mockGetEmployment(sampleCtx, Right(EmploymentPensionsBuilder.employmentPensionsData))
 
       val result = await(serviceWithMock.getAllPensionsData(nino, taxYear, mtditid))
 
@@ -182,17 +142,8 @@ class PensionsServiceImplSpec
     "return an error if a connector call fails" in {
       val expectedErrorResult: GetPensionChargesResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
 
-      (mockReliefsConnector
-        .getPensionReliefs(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(expectedReliefsResult))
-
-      (mockChargesConnector
-        .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
-        .expects(*, *, *)
-        .anyNumberOfTimes()
-        .returning(Future.successful(expectedErrorResult))
+      mockGetPensionReliefs(Future.successful(expectedReliefsResult))
+      mockGetPensionCharges(Future.successful(expectedErrorResult))
 
       val result = await(service.getAllPensionsData(nino, taxYear, mtditid))
 
@@ -298,7 +249,7 @@ class PensionsServiceImplSpec
 
   "getUkPensionIncome" should {
     "get None if No downstream and DB answers" in {
-      mockGetEmployment(sampleCtx)(Right(EmploymentPensions(Nil)))
+      mockGetEmployment(sampleCtx, Right(EmploymentPensions(Nil)))
 
       val service = createPensionWithStubs()
 
@@ -309,7 +260,7 @@ class PensionsServiceImplSpec
 
     "get uKPensionIncomesQuestion=false with no incomes if no downstream answers, but if db answers exist" in {
       val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
-      mockGetEmployment(sampleCtx)(Right(EmploymentPensions(Nil)))
+      mockGetEmployment(sampleCtx, Right(EmploymentPensions(Nil)))
 
       val service = createPensionWithStubs()
 
@@ -325,7 +276,7 @@ class PensionsServiceImplSpec
     "get uKPensionIncomesQuestion=false with no incomes" in {
       val answers = UkPensionIncomeStorageAnswers(true) // it doesn't matter if true or false. IT will be false if no incomes
 
-      mockGetEmployment(sampleCtx)(Right(EmploymentPensionsBuilder.employmentPensionsData))
+      mockGetEmployment(sampleCtx, Right(EmploymentPensionsBuilder.employmentPensionsData))
 
       val service = createPensionWithStubs()
 
@@ -355,14 +306,14 @@ class PensionsServiceImplSpec
 
   "getStatePension" should {
     "get None if No downstream and DB answers" in {
-      mockGetStateBenefits(sampleCtx)(Right(None))
+      mockGetStateBenefits(sampleCtx, Right(None))
       val result = service.getStatePension(sampleCtx).value.futureValue.value
 
       assert(result === None)
     }
 
     "return answers from downstream even when DB answers does not exist" in {
-      mockGetStateBenefits(sampleCtx)(Right(None))
+      mockGetStateBenefits(sampleCtx, Right(None))
       val answers = IncomeFromPensionsStatePensionStorageAnswers(Some(true), Some(true))
 
       val result = (for {
@@ -382,7 +333,7 @@ class PensionsServiceImplSpec
     }
 
     "get answers from downstream" in {
-      mockGetStateBenefits(sampleCtx)(Right(Some(stateBenefits.allStateBenefitsData)))
+      mockGetStateBenefits(sampleCtx, Right(Some(stateBenefits.allStateBenefitsData)))
 
       val service = createPensionWithStubs()
 
@@ -439,7 +390,7 @@ class PensionsServiceImplSpec
     "upsertAnnualAllowances" should {
       "upsert answers " in {
         mockGetPensionChargesT(Right(None))
-        mockCreateOrAmendPensionChargesT(Right(None))(expectedModel = CreateUpdatePensionChargesRequestModel(None, None, Some(pensionContributions), None))
+        mockCreateOrAmendPensionChargesT(Right(None), expectedModel = CreateUpdatePensionChargesRequestModel(None, None, Some(pensionContributions), None))
 
         service.upsertAnnualAllowances(sampleCtx, annualAllowancesAnswers).value.futureValue
 
@@ -529,7 +480,8 @@ class PensionsServiceImplSpec
       "upsert answers " in {
         mockGetPensionChargesT(Right(None))
         mockCreateOrAmendPensionChargesT(
-          Right(None))(expectedModel = CreateUpdatePensionChargesRequestModel.empty.copy(pensionSchemeOverseasTransfers = Some(pensionSchemeOverseasTransfers)))
+          Right(None),
+          expectedModel = CreateUpdatePensionChargesRequestModel.empty.copy(pensionSchemeOverseasTransfers = Some(pensionSchemeOverseasTransfers)))
 
         service.upsertTransfersIntoOverseasPensions(sampleCtx, transfersIntoOverseasPensionsAnswers).value.futureValue
 
@@ -605,7 +557,7 @@ class PensionsServiceImplSpec
       "insert answers if overseasPensionContributions does not exist" in {
         mockGetPensionChargesT(Right(None))
         mockCreateOrAmendPensionChargesT(
-          Right(None))(
+          Right(None),
           expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
         )
 
@@ -622,7 +574,7 @@ class PensionsServiceImplSpec
               GetPensionChargesRequestModel("unused", None, None, None, Some(OverseasPensionContributions(Seq(), BigDecimal(0.0), BigDecimal(0.0))))))
         )
         mockCreateOrAmendPensionChargesT(
-          Right(None))(
+          Right(None),
           expectedModel = CreateUpdatePensionChargesRequestModel(None, None, None, Some(overseasPensionContributions))
         )
 
@@ -638,9 +590,9 @@ class PensionsServiceImplSpec
         mockGetPensionReliefsT(Right(None))
         mockGetPensionChargesT(Right(None))
         mockGetPensionIncomeT(Right(None))
-        mockGetStateBenefits(sampleCtx)(Right(None))
-        mockGetEmployment(sampleCtx)(Right(EmploymentPensions.empty))
-        mockGetAllStatuses(currentTaxYear, validMtditid)(Right(List.empty))
+        mockGetStateBenefits(sampleCtx, Right(None))
+        mockGetEmployment(sampleCtx, Right(EmploymentPensions.empty))
+        mockGetAllStatuses(currentTaxYear, validMtditid, Right(List.empty))
 
 
         val underTest: PensionsService = new PensionsServiceImpl(
@@ -665,8 +617,7 @@ class PensionsServiceImplSpec
 
         mockGetAllStatuses(
           taxYear = sampleCtx.taxYear,
-          mtditid = sampleCtx.mtditid
-        )(
+          mtditid = sampleCtx.mtditid,
           Right(List(
             JourneyNameAndStatus(Journey.PaymentsIntoPensions, JourneyStatus.NotStarted),
             JourneyNameAndStatus(Journey.UkPensionIncome, JourneyStatus.InProgress),
@@ -694,8 +645,8 @@ class PensionsServiceImplSpec
         mockGetPensionReliefsT(Right(None))
         mockGetPensionChargesT(Right(None))
         mockGetPensionIncomeT(Right(None))
-        mockGetStateBenefits(sampleCtx)(Right(None))
-        mockGetEmployment(sampleCtx)(Right(EmploymentPensionsBuilder.employmentPensionsData))
+        mockGetStateBenefits(sampleCtx, Right(None))
+        mockGetEmployment(sampleCtx, Right(EmploymentPensionsBuilder.employmentPensionsData))
 
 
         val result = service.getCommonTaskList(sampleCtx).value.futureValue.value

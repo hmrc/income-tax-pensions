@@ -18,6 +18,7 @@ package mocks
 
 import cats.data.EitherT
 import connectors.PensionChargesConnector
+import connectors.httpParsers.GetPensionChargesHttpParser.GetPensionChargesResponse
 import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionChargesRequestModel}
 import models.common._
 import models.domain.ApiResultT
@@ -43,8 +44,18 @@ trait MockPensionChargesConnector extends MockFactory {
       .anyNumberOfTimes()
       .returning(EitherT.fromEither[Future](expectedResult))
 
-  def mockCreateOrAmendPensionChargesT(expectedResult: Either[ServiceError, Unit])
-                                      (expectedModel: CreateUpdatePensionChargesRequestModel): CallHandler3[JourneyContextWithNino, CreateUpdatePensionChargesRequestModel, HeaderCarrier, ApiResultT[Unit]] =
+  def mockGetPensionCharges(
+                              expectedResult: Future[GetPensionChargesResponse]
+                            ): CallHandler3[String, Int, HeaderCarrier, Future[GetPensionChargesResponse]] =
+    (mockChargesConnector
+      .getPensionCharges(_: String, _: Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .anyNumberOfTimes()
+      .returning(expectedResult)
+
+  def mockCreateOrAmendPensionChargesT(expectedResult: Either[ServiceError, Unit],
+                                       expectedModel: CreateUpdatePensionChargesRequestModel
+                                      ): CallHandler3[JourneyContextWithNino, CreateUpdatePensionChargesRequestModel, HeaderCarrier, ApiResultT[Unit]] =
     (mockChargesConnector
       .createUpdatePensionChargesT(_: JourneyContextWithNino, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
       .expects(*, expectedModel, *)

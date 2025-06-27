@@ -34,8 +34,7 @@ trait MockJourneyStatusService extends MockFactory {
 
   def mockGetAllStatuses(
                           taxYear: TaxYear,
-                          mtditid: Mtditid
-                        )(
+                          mtditid: Mtditid,
                           result: Either[ServiceError, List[JourneyNameAndStatus]]
                         ): Unit =
     (mockJourneyStatusService
@@ -44,8 +43,7 @@ trait MockJourneyStatusService extends MockFactory {
       .returning(EitherT.fromEither[Future](result))
 
   def mockGetJourneyStatus(
-                            ctx: JourneyContext
-                          )(
+                            ctx: JourneyContext,
                             result: Either[ServiceError, List[JourneyNameAndStatus]]
                           ): Unit =
     (mockJourneyStatusService
@@ -55,8 +53,7 @@ trait MockJourneyStatusService extends MockFactory {
 
   def mockSaveJourneyStatus(
                              ctx: JourneyContext,
-                             journeyStatus: JourneyStatus
-                           )(
+                             journeyStatus: JourneyStatus,
                              result: Either[ServiceError, Unit] = Right(())
                            ): Unit =
     (mockJourneyStatusService

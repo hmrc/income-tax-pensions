@@ -36,8 +36,8 @@ trait MockEmploymentService extends MockFactory {
   val mockEmploymentService: EmploymentService = mock[EmploymentService]
 
   def mockGetEmployment(
-                         ctx: JourneyContextWithNino
-                       )(result: Either[ServiceError, EmploymentPensions]): Unit =
+                         ctx: JourneyContextWithNino,
+                         result: Either[ServiceError, EmploymentPensions]): Unit =
     (mockEmploymentService
       .getEmployment(_: JourneyContextWithNino)(_: HeaderCarrier))
       .expects(*, *)

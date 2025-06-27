@@ -16,7 +16,7 @@
 
 package services
 
-import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector, anyMtditid, anyTaxYear}
+import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
 import models.common.TaxYear
 import models.commonTaskList.TaskStatus.CheckNow
 import models.commonTaskList.taskItemTitles.{PaymentsIntoPensionsTitles, PensionsTitles}
@@ -28,7 +28,6 @@ import stubs.repositories.StubJourneyAnswersRepository
 import stubs.services.{MockEmploymentService, MockJourneyStatusService, MockStateBenefitService}
 import testdata.appConfig.createAppConfig
 import utils.EitherTTestOps.convertScalaFuture
-import utils.TestUtils
 import utils.TestUtils.{hc, journeyCtxWithNino, mtditid, taxYear}
 
 import java.time.LocalDate
@@ -58,9 +57,9 @@ class PensionsServiceSpec
       mockGetPensionReliefsT(Right(None))
       mockGetPensionChargesT(Right(None))
       mockGetPensionIncomeT(Right(None))
-      mockGetStateBenefits(journeyCtxWithNino)(Right(None))
-      mockGetEmployment(journeyCtxWithNino)(Right(EmploymentPensions.empty))
-      mockGetAllStatuses(taxYear, mtditid)(Right(List.empty))
+      mockGetStateBenefits(journeyCtxWithNino, Right(None))
+      mockGetEmployment(journeyCtxWithNino, Right(EmploymentPensions.empty))
+      mockGetAllStatuses(taxYear, mtditid, Right(List.empty))
 
 
       val underTest = new PensionsServiceImpl(

@@ -18,6 +18,7 @@ package mocks
 
 import cats.data.EitherT
 import connectors.PensionIncomeConnector
+import connectors.httpParsers.GetPensionIncomeHttpParser.GetPensionIncomeResponse
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
@@ -41,6 +42,15 @@ trait MockPensionIncomeConnector extends MockFactory {
       .expects(*, *, *)
       .anyNumberOfTimes()
       .returning(EitherT.fromEither[Future](expectedResult))
+
+  def mockGetPensionIncome(
+                            expectedResult: Future[GetPensionIncomeResponse]
+                          ): CallHandler3[String, Int, HeaderCarrier, Future[GetPensionIncomeResponse]] =
+    (mockIncomeConnector
+      .getPensionIncome(_: String, _:Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .anyNumberOfTimes()
+      .returning(expectedResult)
 
   def mockCreateOrAmendPensionIncomeT(expectedResult: Either[ServiceError, Unit],
                                       expectedModel: CreateUpdatePensionIncomeModel): CallHandler3[JourneyContextWithNino, CreateUpdatePensionIncomeModel, HeaderCarrier, ApiResultT[Unit]] =
