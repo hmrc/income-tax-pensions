@@ -19,27 +19,32 @@ package stubs.services
 import cats.data.EitherT
 import models.AllStateBenefitsData
 import models.common.JourneyContextWithNino
-import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend.statepension.IncomeFromPensionsStatePensionAnswers
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.StateBenefitService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class StubStateBenefitService(
-    getStateBenefitsResult: Either[ServiceError, Option[AllStateBenefitsData]] = Right(None),
-    var stateBenefits: List[IncomeFromPensionsStatePensionAnswers] = Nil
-) extends StateBenefitService {
+trait MockStateBenefitService extends MockFactory {
+  self: TestSuite =>
 
-  def getStateBenefits(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[Option[AllStateBenefitsData]] =
-    EitherT.fromEither[Future](getStateBenefitsResult)
+  val mockStateBenefitsService: StateBenefitService = mock[StateBenefitService]
 
-  def upsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers)(implicit
-      hc: HeaderCarrier): ApiResultT[Unit] = {
-    stateBenefits ::= answers
-    EitherT.rightT(())
-  }
+  def mockGetStateBenefits(ctx: JourneyContextWithNino)(
+    result: Either[ServiceError, Option[AllStateBenefitsData]]
+  ): Unit =
+    (mockStateBenefitsService.getStateBenefits(_: JourneyContextWithNino)(_: HeaderCarrier))
+      .expects(*, *)
+      .anyNumberOfTimes()
+      .returning(EitherT.fromEither[Future](result))
 
+  def mockUpsertStateBenefits(ctx: JourneyContextWithNino, answers: IncomeFromPensionsStatePensionAnswers): Unit =
+    (mockStateBenefitsService.upsertStateBenefits(_: JourneyContextWithNino, _: IncomeFromPensionsStatePensionAnswers)(_: HeaderCarrier))
+      .expects(ctx, answers, *)
+      .anyNumberOfTimes()
+      .returning(EitherT.rightT[Future, ServiceError](()))
 }

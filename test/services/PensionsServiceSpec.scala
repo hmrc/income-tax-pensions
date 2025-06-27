@@ -16,23 +16,32 @@
 
 package services
 
-import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector}
+import mocks.{MockPensionChargesConnector, MockPensionIncomeConnector, MockPensionReliefsConnector, anyMtditid, anyTaxYear}
 import models.common.TaxYear
 import models.commonTaskList.TaskStatus.CheckNow
 import models.commonTaskList.taskItemTitles.{PaymentsIntoPensionsTitles, PensionsTitles}
 import models.commonTaskList.{SectionTitle, TaskListSection, TaskListSectionItem}
+import models.submission.EmploymentPensions
 import org.scalatest.EitherValues._
 import org.scalatest.wordspec.AnyWordSpecLike
 import stubs.repositories.StubJourneyAnswersRepository
-import stubs.services.{StubEmploymentService, StubJourneyStatusService, StubStateBenefitService}
+import stubs.services.{MockEmploymentService, MockJourneyStatusService, MockStateBenefitService}
 import testdata.appConfig.createAppConfig
 import utils.EitherTTestOps.convertScalaFuture
-import utils.TestUtils.{hc, journeyCtxWithNino}
+import utils.TestUtils
+import utils.TestUtils.{hc, journeyCtxWithNino, mtditid, taxYear}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class PensionsServiceSpec extends AnyWordSpecLike {
+class PensionsServiceSpec
+  extends AnyWordSpecLike
+    with MockPensionChargesConnector
+    with MockPensionReliefsConnector
+    with MockPensionIncomeConnector
+    with MockStateBenefitService
+    with MockEmploymentService
+    with MockJourneyStatusService {
 
   val currentTaxYear: TaxYear = TaxYear(LocalDate.now().getYear)
   val baseURL                 = s"http://localhost:9321/update-and-submit-income-tax-return/pensions/$currentTaxYear"
@@ -41,22 +50,25 @@ class PensionsServiceSpec extends AnyWordSpecLike {
     "return all journeys as NotStarted if no data" in {
       val appConfig = createAppConfig()
 
-      val stateBenfitService = StubStateBenefitService()
-      val employmentService  = StubEmploymentService()
-      val statusService      = StubJourneyStatusService()
+      val stateBenefitService = mockStateBenefitsService
+      val statusService      = mockJourneyStatusService
+      val employmentService  = mockEmploymentService
       val repository         = StubJourneyAnswersRepository()
-      val mocks = new MockPensionReliefsConnector with MockPensionChargesConnector with MockPensionIncomeConnector {
-        mockGetPensionReliefsT(Right(None))
-        mockGetPensionChargesT(Right(None))
-        mockGetPensionIncomeT(Right(None))
-      }
+
+      mockGetPensionReliefsT(Right(None))
+      mockGetPensionChargesT(Right(None))
+      mockGetPensionIncomeT(Right(None))
+      mockGetStateBenefits(journeyCtxWithNino)(Right(None))
+      mockGetEmployment(journeyCtxWithNino)(Right(EmploymentPensions.empty))
+      mockGetAllStatuses(taxYear, mtditid)(Right(List.empty))
+
 
       val underTest = new PensionsServiceImpl(
         appConfig,
-        mocks.mockReliefsConnector,
-        mocks.mockChargesConnector,
-        stateBenfitService,
-        mocks.mockIncomeConnector,
+        mockReliefsConnector,
+        mockChargesConnector,
+        stateBenefitService,
+        mockIncomeConnector,
         employmentService,
         statusService,
         repository

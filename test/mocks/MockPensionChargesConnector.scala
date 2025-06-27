@@ -22,29 +22,31 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
-import org.mockito.ArgumentMatchers.{any, eq => meq}
-import org.mockito.Mockito.when
-import org.mockito.stubbing.OngoingStubbing
-import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalamock.handlers.CallHandler3
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionChargesConnector {
+trait MockPensionChargesConnector extends MockFactory {
+  self: TestSuite =>
   val mockChargesConnector: PensionChargesConnector = mock[PensionChargesConnector]
 
-  def mockGetPensionChargesT(expectedResult: Either[ServiceError, Option[GetPensionChargesRequestModel]])
-      : OngoingStubbing[ApiResultT[Option[GetPensionChargesRequestModel]]] =
-    when(
-      mockChargesConnector
-        .getPensionChargesT(anyNino, anyTaxYear)(any[HeaderCarrier]))
-      .thenReturn(EitherT.fromEither[Future](expectedResult))
+  def mockGetPensionChargesT(
+    expectedResult: Either[ServiceError, Option[GetPensionChargesRequestModel]]
+  ): CallHandler3[Nino, TaxYear, HeaderCarrier, ApiResultT[Option[GetPensionChargesRequestModel]]] =
+    (mockChargesConnector
+      .getPensionChargesT(_: Nino, _: TaxYear)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .anyNumberOfTimes()
+      .returning(EitherT.fromEither[Future](expectedResult))
 
-  def mockCreateOrAmendPensionChargesT(expectedResult: Either[ServiceError, Unit],
-                                       expectedModel: CreateUpdatePensionChargesRequestModel): OngoingStubbing[ApiResultT[Unit]] =
-    when(
-      mockChargesConnector
-        .createUpdatePensionChargesT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
-      .thenReturn(EitherT.fromEither[Future](expectedResult))
+  def mockCreateOrAmendPensionChargesT(expectedResult: Either[ServiceError, Unit])
+                                      (expectedModel: CreateUpdatePensionChargesRequestModel): CallHandler3[JourneyContextWithNino, CreateUpdatePensionChargesRequestModel, HeaderCarrier, ApiResultT[Unit]] =
+    (mockChargesConnector
+      .createUpdatePensionChargesT(_: JourneyContextWithNino, _: CreateUpdatePensionChargesRequestModel)(_: HeaderCarrier))
+      .expects(*, expectedModel, *)
+      .returning(EitherT.fromEither[Future](expectedResult))
 }

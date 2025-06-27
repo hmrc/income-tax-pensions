@@ -22,29 +22,30 @@ import models.common._
 import models.domain.ApiResultT
 import models.error.ServiceError
 import models.{CreateUpdatePensionIncomeModel, GetPensionIncomeModel}
-import org.mockito.ArgumentMatchers.{any, eq => meq}
-import org.mockito.Mockito.when
-import org.mockito.stubbing.OngoingStubbing
-import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalamock.handlers.CallHandler3
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-trait MockPensionIncomeConnector {
+trait MockPensionIncomeConnector extends MockFactory {
+  self: TestSuite =>
   val mockIncomeConnector: PensionIncomeConnector = mock[PensionIncomeConnector]
 
   def mockGetPensionIncomeT(
-      expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): OngoingStubbing[ApiResultT[Option[GetPensionIncomeModel]]] =
-    when(
-      mockIncomeConnector
-        .getPensionIncomeT(anyNino, anyTaxYear)(any[HeaderCarrier]))
-      .thenReturn(EitherT.fromEither[Future](expectedResult))
+      expectedResult: Either[ServiceError, Option[GetPensionIncomeModel]]): CallHandler3[Nino, TaxYear, HeaderCarrier, ApiResultT[Option[GetPensionIncomeModel]]] =
+    (mockIncomeConnector
+      .getPensionIncomeT(_: Nino, _: TaxYear)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .anyNumberOfTimes()
+      .returning(EitherT.fromEither[Future](expectedResult))
 
   def mockCreateOrAmendPensionIncomeT(expectedResult: Either[ServiceError, Unit],
-                                      expectedModel: CreateUpdatePensionIncomeModel): OngoingStubbing[ApiResultT[Unit]] =
-    when(
-      mockIncomeConnector
-        .createOrAmendPensionIncomeT(any[JourneyContextWithNino], meq(expectedModel))(any[HeaderCarrier]))
-      .thenReturn(EitherT.fromEither[Future](expectedResult))
+                                      expectedModel: CreateUpdatePensionIncomeModel): CallHandler3[JourneyContextWithNino, CreateUpdatePensionIncomeModel, HeaderCarrier, ApiResultT[Unit]] =
+    (mockIncomeConnector
+      .createOrAmendPensionIncomeT(_: JourneyContextWithNino, _: CreateUpdatePensionIncomeModel)(_: HeaderCarrier))
+      .expects(*, expectedModel, *)
+      .returning(EitherT.fromEither[Future](expectedResult))
 }
