@@ -19,26 +19,36 @@ package stubs.services
 import cats.data.EitherT
 import cats.implicits._
 import models.common.JourneyContextWithNino
-import models.domain.ApiResultT
 import models.error.ServiceError
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.submission.EmploymentPensions
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.EmploymentService
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.EmploymentPensionsBuilder.employmentPensionsData
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class StubEmploymentService(
-    loadEmploymentResult: Either[ServiceError, EmploymentPensions] = employmentPensionsData.asRight[ServiceError],
-    var ukPensionIncome: List[UkPensionIncomeAnswers] = Nil
-) extends EmploymentService {
-  def getEmployment(ctx: JourneyContextWithNino)(implicit hc: HeaderCarrier): ApiResultT[EmploymentPensions] =
-    EitherT.fromEither[Future](loadEmploymentResult)
+trait MockEmploymentService extends MockFactory {
+  self: TestSuite =>
 
-  def upsertUkPensionIncome(ctx: JourneyContextWithNino, answers: UkPensionIncomeAnswers)(implicit hc: HeaderCarrier): ApiResultT[Unit] = {
-    ukPensionIncome ::= answers
-    EitherT.rightT(())
-  }
+  val mockEmploymentService: EmploymentService = mock[EmploymentService]
+
+  def mockGetEmployment(
+                         ctx: JourneyContextWithNino,
+                         result: Either[ServiceError, EmploymentPensions]): Unit =
+    (mockEmploymentService
+      .getEmployment(_: JourneyContextWithNino)(_: HeaderCarrier))
+      .expects(*, *)
+      .returning(EitherT.fromEither[Future](result))
+
+  def mockUpsertUkPensionIncome(
+                                 ctx: JourneyContextWithNino,
+                                 answers: UkPensionIncomeAnswers
+                               ): Unit =
+    (mockEmploymentService
+      .upsertUkPensionIncome(_: JourneyContextWithNino, _: UkPensionIncomeAnswers)(_: HeaderCarrier))
+      .expects(ctx, answers, *)
+      .returning(EitherT.rightT[Future, ServiceError](()))
 }
