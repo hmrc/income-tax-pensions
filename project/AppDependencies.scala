@@ -18,9 +18,9 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "9.13.0"
+  private val bootstrapVersion = "10.1.0"
   private val flexmarkVersion  = "0.64.8"
-  private val hmrcMongoVersion = "2.6.0"
+  private val hmrcMongoVersion = "2.7.0"
 
   val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
@@ -33,21 +33,21 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
-    "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.18.3",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.19.2",
     "org.typelevel"                %% "cats-core"                 % "2.13.0",
-    "com.beachape"                 %% "enumeratum"                % "1.7.5",
-    "com.beachape"                 %% "enumeratum-play-json"      % "1.8.2" excludeAll (jacksonAndPlayExclusions *)
+    "com.beachape"                 %% "enumeratum"                % "1.9.0",
+    "com.beachape"                 %% "enumeratum-play-json"      % "1.9.0" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapVersion % Test,
     "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongoVersion % "test, it",
-    "org.playframework"      %% "play-test"               % "3.0.7"          % Test,
+    "org.playframework"      %% "play-test"               % "3.0.8"          % Test,
     "org.scalatest"          %% "scalatest"               % "3.2.19"         % Test,
     "org.scalatestplus"      %% "scalacheck-1-15"         % "3.2.11.0"       % "test, it",
     "com.vladsch.flexmark"    % "flexmark-all"            % flexmarkVersion  % "test, it",
-    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.1"          % "test, it",
-    "com.github.tomakehurst"  % "wiremock"                % "3.0.1"          % "test, it",
-    "org.scalamock"          %% "scalamock"               % "6.2.0"          % Test
+    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % "test, it",
+    "com.github.tomakehurst"  % "wiremock"                % "3.8.0"          % "test, it",
+    "org.scalamock"          %% "scalamock"               % "7.4.1"          % Test
   )
 }
