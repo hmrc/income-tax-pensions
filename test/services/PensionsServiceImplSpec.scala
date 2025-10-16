@@ -16,7 +16,6 @@
 
 package services
 
-import cats.data.EitherT
 import cats.implicits.catsSyntaxOptionId
 import com.codahale.metrics.SharedMetricRegistries
 import connectors._
@@ -30,7 +29,6 @@ import models.charges.{CreateUpdatePensionChargesRequestModel, GetPensionCharges
 import models.common._
 import models.database._
 import models.employment.AllEmploymentData
-import models.error.ServiceError
 import models.frontend.statepension.{IncomeFromPensionsStatePensionAnswers, StateBenefitAnswers}
 import models.frontend.ukpensionincome.UkPensionIncomeAnswers
 import models.frontend.{AnnualAllowancesAnswers, PaymentsIntoOverseasPensionsAnswers, PaymentsIntoPensionsAnswers}
@@ -51,12 +49,11 @@ import testdata.paymentsIntoPensions.paymentsIntoPensionsAnswers
 import testdata.shortServiceRefunds.{overseasPensionContributions, shortServiceRefundsAnswers, shortServiceRefundsCtxStorageAnswers}
 import testdata.transfersIntoOverseasPensions._
 import testdata.ukpensionincome.sampleSingleUkPensionIncome
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EitherTTestOps.convertScalaFuture
 import utils.EmploymentPensionsBuilder.employmentPensionsData
-import utils.TestUtils.{currTaxYear, mtditid, taxYear}
+import utils.TestUtils.{currTaxYear, mtditid}
 import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future
@@ -629,17 +626,6 @@ class PensionsServiceImplSpec
             JourneyNameAndStatus(Journey.TransferIntoOverseasPensions, JourneyStatus.Completed),
             JourneyNameAndStatus(Journey.ShortServiceRefunds, JourneyStatus.Completed)
           ))
-        )
-
-        val underTest: PensionsService = new PensionsServiceImpl(
-          mockAppConfig,
-          mockReliefsConnector,
-          mockChargesConnector,
-          mockStateBenefitsService,
-          mockIncomeConnector,
-          mockEmploymentService,
-          mockJourneyStatusService,
-          StubJourneyAnswersRepository()
         )
 
         mockGetPensionReliefsT(Right(None))

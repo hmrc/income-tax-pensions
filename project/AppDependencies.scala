@@ -18,9 +18,9 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "10.1.0"
+  private val bootstrapVersion = "10.3.0"
   private val flexmarkVersion  = "0.64.8"
-  private val hmrcMongoVersion = "2.7.0"
+  private val hmrcMongoVersion = "2.10.0"
 
   val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
@@ -33,7 +33,7 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-backend-play-30" % bootstrapVersion,
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"        % hmrcMongoVersion,
-    "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.19.2",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.20.0",
     "org.typelevel"                %% "cats-core"                 % "2.13.0",
     "com.beachape"                 %% "enumeratum"                % "1.9.0",
     "com.beachape"                 %% "enumeratum-play-json"      % "1.9.0" excludeAll (jacksonAndPlayExclusions *)
@@ -41,13 +41,13 @@ object AppDependencies {
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapVersion % Test,
-    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongoVersion % "test, it",
-    "org.playframework"      %% "play-test"               % "3.0.8"          % Test,
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongoVersion % Test,
+    "org.playframework"      %% "play-test"               % "3.0.9"          % Test,
     "org.scalatest"          %% "scalatest"               % "3.2.19"         % Test,
-    "org.scalatestplus"      %% "scalacheck-1-15"         % "3.2.11.0"       % "test, it",
-    "com.vladsch.flexmark"    % "flexmark-all"            % flexmarkVersion  % "test, it",
-    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % "test, it",
-    "com.github.tomakehurst"  % "wiremock"                % "3.8.0"          % "test, it",
-    "org.scalamock"          %% "scalamock"               % "7.4.1"          % Test
+    "org.scalatestplus"      %% "scalacheck-1-15"         % "3.2.11.0"       % Test,
+    "com.vladsch.flexmark"    % "flexmark-all"            % flexmarkVersion  % Test,
+    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % Test,
+    "com.github.tomakehurst"  % "wiremock"                % "3.8.0"          % Test,
+    "org.scalamock"          %% "scalamock"               % "7.5.0"          % Test
   )
 }
