@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
+import uk.gov.hmrc.DefaultBuildSettings
 import play.sbt.routes.RoutesKeys
 
 lazy val appName = "income-tax-pensions"
@@ -61,6 +61,9 @@ lazy val microservice = Project(appName, file("."))
       "models.common._"
     )
   )
-  .configs(IntegrationTest extend Test)
-  .settings(integrationTestSettings(): _*)
   .settings(coverageSettings: _*)
+
+lazy val it = project.enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= AppDependencies.test)
