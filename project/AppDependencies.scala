@@ -18,7 +18,7 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "10.4.0"
+  private val bootstrapVersion = "10.5.0"
   private val flexmarkVersion  = "0.64.8"
   private val hmrcMongoVersion = "2.11.0"
 
@@ -48,6 +48,6 @@ object AppDependencies {
     "com.vladsch.flexmark"    % "flexmark-all"            % flexmarkVersion  % Test,
     "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % Test,
     "com.github.tomakehurst"  % "wiremock"                % "3.8.0"          % Test,
-    "org.scalamock"          %% "scalamock"               % "7.5.2"          % Test
+    "org.scalamock"          %% "scalamock"               % "7.5.3"          % Test
   )
 }
