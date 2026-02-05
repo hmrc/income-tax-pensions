@@ -53,7 +53,7 @@ import utils.AllEmploymentsDataBuilder.allEmploymentsData
 import utils.AllStateBenefitsDataBuilder.anAllStateBenefitsData
 import utils.EitherTTestOps.convertScalaFuture
 import utils.EmploymentPensionsBuilder.employmentPensionsData
-import utils.TestUtils.{currTaxYear, mtditid}
+import utils.TestUtils.currTaxYear
 import utils.{EmploymentPensionsBuilder, TestUtils}
 
 import scala.concurrent.Future

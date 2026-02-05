@@ -19,7 +19,6 @@ package connectors
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
 import config.BackendAppConfig
 import helpers.WiremockSpec
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Configuration
 import play.api.http.Status.{NO_CONTENT, OK}
 import play.api.libs.json.Json
